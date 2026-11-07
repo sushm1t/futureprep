@@ -43,7 +43,7 @@ export interface CareerRoadmap {
   stages: RoadmapStage[];
 }
 
-export const CAREER_ROADMAPS: CareerRoadmap[] = [
+const RAW_CAREER_ROADMAPS: CareerRoadmap[] = [
   // 1. NEW GRAD SWE
   {
     id: 'new-grad-swe',
@@ -229,6 +229,31 @@ export const CAREER_ROADMAPS: CareerRoadmap[] = [
                 title: 'Python Virtual Environments Primer',
                 provider: 'Real Python',
                 url: 'https://realpython.com/python-virtual-environments-a-primer/',
+                isFree: true,
+              },
+            ],
+          },
+          {
+            id: 'swe-ai-toolchain',
+            name: 'AI-Assisted Development & Code Verification (Copilot, Cursor, Claude)',
+            level: 'ESSENTIAL',
+            description:
+              'Using AI code assistants effectively: prompt scaffolding, inline completion, automated test generation, and critically auditing AI-generated code for security vulnerabilities, hallucinations, and performance regressions.',
+            whyItMatters:
+              'In 2026, engineering teams expect engineers to use AI tools for 3x velocity, but strictly screen candidates on whether they understand, verify, and debug what the model generates rather than blindly pasting.',
+            resources: [
+              {
+                type: 'DOCS',
+                title: 'GitHub Copilot Documentation & Best Practices',
+                provider: 'GitHub',
+                url: 'https://docs.github.com/en/copilot',
+                isFree: true,
+              },
+              {
+                type: 'DOCS',
+                title: 'Prompt Engineering for Code Generation',
+                provider: 'Anthropic Docs',
+                url: 'https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/overview',
                 isFree: true,
               },
             ],
@@ -1980,3 +2005,18 @@ export const CAREER_ROADMAPS: CareerRoadmap[] = [
   ...EXPANDED_ROADMAPS,
   ...MORE_ROADMAPS,
 ];
+
+export const CAREER_ROADMAPS: CareerRoadmap[] = RAW_CAREER_ROADMAPS.map((roadmap) => {
+  const stagesCount = roadmap.stages.length;
+  const skillsCount = roadmap.stages.reduce((acc, stage) => acc + stage.skills.length, 0);
+  const resourcesCount = roadmap.stages.reduce(
+    (acc, stage) => acc + stage.skills.reduce((sum, skill) => sum + skill.resources.length, 0),
+    0
+  );
+  return {
+    ...roadmap,
+    stagesCount,
+    skillsCount,
+    resourcesCount,
+  };
+});

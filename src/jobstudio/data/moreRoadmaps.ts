@@ -48,10 +48,20 @@ function build(
   };
 }
 
-const GOOGLE_SKILLSHOP = 'https://skillshop.withgoogle.com';
-const HUBSPOT_ACADEMY = 'https://academy.hubspot.com';
-const COURSERA_AUDIT = 'https://www.coursera.org';
-const KHAN = 'https://www.khanacademy.org';
+const GOOGLE_SKILLSHOP_ADS = 'https://skillshop.exceedlms.com/student/catalog/browse?category_ids=2844-google-ads';
+const GOOGLE_SKILLSHOP_GA4 = 'https://skillshop.exceedlms.com/student/catalog/browse?category_ids=6431-google-analytics-4';
+const HUBSPOT_INBOUND_SALES = 'https://academy.hubspot.com/courses/inbound-sales';
+const HUBSPOT_DIGITAL_MARKETING = 'https://academy.hubspot.com/courses/digital-marketing';
+const HUBSPOT_PRODUCT_MARKETING = 'https://academy.hubspot.com/courses/product-marketing';
+const HUBSPOT_CUSTOMER_SERVICE = 'https://academy.hubspot.com/courses/customer-service-training';
+const COURSERA_SUPPLY_CHAIN = 'https://www.coursera.org/specializations/supply-chain-management';
+const COURSERA_PEOPLE_ANALYTICS = 'https://www.coursera.org/learn/wharton-people-analytics';
+const COURSERA_SIX_SIGMA = 'https://www.coursera.org/learn/six-sigma-principles';
+const COURSERA_EXCEL = 'https://www.coursera.org/specializations/excel';
+const COURSERA_NEGOTIATION = 'https://www.coursera.org/learn/negotiation-skills';
+const COURSERA_SUSTAINABLE_TOURISM = 'https://www.coursera.org/learn/sustainable-tourism';
+const COURSERA_HOTEL_MGMT = 'https://www.coursera.org/specializations/hotel-management';
+const KHAN_FINANCE = 'https://www.khanacademy.org/economics-finance-domain/core-finance';
 
 export const MORE_ROADMAPS: CareerRoadmap[] = [
   build(
@@ -115,7 +125,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
     [
       ['Sales Foundations', 'Learn the sales process and the tools reps use daily.', [
         ['Sales process & CRM hygiene', 'ESSENTIAL', 'Pipeline stages, logging activity and managing deals in a CRM.', 'Clean pipeline data is how managers trust your forecast.', [
-          ['COURSE', 'Inbound Sales / Sales Software courses', 'HubSpot Academy', HUBSPOT_ACADEMY],
+          ['COURSE', 'Inbound Sales / Sales Software courses', 'HubSpot Academy', HUBSPOT_INBOUND_SALES],
           ['DOCS', 'Sales blog & guides', 'HubSpot', 'https://blog.hubspot.com/sales'],
         ]],
         ['Buyer research', 'ESSENTIAL', 'Ideal customer profile, personas and trigger events.', 'Relevance is what gets replies from busy buyers.', [
@@ -126,6 +136,10 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
         ['Cold email & calling', 'ESSENTIAL', 'Short personalised messages, call openers and objection handling.', 'Meetings booked is the core SDR metric.', [
           ['DOCS', 'Sales resources & blog', 'Gong Labs', 'https://www.gong.io/blog/'],
           ['VIDEO', 'Sales training videos', '30 Minutes to President\'s Club (YouTube)', 'https://www.youtube.com/@30MPC'],
+        ]],
+        ['Signal-based outbound & deliverability', 'ESSENTIAL', 'DMARC, DKIM, SPF compliance, domain warmup, and signal-based triggers (hiring, funding, tech stack).', 'Mass email blasts hit spam folders in 2026; deliverability infrastructure and intent signals are mandatory to reach inboxes.', [
+          ['DOCS', 'Email sender guidelines & compliance', 'Google Workspace Admin', 'https://support.google.com/a/answer/81126'],
+          ['DOCS', 'B2B signal-based outbound guide', 'Clay University', 'https://www.clay.com/university'],
         ]],
       ]],
       ['Discovery & Demos (AE)', 'Run conversations that uncover real business pain.', [
@@ -138,7 +152,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
       ]],
       ['Closing & Forecasting', 'Negotiate, close and predict revenue.', [
         ['Negotiation', 'ADVANCED', 'Anchoring, trade-offs, procurement and mutual action plans.', 'Protects deal value and shortens sales cycles.', [
-          ['COURSE', 'Successful Negotiation (audit free)', 'University of Michigan / Coursera', COURSERA_AUDIT],
+          ['COURSE', 'Successful Negotiation (audit free)', 'University of Michigan / Coursera', COURSERA_NEGOTIATION],
         ]],
       ]],
     ],
@@ -155,8 +169,8 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
     [
       ['Marketing Fundamentals', 'Funnels, positioning and customer journeys.', [
         ['Digital marketing basics', 'ESSENTIAL', 'Funnels, channels, CAC, LTV and conversion rates.', 'Every growth decision maps back to these numbers.', [
-          ['COURSE', 'Fundamentals of Digital Marketing', 'Google Digital Garage', 'https://learndigital.withgoogle.com/digitalgarage'],
-          ['COURSE', 'Digital Marketing certification', 'HubSpot Academy', HUBSPOT_ACADEMY],
+          ['COURSE', 'Digital Marketing certification', 'HubSpot Academy', HUBSPOT_DIGITAL_MARKETING],
+          ['COURSE', 'Google Digital Marketing & E-commerce', 'Google on Coursera', 'https://www.coursera.org/professional-certificates/google-digital-marketing-ecommerce'],
         ]],
       ]],
       ['Organic Growth', 'Content and search that compound over time.', [
@@ -167,14 +181,18 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
       ]],
       ['Paid Acquisition', 'Run profitable ad campaigns.', [
         ['Search & social ads', 'ESSENTIAL', 'Campaign structure, bidding, creatives and audiences.', 'Paid channels give fast, measurable growth when managed well.', [
-          ['COURSE', 'Google Ads certifications', 'Google Skillshop', GOOGLE_SKILLSHOP],
+          ['COURSE', 'Google Ads certifications', 'Google Skillshop', GOOGLE_SKILLSHOP_ADS],
           ['COURSE', 'Meta Blueprint free courses', 'Meta', 'https://www.facebook.com/business/learn'],
         ]],
       ]],
       ['Analytics & Experimentation', 'Measure and improve every step.', [
         ['GA4 & A/B testing', 'RECOMMENDED', 'Event tracking, attribution, experiments and statistical significance.', 'Growth teams win by running more good experiments.', [
-          ['COURSE', 'Google Analytics certification', 'Google Skillshop', GOOGLE_SKILLSHOP],
+          ['COURSE', 'Google Analytics certification', 'Google Skillshop', GOOGLE_SKILLSHOP_GA4],
           ['DOCS', 'Experimentation guides', 'Optimizely', 'https://www.optimizely.com/optimization-glossary/ab-testing/'],
+        ]],
+        ['Server-Side Tracking & First-Party Data', 'ESSENTIAL', 'Meta Conversions API (CAPI), Server-Side Google Tag Manager (sGTM), and first-party identity resolution.', 'Third-party cookie deprecation and browser tracking restrictions make server-side event tracking required for accurate ROAS and ad attribution in 2026.', [
+          ['DOCS', 'Conversions API (CAPI) Overview', 'Meta for Developers', 'https://developers.facebook.com/docs/marketing-api/conversions-api'],
+          ['DOCS', 'Server-Side Tagging Guide', 'Google Tag Manager', 'https://developers.google.com/tag-platform/tag-manager/server-side'],
         ]],
       ]],
     ],
@@ -200,7 +218,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
       ]],
       ['Launches & Enablement', 'Bring products to market and arm sales teams.', [
         ['Go-to-market launch planning', 'RECOMMENDED', 'Launch tiers, timelines, assets and success metrics.', 'Coordinated launches create momentum instead of noise.', [
-          ['COURSE', 'Product Marketing courses', 'HubSpot Academy', HUBSPOT_ACADEMY],
+          ['COURSE', 'Product Marketing courses', 'HubSpot Academy', HUBSPOT_PRODUCT_MARKETING],
           ['DOCS', 'Lenny\'s Newsletter free posts', 'Lenny Rachitsky', 'https://www.lennysnewsletter.com'],
         ]],
       ]],
@@ -217,7 +235,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
     [
       ['Support & Onboarding', 'Get new customers live and successful quickly.', [
         ['Customer onboarding & communication', 'ESSENTIAL', 'Kickoff calls, success plans and clear written updates.', 'Early value is the strongest predictor of renewal.', [
-          ['COURSE', 'Customer Service fundamentals', 'HubSpot Academy', HUBSPOT_ACADEMY],
+          ['COURSE', 'Customer Service fundamentals', 'HubSpot Academy', HUBSPOT_CUSTOMER_SERVICE],
           ['DOCS', 'Customer success resources', 'Gainsight', 'https://www.gainsight.com/resources/'],
         ]],
       ]],
@@ -244,7 +262,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
     [
       ['Spreadsheet & Data Skills', 'The everyday toolkit of operations.', [
         ['Advanced spreadsheets', 'ESSENTIAL', 'Lookups, pivot tables, charts and simple models.', 'Most operational decisions start in a spreadsheet.', [
-          ['COURSE', 'Excel Skills for Business (audit free)', 'Macquarie University / Coursera', COURSERA_AUDIT],
+          ['COURSE', 'Excel Skills for Business (audit free)', 'Macquarie University / Coursera', COURSERA_EXCEL],
           ['DOCS', 'Google Sheets training', 'Google Workspace', 'https://support.google.com/a/users/answer/9282959'],
         ]],
         ['SQL for operations', 'RECOMMENDED', 'Querying, joining and aggregating business data.', 'Removes dependency on analysts for routine questions.', [
@@ -275,7 +293,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
     [
       ['Supply Chain Basics', 'How goods flow from supplier to customer.', [
         ['End-to-end supply chain', 'ESSENTIAL', 'Plan, source, make, deliver and return.', 'Every specialist role sits inside this flow.', [
-          ['COURSE', 'Supply Chain Management Specialization (audit free)', 'Rutgers / Coursera', COURSERA_AUDIT],
+          ['COURSE', 'Supply Chain Management Specialization (audit free)', 'Rutgers / Coursera', COURSERA_SUPPLY_CHAIN],
           ['COURSE', 'MITx Supply Chain courses (audit free)', 'edX', 'https://www.edx.org/micromasters/mitx-supply-chain-management'],
         ]],
       ]],
@@ -286,7 +304,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
       ]],
       ['Process Improvement', 'Make operations faster and more reliable.', [
         ['Lean & Six Sigma basics', 'RECOMMENDED', 'Waste reduction, root cause analysis and process mapping.', 'A widely recognised skill set across operations roles.', [
-          ['COURSE', 'Six Sigma Yellow Belt (audit free)', 'Coursera', COURSERA_AUDIT],
+          ['COURSE', 'Six Sigma Yellow Belt (audit free)', 'Coursera', COURSERA_SIX_SIGMA],
         ]],
       ]],
     ],
@@ -302,7 +320,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
     [
       ['Accounting Foundations', 'Read the language of business.', [
         ['Financial statements', 'ESSENTIAL', 'Income statement, balance sheet and cash flow.', 'Every finance role depends on reading these fluently.', [
-          ['COURSE', 'Accounting and financial statements', 'Khan Academy', `${KHAN}/economics-finance-domain/core-finance`],
+          ['COURSE', 'Accounting and financial statements', 'Khan Academy', KHAN_FINANCE],
           ['COURSE', 'Free finance courses', 'Corporate Finance Institute', 'https://corporatefinanceinstitute.com/collections/free-courses/'],
         ]],
       ]],
@@ -340,7 +358,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
       ]],
       ['HR Analytics', 'Use data to improve hiring and retention.', [
         ['People analytics', 'RECOMMENDED', 'Time-to-hire, attrition, engagement surveys and dashboards.', 'Data-driven HR earns a seat in business decisions.', [
-          ['COURSE', 'People Analytics (audit free)', 'Wharton / Coursera', COURSERA_AUDIT],
+          ['COURSE', 'People Analytics (audit free)', 'Wharton / Coursera', COURSERA_PEOPLE_ANALYTICS],
         ]],
       ]],
     ],
@@ -357,7 +375,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
       ['Industry Foundations', 'How the travel ecosystem fits together.', [
         ['Travel & tourism ecosystem', 'ESSENTIAL', 'Airlines, OTAs, DMCs, tour operators and sustainable tourism.', 'Understanding the value chain helps you work across partners.', [
           ['DOCS', 'Tourism resources & data', 'UN Tourism (UNWTO)', 'https://www.unwto.org'],
-          ['COURSE', 'Sustainable Tourism (audit free)', 'University of Copenhagen / Coursera', COURSERA_AUDIT],
+          ['COURSE', 'Sustainable Tourism (audit free)', 'University of Copenhagen / Coursera', COURSERA_SUSTAINABLE_TOURISM],
         ]],
       ]],
       ['Booking Systems & Itinerary Planning', 'Tools used every day in travel operations.', [
@@ -365,12 +383,12 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
           ['DOCS', 'Amadeus learning resources', 'Amadeus', 'https://amadeus.com/en/learning'],
         ]],
         ['Itinerary design & vendor management', 'RECOMMENDED', 'Costing, contracts with hotels/transport and contingency planning.', 'Margins and guest satisfaction depend on supplier relationships.', [
-          ['COURSE', 'Excel Skills for Business (audit free)', 'Coursera', COURSERA_AUDIT],
+          ['COURSE', 'Excel Skills for Business (audit free)', 'Coursera', COURSERA_EXCEL],
         ]],
       ]],
       ['Customer Experience & Growth', 'Deliver memorable trips and grow the business.', [
         ['Guest experience & digital marketing', 'RECOMMENDED', 'Service recovery, reviews, social media and online distribution.', 'Reviews and repeat travellers drive tourism revenue.', [
-          ['COURSE', 'Fundamentals of Digital Marketing', 'Google Digital Garage', 'https://learndigital.withgoogle.com/digitalgarage'],
+          ['COURSE', 'Digital Marketing Certification', 'HubSpot Academy', HUBSPOT_DIGITAL_MARKETING],
         ]],
       ]],
     ],
@@ -386,7 +404,7 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
     [
       ['Service Foundations', 'The standards behind great hospitality.', [
         ['Guest service & front office', 'ESSENTIAL', 'Check-in flow, complaint handling and service standards.', 'Service quality is the product in hospitality.', [
-          ['COURSE', 'Hospitality courses (audit free)', 'Coursera', COURSERA_AUDIT],
+          ['COURSE', 'Hospitality courses (audit free)', 'Coursera', COURSERA_HOTEL_MGMT],
           ['DOCS', 'Hospitality Net articles', 'Hospitality Net', 'https://www.hospitalitynet.org'],
         ]],
       ]],
@@ -457,7 +475,11 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
         ]],
       ]],
       ['Career & Business', 'Turn art into income.', [
-        ['Portfolio, clients & AI-era rights', 'RECOMMENDED', 'Portfolio sites, pricing, contracts, licensing and copyright.', 'Business skills determine whether an art career is sustainable.', [
+        ['Generative AI Concepting & Creator Ethics', 'RECOMMENDED', 'Prompt-assisted ideation (Midjourney, Flux) for moodboards and thumbnailing with human craft and IP hygiene.', 'Studios in 2026 value artists who accelerate ideation with AI while maintaining authentic authorship and copyright compliance.', [
+          ['DOCS', 'Copyright Office Guidance on AI Works', 'U.S. Copyright Office', 'https://www.copyright.gov/ai/'],
+          ['DOCS', 'Concept Art Ideation Workflows', 'ArtStation Magazine', 'https://magazine.artstation.com'],
+        ]],
+        ['Portfolio, clients & licensing', 'ESSENTIAL', 'Portfolio curation, freelance pricing, contracts, client communication, and commercial licensing.', 'Business acumen determines whether an art career is sustainable long-term.', [
           ['PROJECT', 'Build a portfolio on ArtStation', 'ArtStation', 'https://www.artstation.com'],
           ['DOCS', 'Copyright basics', 'U.S. Copyright Office', 'https://www.copyright.gov/what-is-copyright/'],
         ]],
@@ -482,6 +504,10 @@ export const MORE_ROADMAPS: CareerRoadmap[] = [
         ['Video editing', 'ESSENTIAL', 'Cuts, colour, audio cleanup and captions.', 'Editing quality drives watch time.', [
           ['COURSE', 'DaVinci Resolve free training', 'Blackmagic Design', 'https://www.blackmagicdesign.com/products/davinciresolve/training'],
           ['COURSE', 'Canva Design School', 'Canva', 'https://www.canva.com/designschool/'],
+        ]],
+        ['AI-Assisted Video Tools & Workflow', 'RECOMMENDED', 'Leveraging DaVinci Neural Engine, Runway Gen-3 B-roll synthesis, auto-captions, and AI audio noise removal.', 'Modern video editors in 2026 ship 3x faster by automating captions, rotoscoping, and b-roll ideation.', [
+          ['DOCS', 'DaVinci Resolve Neural Engine Features', 'Blackmagic Design', 'https://www.blackmagicdesign.com/products/davinciresolve'],
+          ['DOCS', 'AI Video Generation & Prompting Guide', 'Runway Academy', 'https://academy.runwayml.com/'],
         ]],
       ]],
       ['Audience & Monetisation', 'Grow and earn sustainably.', [

@@ -57,4 +57,56 @@ describe('CareerRoadmapsView Layout and Filtering', () => {
 
     expect(screen.getByText('New Grad SWE')).toBeInTheDocument();
   });
+
+  it('validates 2026 data integrity across all career roadmaps', () => {
+    expect(CAREER_ROADMAPS.length).toBeGreaterThanOrEqual(31);
+
+    for (const roadmap of CAREER_ROADMAPS) {
+      // 1. Exact count parity
+      const actualStages = roadmap.stages.length;
+      const actualSkills = roadmap.stages.reduce((acc, s) => acc + s.skills.length, 0);
+      const actualResources = roadmap.stages.reduce(
+        (acc, s) => acc + s.skills.reduce((sum, k) => sum + k.resources.length, 0),
+        0
+      );
+
+      expect(roadmap.stagesCount).toBe(actualStages);
+      expect(roadmap.skillsCount).toBe(actualSkills);
+      expect(roadmap.resourcesCount).toBe(actualResources);
+      expect(roadmap.skillsCount).toBeGreaterThan(0);
+      expect(roadmap.resourcesCount).toBeGreaterThan(0);
+
+      // 2. Resource validation (no dead links, no bare root placeholders)
+      for (const stage of roadmap.stages) {
+        for (const skill of stage.skills) {
+          for (const res of skill.resources) {
+            expect(res.url).toMatch(/^https:\/\//);
+            expect(res.url).not.toContain('learndigital.withgoogle.com');
+            expect(res.url).not.toBe('https://www.coursera.org');
+            expect(res.url).not.toBe('https://academy.hubspot.com');
+            expect(res.url).not.toBe('https://skillshop.withgoogle.com');
+            expect(res.title.trim().length).toBeGreaterThan(0);
+            expect(res.provider.trim().length).toBeGreaterThan(0);
+          }
+        }
+      }
+    }
+
+    // 3. Verify specific 2026 essentials injected
+    const swe = CAREER_ROADMAPS.find((r) => r.id === 'new-grad-swe');
+    expect(swe).toBeDefined();
+    const sweAiSkill = swe?.stages.flatMap((s) => s.skills).find((k) => k.id === 'swe-ai-toolchain');
+    expect(sweAiSkill).toBeDefined();
+    expect(sweAiSkill?.name).toContain('AI-Assisted Development');
+
+    const sales = CAREER_ROADMAPS.find((r) => r.id === 'b2b-sales-sdr-ae');
+    expect(sales).toBeDefined();
+    const deliverabilitySkill = sales?.stages.flatMap((s) => s.skills).find((k) => k.name.includes('deliverability'));
+    expect(deliverabilitySkill).toBeDefined();
+
+    const marketing = CAREER_ROADMAPS.find((r) => r.id === 'growth-performance-marketing');
+    expect(marketing).toBeDefined();
+    const serverSideSkill = marketing?.stages.flatMap((s) => s.skills).find((k) => k.name.includes('Server-Side'));
+    expect(serverSideSkill).toBeDefined();
+  });
 });
