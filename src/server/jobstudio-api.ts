@@ -1183,7 +1183,9 @@ export const DEAD_PAGE_PATTERNS = [
   /no\s*active\s*vacanc(y|ies)/i,
   /no\s*open\s*positions?\s*at\s*this\s*time/i,
   /no\s*jobs?\s*found/i,
-  /job\s*(is\s*)?no\s*longer\s*available/i,
+  /job\s*(is\s*)?no\s*longer\s*(available|open|accepting)/i,
+  /the\s*job\s*(you\s*are\s*looking\s*for\s*)?is\s*no\s*longer\s*(open|available)/i,
+  /no\s*longer\s*open/i,
   /this\s*position\s*has\s*been\s*(closed|filled)/i,
   /job\s*opening\s*(has\s*)?expired/i,
   /no\s*longer\s*accepting\s*applications/i,
@@ -1289,6 +1291,8 @@ export async function verifyLiveJobUrl(
 
     // Check if redirected to an explicit 404, not-found, or error page
     if (
+      finalLower.includes('error=true') ||
+      finalLower.includes('closed=true') ||
       finalLower.includes('/404') ||
       finalLower.includes('/not-found') ||
       finalLower.includes('/not_found') ||
@@ -1298,14 +1302,25 @@ export async function verifyLiveJobUrl(
       return { ok: false, reason: 'Redirected to 404 error page' };
     }
 
-    // Check if a specific job route redirected back to the root homepage
+    // Check if a specific job route redirected back to the root homepage or generic board
     try {
       const origObj = new URL(rawUrl);
       const finalObj = new URL(finalUrl);
+      const origP = origObj.pathname.toLowerCase();
+      const finalP = finalObj.pathname.toLowerCase();
+
+      // Deep job route redirected to generic board root (e.g. /stripe/jobs/123 -> /stripe or /jobs)
+      if (
+        (origP.includes('/jobs/') || origP.includes('/job/')) &&
+        (!finalP.includes('/jobs/') && !finalP.includes('/job/'))
+      ) {
+        return { ok: false, reason: 'Redirected to general career board (role closed/expired)' };
+      }
+
       if (
         origObj.pathname.length > 3 &&
-        (finalObj.pathname === '/' || finalObj.pathname === '') &&
-        origObj.hostname === finalObj.hostname
+        (finalObj.pathname === '/' || finalObj.pathname === '' || finalP.endsWith('/careers') || finalP.endsWith('/jobs')) &&
+        (origObj.hostname === finalObj.hostname || finalObj.hostname.includes(origObj.hostname.split('.')[0]))
       ) {
         return { ok: false, reason: 'Redirected to root homepage (listing expired)' };
       }
@@ -2012,234 +2027,7 @@ app.post('/api/ats/crawl', async (req, res) => {
         }
       }
 
-      // Direct ATS roles for Fintech, Payment Operations & Incident Systems (Revolut, Deel, Stripe, Brex, Razorpay, GitLab, Canva)
-      const fintechVerifiedRoles = [
-        {
-          id: 'revolut-ops-101',
-          title: 'Real-Time Analyst / SME – Real-Time Operations',
-          company: 'Revolut',
-          location: 'Bengaluru, Karnataka, India',
-          department: 'Fintech Operations',
-          platform: 'Lever',
-          applyUrl: 'https://jobs.lever.co/revolut/8b11c97a-9a99-4c07-b352-78d123018251',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Monitor real-time service operations across 1,000+ frontline agents and dynamic queues. Incident response, queue balancing, SLA monitoring and process optimization.',
-          rawDescription: 'Monitor real-time service operations across 1,000+ frontline agents and dynamic queues. Incident response, queue balancing, SLA monitoring, SQL data investigations, and cross-functional communications.',
-          isRemote: false,
-          workplaceType: 'On-site',
-          seniority: 'Mid-Level',
-          matchScore: 94,
-          matchHighlight: 'Exceptional match with candidate experience in Real-Time Operations and queue balancing at Revolut.',
-          verifiedLive: true,
-        },
-        {
-          id: 'revolut-ops-102',
-          title: 'Support Specialist – Card Payments, Chargebacks & Disputes',
-          company: 'Revolut',
-          location: 'Bengaluru, Karnataka, India',
-          department: 'Card Payments & Disputes',
-          platform: 'Lever',
-          applyUrl: 'https://jobs.lever.co/revolut/47a8efb1-7a2e-4b47-bcf4-3e6cb839b33a',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Investigate cardholder payment disputes and chargeback cases involving Visa and Mastercard in a high-volume fintech operations environment.',
-          rawDescription: 'Investigate cardholder payment disputes and chargeback cases involving Visa and Mastercard within a regulated fintech environment. Root-cause analysis, first-contact resolution, and dispute risk optimization.',
-          isRemote: false,
-          workplaceType: 'On-site',
-          seniority: 'Mid-Level',
-          matchScore: 96,
-          matchHighlight: 'Direct match with candidate background in Visa/Mastercard chargebacks and transaction investigations.',
-          verifiedLive: true,
-        },
-        {
-          id: 'revolut-ops-103',
-          title: 'Payment Operations & Dispute Resolution Analyst',
-          company: 'Revolut',
-          location: 'Bengaluru, Karnataka, India',
-          department: 'Global Payment Operations',
-          platform: 'Lever',
-          applyUrl: 'https://jobs.lever.co/revolut/e781fc49-b0c6-43a1-9457-3f9c6d483b8a',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Manage end-to-end payment exceptions, card schemes, settlement reconciliations and scheme compliance across multi-currency channels.',
-          rawDescription: 'Manage end-to-end payment exceptions, card schemes, settlement reconciliations and scheme compliance across multi-currency channels. Root-cause defect reduction, reporting in SQL and Metabase.',
-          isRemote: false,
-          workplaceType: 'On-site',
-          seniority: 'Mid-Level',
-          matchScore: 92,
-          matchHighlight: 'High overlap with multi-currency reconciliation, transaction investigations and SQL reporting.',
-          verifiedLive: true,
-        },
-        {
-          id: 'revolut-ops-104',
-          title: 'Incident Response & Operations Coordinator',
-          company: 'Revolut',
-          location: 'Remote, India',
-          department: 'Platform Reliability & Ops',
-          platform: 'Lever',
-          applyUrl: 'https://jobs.lever.co/revolut/9a41de78-cf18-4912-b9e7-53bc4f1a288c',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Coordinate operational incident response for Crypto, Wealth, and Trading platforms. Lead incident bridges, triage mitigation, and stakeholder communication.',
-          rawDescription: 'Coordinate operational incident response for platform outages and high-volume events. Act as point of contact, align Engineering and Product, and automate operational runbooks.',
-          isRemote: true,
-          workplaceType: 'Remote',
-          seniority: 'Mid-Level',
-          matchScore: 90,
-          matchHighlight: 'Strong match for candidate incident bridge leadership and Slack workflow automation experience.',
-          verifiedLive: true,
-        },
-        {
-          id: 'deel-ops-201',
-          title: 'Global Payment Operations Specialist',
-          company: 'Deel',
-          location: 'Remote, India',
-          department: 'Fintech & Treasury Ops',
-          platform: 'Ashby',
-          applyUrl: 'https://jobs.ashbyhq.com/deel/69a30cf1-5d28-4391-a5f1-39bc1ef8148b',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Oversee international multi-currency payouts, payout reconciliation, banking partner exceptions, and payment network investigations.',
-          rawDescription: 'Oversee international multi-currency payouts, payout reconciliation, banking partner exceptions, and payment network investigations across EUR, USD, GBP, and INR.',
-          isRemote: true,
-          workplaceType: 'Remote',
-          seniority: 'Mid-Level',
-          matchScore: 91,
-          matchHighlight: 'Perfect fit for international billing coordination, multi-currency payouts, and reconciliation experience.',
-          verifiedLive: true,
-        },
-        {
-          id: 'deel-ops-202',
-          title: 'B2B Client Operations & Billing Coordinator',
-          company: 'Deel',
-          location: 'Remote, India',
-          department: 'Enterprise Customer Operations',
-          platform: 'Ashby',
-          applyUrl: 'https://jobs.ashbyhq.com/deel/b8417c82-ef30-4e28-a551-89dc20fb1278',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Coordinate client account governance, billing milestone tracking, multi-currency invoicing, and contractual SLA adherence.',
-          rawDescription: 'Coordinate client account governance, billing milestone tracking, multi-currency invoicing, and contractual SLA adherence for international enterprise clients.',
-          isRemote: true,
-          workplaceType: 'Remote',
-          seniority: 'Mid-Level',
-          matchScore: 88,
-          matchHighlight: 'Aligns directly with candidate portfolio management and enterprise B2B billing experience.',
-          verifiedLive: true,
-        },
-        {
-          id: 'stripe-ops-301',
-          title: 'User Operations Specialist – Payment Risk & Disputes',
-          company: 'Stripe',
-          location: 'Bengaluru, Karnataka, India',
-          department: 'Risk Operations',
-          platform: 'Greenhouse',
-          applyUrl: 'https://boards.greenhouse.io/stripe/jobs/6102948',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Investigate payment fraud, card disputes, and merchant transaction anomalies using SQL, internal risk consoles, and card network protocols.',
-          rawDescription: 'Investigate payment fraud, card disputes, and merchant transaction anomalies using SQL, internal risk consoles, and card network protocols. Build operational workflows and reduce dispute friction.',
-          isRemote: false,
-          workplaceType: 'Hybrid',
-          seniority: 'Mid-Level',
-          matchScore: 93,
-          matchHighlight: 'High synergy with Visa/Mastercard dispute handling and SQL data querying platform skills.',
-          verifiedLive: true,
-        },
-        {
-          id: 'stripe-ops-302',
-          title: 'Billing & Transaction Operations Analyst',
-          company: 'Stripe',
-          location: 'Remote, India',
-          department: 'Financial Infrastructure Ops',
-          platform: 'Greenhouse',
-          applyUrl: 'https://boards.greenhouse.io/stripe/jobs/6184912',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Handle multi-currency transaction processing, automated billing schedules, milestone reconciliations, and merchant account escalations.',
-          rawDescription: 'Handle multi-currency transaction processing, automated billing schedules, milestone reconciliations, and merchant account escalations.',
-          isRemote: true,
-          workplaceType: 'Remote',
-          seniority: 'Mid-Level',
-          matchScore: 89,
-          matchHighlight: 'Direct relevance to B2B multi-currency invoice tracking and exception management.',
-          verifiedLive: true,
-        },
-        {
-          id: 'brex-ops-401',
-          title: 'Card Operations & Dispute Settlement Specialist',
-          company: 'Brex',
-          location: 'Remote, Global / India',
-          department: 'Spend Operations',
-          platform: 'Greenhouse',
-          applyUrl: 'https://boards.greenhouse.io/brex/jobs/5910248',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Lead cardholder chargeback appeals, merchant dispute evidence packages, and Mastercard scheme compliance.',
-          rawDescription: 'Lead cardholder chargeback appeals, merchant dispute evidence packages, and Mastercard scheme compliance. Optimize dispute evidence workflows.',
-          isRemote: true,
-          workplaceType: 'Remote',
-          seniority: 'Mid-Level',
-          matchScore: 91,
-          matchHighlight: 'Proven track record in card dispute handling, evidence gathering and 95%+ first-contact resolution.',
-          verifiedLive: true,
-        },
-        {
-          id: 'gitlab-ops-501',
-          title: 'Operations Analyst – Business & Systems Operations',
-          company: 'GitLab',
-          location: 'Remote, India',
-          department: 'Business Operations',
-          platform: 'Greenhouse',
-          applyUrl: 'https://boards.greenhouse.io/gitlab/jobs/6019284',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Automate team operational workflows, manage incident alerts, track queue performance metrics, and build cross-functional dashboards in Looker.',
-          rawDescription: 'Automate team operational workflows, manage incident alerts, track queue performance metrics, and build cross-functional dashboards in Looker and Sheets.',
-          isRemote: true,
-          workplaceType: 'Remote',
-          seniority: 'Mid-Level',
-          matchScore: 86,
-          matchHighlight: 'Direct match for Looker dashboards, workflow automation (Slack/Zapier), and SLA metrics tracking.',
-          verifiedLive: true,
-        },
-        {
-          id: 'canva-ops-601',
-          title: 'Customer Operations & Billing Support Specialist',
-          company: 'Canva',
-          location: 'Remote, India',
-          department: 'User Operations',
-          platform: 'Greenhouse',
-          applyUrl: 'https://boards.greenhouse.io/canva/jobs/5829104',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Provide tiered resolution for international billing exceptions, payment processing errors, and enterprise account management.',
-          rawDescription: 'Provide tiered resolution for international billing exceptions, payment processing errors, and enterprise account management.',
-          isRemote: true,
-          workplaceType: 'Remote',
-          seniority: 'Mid-Level',
-          matchScore: 84,
-          matchHighlight: 'Strong fit for account management, billing checks, and client exception resolution.',
-          verifiedLive: true,
-        },
-        {
-          id: 'razorpay-ops-701',
-          title: 'Senior Payment Operations Analyst – Card Schemes & Disputes',
-          company: 'Razorpay',
-          location: 'Bengaluru, Karnataka, India',
-          department: 'Payment Network Operations',
-          platform: 'Direct Requisition',
-          applyUrl: 'https://boards.greenhouse.io/stripe/jobs/6201844',
-          publishedAt: new Date().toISOString(),
-          descriptionSnippet: 'Analyze domestic and international card chargeback trends, liaise with acquiring banks, and automate dispute filing pipelines with SQL.',
-          rawDescription: 'Analyze domestic and international card chargeback trends, liaise with acquiring banks, and automate dispute filing pipelines with SQL.',
-          isRemote: false,
-          workplaceType: 'Hybrid',
-          seniority: 'Senior',
-          matchScore: 92,
-          matchHighlight: 'Excellent alignment with card payment operations, dispute investigation and SQL query experience.',
-          verifiedLive: true,
-        },
-      ];
-
-      // Only inject fintech verified roles if candidate profile or search query is fintech/payment operations
-      const isFintechProfile = Boolean(
-        profileContext?.domain === 'Fintech & Payment Operations' ||
-        /payment|fintech|dispute|chargeback|card operation|reconciliation|billing/i.test(cleanKeyword)
-      );
-      if (isFintechProfile) {
-        rawJobs.push(...fintechVerifiedRoles);
-      }
+      // All live positions are sourced dynamically from real-time ATS catalogue feeds, company boards, and verified live web requisitions.
 
       // If the crawled catalogue returned fewer than 5 jobs matching the keyword/profile (e.g. healthcare in India),
       // auto-discover real, authenticated vacancies across hospital portals, LinkedIn, and direct career sites via Gemini Google Search!
