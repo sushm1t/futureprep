@@ -271,7 +271,7 @@ export const ReportBugModal: React.FC<ReportBugModalProps> = ({
         {/* Header */}
         <div className="mobile-dialog-heading px-6 py-5 border-b border-border flex items-center justify-between bg-card">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center justify-center text-amber-400 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/25 flex items-center justify-center text-brand shrink-0">
               <Bug className="w-5 h-5" />
             </div>
             <div>
@@ -279,7 +279,7 @@ export const ReportBugModal: React.FC<ReportBugModalProps> = ({
                 <h3 className="font-display text-base sm:text-lg font-semibold text-foreground">
                   Report a Bug or Issue
                 </h3>
-                <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/25 uppercase tracking-wider font-mono">
+                <span className="px-2 py-0.5 text-[10px] font-bold rounded-md bg-brand/10 text-brand border border-brand/25 uppercase tracking-wider font-mono">
                   FEEDBACK
                 </span>
               </div>
@@ -314,7 +314,7 @@ export const ReportBugModal: React.FC<ReportBugModalProps> = ({
                   Thank you for helping us polish Job Studio. Our engineering team has logged this issue with full system diagnostics and will investigate immediately.
                 </p>
                 <div className="inline-block px-3 py-1 bg-surface border border-border rounded-lg text-xs font-mono text-foreground font-semibold mt-2">
-                  Reference: <span className="text-amber-400">{submittedReportId}</span>
+                  Reference: <span className="text-brand font-semibold">{submittedReportId}</span>
                 </div>
               </div>
 
@@ -453,7 +453,7 @@ export const ReportBugModal: React.FC<ReportBugModalProps> = ({
                     />
                     <div className="flex flex-col items-center justify-center gap-1.5 text-xs text-muted-foreground">
                       <div className="w-8 h-8 rounded-lg bg-surface flex items-center justify-center text-subtle border border-border">
-                        <ImageIcon className="w-4 h-4 text-amber-400" />
+                        <ImageIcon className="w-4 h-4 text-brand" />
                       </div>
                       <div>
                         <span className="font-semibold text-foreground">Click to upload</span> or drag and drop
@@ -519,7 +519,7 @@ export const ReportBugModal: React.FC<ReportBugModalProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmitting || !subject.trim() || !description.trim()}
-                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black font-semibold text-xs shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-glow transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <>
