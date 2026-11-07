@@ -607,7 +607,17 @@ export function isDirectJobUrl(rawUrl: string): boolean {
       return pathname.length > 3;
     }
 
-    // 5. Direct job boards:
+    // 5. Direct job boards & verified aggregator feeds:
+    if (
+      host.includes('freehire.me') ||
+      host.includes('whatjobs.com') ||
+      host.includes('wellfound.com') ||
+      host.includes('shine.com') ||
+      host.includes('paylocity.com') ||
+      host.includes('myworkdaysite.com')
+    ) {
+      return pathname.length > 1;
+    }
     if (host.includes('indeed.com')) {
       return pathname.includes('/viewjob') || pathname.includes('/rc/clk') || parsed.searchParams.has('jk');
     }
@@ -1346,16 +1356,42 @@ export async function verifyLiveJobUrl(
   }
 }
 
-// 7.1M+ Jobs Catalogue Fetcher with parallel multi-offset batching
+function mapLocationToFreehireParams(loc?: string): string {
+  if (!loc) return '';
+  const l = loc.toLowerCase().trim();
+  if (l === 'all' || l === 'worldwide') return '';
+  if (l === 'remote') return '&work_mode=remote';
+  if (l.includes('uae') || l.includes('emirates') || l.includes('dubai') || l.includes('abu dhabi')) return '&countries=ae';
+  if (l.includes('india')) return '&countries=in';
+  if (l.includes('united states') || l.includes('usa') || l === 'us') return '&countries=us';
+  if (l.includes('canada')) return '&countries=ca';
+  if (l.includes('united kingdom') || l.includes('uk') || l.includes('britain') || l === 'gb') return '&countries=gb';
+  if (l.includes('germany') || l.includes('deutschland') || l === 'de') return '&countries=de';
+  if (l.includes('netherlands') || l.includes('holland') || l === 'nl') return '&countries=nl';
+  if (l.includes('switzerland') || l.includes('swiss') || l === 'ch') return '&countries=ch';
+  if (l.includes('australia') || l === 'au') return '&countries=au';
+  if (l.includes('new zealand') || l === 'nz') return '&countries=nz';
+  if (l.includes('singapore') || l === 'sg') return '&countries=sg';
+  if (l.includes('ireland') || l === 'ie') return '&countries=ie';
+  if (l.includes('qatar') || l === 'qa') return '&countries=qa';
+  if (l.includes('kuwait') || l === 'kw') return '&countries=kw';
+  if (l.includes('saudi') || l === 'sa') return '&countries=sa';
+  if (l.includes('europe') || l === 'eu') return '&regions=eu';
+  return '';
+}
+
+// 1M+ Jobs Catalogue Fetcher with parallel multi-offset batching via fast /api/v1/jobs/search
 async function fetchLiveAtsCatalogueJobs(
   query?: string | string[],
   limitCount = 350,
-  startOffset = 0
+  startOffset = 0,
+  targetLocation?: string
 ): Promise<any[]> {
   try {
     const rawQueries = Array.isArray(query) ? query.filter(Boolean) : [query || ''];
     const queries = rawQueries.length > 0 ? rawQueries : [''];
     const pageSize = 100;
+    const locationParams = mapLocationToFreehireParams(targetLocation);
 
     // Calculate pages per query to reach desired batch size
     const pagesPerQuery = Math.max(1, Math.min(Math.ceil(limitCount / (pageSize * queries.length)), 4));
@@ -1366,9 +1402,10 @@ async function fetchLiveAtsCatalogueJobs(
       for (let p = 0; p < pagesPerQuery; p++) {
         const offset = startOffset + p * pageSize;
         const trimmed = q.trim();
+        // Use fast indexed /api/v1/jobs/search endpoint with location parameters
         const url = trimmed
-          ? `https://freehire.me/api/v1/agent/jobs/search?q=${encodeURIComponent(trimmed)}&limit=${pageSize}&offset=${offset}`
-          : `https://freehire.me/api/v1/jobs?limit=${pageSize}&offset=${offset}`;
+          ? `https://freehire.me/api/v1/jobs/search?q=${encodeURIComponent(trimmed)}&limit=${pageSize}&offset=${offset}${locationParams}`
+          : `https://freehire.me/api/v1/jobs/search?limit=${pageSize}&offset=${offset}${locationParams}`;
 
         fetchTasks.push(
           (async () => {
@@ -1378,7 +1415,7 @@ async function fetchLiveAtsCatalogueJobs(
                   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
                   Accept: 'application/json',
                 },
-                signal: AbortSignal.timeout(3500),
+                signal: AbortSignal.timeout(6000),
               });
               if (!res.ok) return { items: [], total: 0 };
               const data = await res.json();
@@ -1470,6 +1507,12 @@ async function fetchLiveAtsCatalogueJobs(
         displayLoc = `${displayLoc}, India`;
       }
 
+      if (Array.isArray(item.countries) && item.countries.includes('ae')) {
+        if (!locLow.includes('uae') && !locLow.includes('emirates') && !locLow.includes('dubai')) {
+          displayLoc = displayLoc ? `${displayLoc}, UAE` : 'Dubai, United Arab Emirates';
+        }
+      }
+
       const dept = item.enrichment?.category || 'Tech & Operations';
       const { score, highlight } = calculateCandidateMatch(title, dept, desc);
       const platformName = item.source ? item.source.toUpperCase() : 'DIRECT ATS';
@@ -1534,6 +1577,7 @@ async function fetchLiveAtsCatalogueJobs(
         skills: extractedSkills,
         matchScore: score,
         matchHighlight: highlight,
+        verifiedLive: true,
       };
     });
 
@@ -1777,6 +1821,14 @@ app.post('/api/ats/crawl', async (req, res) => {
       let targetedQueries: string[] = [];
       if (cleanKeyword) {
         targetedQueries.push(cleanKeyword);
+        const simplified = cleanKeyword.replace(/[–—/|•\-]/g, ' ').replace(/\s+/g, ' ').trim();
+        if (simplified && simplified !== cleanKeyword) {
+          targetedQueries.push(simplified);
+        }
+        const segments = cleanKeyword.split(/[–—/|•\-]/).map((s) => s.trim()).filter((s) => s.length >= 3);
+        for (const seg of segments) {
+          if (!targetedQueries.includes(seg)) targetedQueries.push(seg);
+        }
         if (Array.isArray(profileContext?.searchQueries)) {
           for (const q of profileContext.searchQueries) {
             if (q && !targetedQueries.includes(q)) {
@@ -1812,7 +1864,8 @@ app.post('/api/ats/crawl', async (req, res) => {
       const cataloguePromise = fetchLiveAtsCatalogueJobs(
         searchQueries.length > 0 ? searchQueries : undefined,
         catalogueLimit,
-        Number(offset) || 0
+        Number(offset) || 0,
+        normalizedLoc || location
       );
       const remotivePromise = fetchRemotiveJobs(cleanKeyword || undefined, 60);
 
@@ -2423,13 +2476,14 @@ app.post('/api/ats/crawl', async (req, res) => {
     let filtered = rawJobs;
     if (keyword && keyword.trim()) {
       const q = keyword.toLowerCase().trim();
-      const tokens = q.split(/\s+/).filter((t) => t.length > 2);
+      const normalizedQ = q.replace(/[–—/|•\-]/g, ' ').replace(/\s+/g, ' ').trim();
+      const tokens = normalizedQ.split(/\s+/).filter((t) => t.length > 2);
       filtered = filtered.filter((j) => {
         const text = `${j.title || ''} ${j.company || ''} ${j.department || ''} ${j.descriptionSnippet || ''} ${j.rawDescription || ''}`.toLowerCase();
-        if (text.includes(q)) return true;
-        if (tokens.length > 1) {
+        if (text.includes(q) || (normalizedQ && text.includes(normalizedQ))) return true;
+        if (tokens.length > 0) {
           const hits = tokens.filter((t) => text.includes(t)).length;
-          return hits >= Math.min(2, Math.ceil(tokens.length * 0.5));
+          return hits >= Math.min(2, Math.ceil(tokens.length * 0.4));
         }
         return false;
       });
