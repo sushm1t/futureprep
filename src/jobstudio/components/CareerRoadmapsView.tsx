@@ -336,7 +336,7 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
                   onClick={() => {
                     if (onSelectRoleForJobs) onSelectRoleForJobs(activeRoadmap.title);
                   }}
-                  className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold rounded-full transition-all shadow-[0_2px_14px_rgba(0,229,153,0.3)] cursor-pointer inline-flex items-center gap-2"
+                  className="px-5 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold rounded-full transition-all shadow-glow cursor-pointer inline-flex items-center gap-2"
                 >
                   <span>Train on this path</span>
                   <ArrowRight className="w-3.5 h-3.5" />
@@ -378,7 +378,7 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
             {/* Progress Bar */}
             <div className="w-full bg-surface h-2.5 rounded-full overflow-hidden border border-border/60">
               <div
-                className="bg-gradient-to-r from-brand to-emerald-400 h-full transition-all duration-300 rounded-full shadow-[0_0_12px_rgba(0,229,153,0.35)]"
+                className="bg-gradient-to-r from-brand to-blue-400 h-full transition-all duration-300 rounded-full shadow-glow"
                 style={{ width: `${activeRoadmapProgress.percent}%` }}
               />
             </div>
@@ -654,10 +654,10 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
             {/* Career Quiz Callout Banner with Interactive Landing Treatment */}
             <div
               onClick={() => setIsQuizOpen(true)}
-              className="relative overflow-hidden p-5 sm:p-6 bg-gradient-to-r from-brand/10 via-surface/80 to-surface/60 hover:from-brand/15 hover:via-surface hover:to-surface rounded-2xl border border-brand/25 hover:border-brand/50 transition-all duration-300 cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group shadow-sm hover:shadow-[0_8px_30px_rgba(0,229,153,0.12)]"
+              className="relative overflow-hidden p-5 sm:p-6 bg-gradient-to-r from-brand/10 via-surface/80 to-surface/60 hover:from-brand/15 hover:via-surface hover:to-surface rounded-2xl border border-brand/25 hover:border-brand/50 transition-all duration-300 cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group shadow-sm hover:shadow-[0_8px_30px_rgba(59,130,246,0.15)]"
             >
               <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-2xl bg-brand/15 border border-brand/30 text-brand flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-brand group-hover:text-background transition-all shadow-[0_0_16px_rgba(0,229,153,0.2)]">
+                <div className="w-10 h-10 rounded-2xl bg-brand/15 border border-brand/30 text-brand flex items-center justify-center shrink-0 group-hover:scale-105 group-hover:bg-brand group-hover:text-background transition-all shadow-[0_0_16px_rgba(59,130,246,0.25)]">
                   <Sparkles className="w-5 h-5" />
                 </div>
                 <div className="space-y-0.5">
@@ -740,7 +740,7 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
                         onClick={() => setSelectedCategory(cat)}
                         className={`px-3.5 py-1.5 rounded-full text-xs font-medium transition-all duration-200 cursor-pointer whitespace-nowrap shrink-0 flex items-center gap-1.5 ${
                           isSelected
-                            ? 'bg-primary text-primary-foreground font-semibold shadow-[0_2px_14px_rgba(0,229,153,0.3)] border border-primary scale-[1.02]'
+                            ? 'bg-primary text-primary-foreground font-semibold shadow-glow border border-primary scale-[1.02]'
                             : 'bg-surface/80 hover:bg-surface-2 text-muted-foreground hover:text-foreground border border-border/80 hover:border-brand/30'
                         }`}
                       >
@@ -799,7 +799,7 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
                   <div
                     key={roadmap.id}
                     onClick={() => setSelectedRoadmapId(roadmap.id)}
-                    className="relative bg-gradient-to-b from-card via-card/95 to-surface/80 hover:to-surface p-6 sm:p-7 rounded-3xl border border-border/90 hover:border-brand/60 transition-all duration-300 cursor-pointer flex flex-col justify-between gap-5 group shadow-elevated hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5),0_0_30px_0_rgba(0,229,153,0.12)] hover:-translate-y-1.5 overflow-hidden"
+                    className="relative bg-gradient-to-b from-card via-card/95 to-surface/80 hover:to-surface p-6 sm:p-7 rounded-3xl border border-border/90 hover:border-brand/60 transition-all duration-300 cursor-pointer flex flex-col justify-between gap-5 group shadow-elevated hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.5),0_0_30px_0_rgba(59,130,246,0.15)] hover:-translate-y-1.5 overflow-hidden"
                   >
                     {/* Top edge glowing gradient border on hover */}
                     <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />

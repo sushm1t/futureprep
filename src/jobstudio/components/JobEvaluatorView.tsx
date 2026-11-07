@@ -1867,7 +1867,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   return (
                     <div
                       key={job.id}
-                      className="relative overflow-hidden p-4 sm:p-5 rounded-2xl border border-border/80 bg-gradient-to-b from-card via-card/95 to-surface/90 hover:border-brand/50 hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.5),0_0_25px_0_rgba(0,229,153,0.1)] transition-all duration-200 flex flex-col justify-between gap-3 group after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand/25 after:to-transparent"
+                      className="relative overflow-hidden p-4 sm:p-5 rounded-2xl border border-border/80 bg-gradient-to-b from-card via-card/95 to-surface/90 hover:border-brand/50 hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.5),0_0_25px_0_rgba(59,130,246,0.15)] transition-all duration-200 flex flex-col justify-between gap-3 group after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand/25 after:to-transparent"
                     >
                       <div className="space-y-2">
                         <div className="flex items-start justify-between gap-2">
@@ -2361,7 +2361,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
               <div className="flex items-center gap-5 min-w-0">
                 {/* Score Circle */}
                 {isEvaluationComplete && <div className={`relative w-16 h-16 rounded-full bg-surface/90 border-2 ${
-                  evaluation.match_score >= 80 ? 'border-success shadow-[0_0_15px_rgba(16,185,129,0.25)]' : evaluation.match_score >= 60 ? 'border-brand shadow-[0_0_15px_rgba(0,229,153,0.25)]' : 'border-warning shadow-[0_0_15px_rgba(245,158,11,0.25)]'
+                  evaluation.match_score >= 80 ? 'border-success shadow-[0_0_15px_rgba(16,185,129,0.25)]' : evaluation.match_score >= 60 ? 'border-brand shadow-[0_0_15px_rgba(59,130,246,0.25)]' : 'border-warning shadow-[0_0_15px_rgba(245,158,11,0.25)]'
                 } flex flex-col items-center justify-center shrink-0`}>
                   <span className={`font-display text-lg font-bold tabular-nums ${getScoreColor(evaluation.match_score)}`}>
                     {evaluation.match_score}%
@@ -3186,7 +3186,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         <div className="workspace-evaluation-empty relative overflow-hidden p-6 sm:p-10 text-center space-y-6 bg-gradient-to-b from-card via-card/95 to-surface/90 border border-border/80 rounded-3xl shadow-elevated">
           <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
           <div className="relative z-10 space-y-2 max-w-md mx-auto">
-            <div className="workspace-empty-symbol mx-auto w-14 h-14 rounded-2xl bg-brand/15 border border-brand/30 text-brand flex items-center justify-center shadow-[0_0_20px_rgba(0,229,153,0.2)]">
+            <div className="workspace-empty-symbol mx-auto w-14 h-14 rounded-2xl bg-brand/15 border border-brand/30 text-brand flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.25)]">
               <Compass className="w-7 h-7 text-brand" />
             </div>
             <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-tight">

@@ -917,10 +917,10 @@ ${certText}
               onClick={() => fileInputRef.current?.click()}
               className={`border-2 border-dashed rounded-3xl p-6 sm:p-10 text-center transition-all cursor-pointer ${
                 isDragging
-                  ? 'border-brand bg-brand/10 scale-[1.01] shadow-[0_0_30px_rgba(0,229,153,0.2)]'
+                  ? 'border-brand bg-brand/10 scale-[1.01] shadow-[0_0_30px_rgba(59,130,246,0.25)]'
                   : uploadedPdf
                   ? 'border-success/60 bg-success/5 shadow-[0_0_20px_rgba(16,185,129,0.15)]'
-                  : 'border-border/80 hover:border-brand/70 hover:bg-surface/90 bg-surface/60 hover:shadow-[0_0_25px_rgba(0,229,153,0.1)]'
+                  : 'border-border/80 hover:border-brand/70 hover:bg-surface/90 bg-surface/60 hover:shadow-[0_0_25px_rgba(59,130,246,0.15)]'
               }`}
             >
               {uploadedPdf ? (

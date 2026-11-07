@@ -419,7 +419,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
           setDragOverStatus(null);
         }}
         onClick={() => setDetailJobId(job.id)}
-        className={`relative overflow-hidden bg-gradient-to-b from-card via-card/95 to-surface/90 border border-border/80 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:border-brand/50 hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.5),0_0_20px_0_rgba(0,229,153,0.1)] text-left w-full group after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand/25 after:to-transparent ${
+        className={`relative overflow-hidden bg-gradient-to-b from-card via-card/95 to-surface/90 border border-border/80 rounded-2xl p-4 cursor-pointer transition-all duration-200 hover:border-brand/50 hover:shadow-[0_15px_30px_-10px_rgba(0,0,0,0.5),0_0_20px_0_rgba(59,130,246,0.15)] text-left w-full group after:absolute after:inset-x-0 after:top-0 after:h-px after:bg-gradient-to-r after:from-transparent after:via-brand/25 after:to-transparent ${
           dragJobId === job.id ? 'opacity-50' : ''
         }`}
       >
