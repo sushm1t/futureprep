@@ -1360,31 +1360,23 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 className="appearance-none pl-3 pr-7 py-1.5 bg-surface hover:bg-surface-2 text-foreground font-medium rounded-xl text-xs outline-none cursor-pointer border border-transparent focus:border-brand transition-all"
               >
                 <option value="All">All Locations (Worldwide)</option>
-                <option value="Remote">🌍 Global Remote (Work From Anywhere)</option>
-
-                <optgroup label="🌟 High-Income Markets (US, Europe, APAC)">
-                  <option value="United States">🇺🇸 United States (SF, NY, Austin, etc.)</option>
-                  <option value="Canada">🇨🇦 Canada (Toronto, Vancouver, Calgary, etc.)</option>
-                  <option value="United Kingdom">🇬🇧 United Kingdom (London, Manchester, etc.)</option>
-                  <option value="Germany">🇩🇪 Germany (Berlin, Munich, Frankfurt, etc.)</option>
-                  <option value="Netherlands">🇳🇱 Netherlands (Amsterdam, Rotterdam, etc.)</option>
-                  <option value="Switzerland">🇨🇭 Switzerland (Zurich, Geneva, Basel, etc.)</option>
-                  <option value="Australia">🇦🇺 Australia (Sydney, Melbourne, Brisbane, etc.)</option>
-                  <option value="New Zealand">🇳🇿 New Zealand (Auckland, Wellington, etc.)</option>
-                  <option value="Singapore">🇸🇬 Singapore (Central, Jurong, etc.)</option>
-                  <option value="Ireland">🇮🇪 Ireland (Dublin, Cork, Galway, etc.)</option>
-                </optgroup>
-
-                <optgroup label="🏙️ Gulf & Middle East Hubs (Tax-Free / Relocation)">
-                  <option value="UAE">🇦🇪 UAE / Dubai & Abu Dhabi</option>
-                  <option value="Qatar">🇶🇦 Qatar (Doha, Al Rayyan)</option>
-                  <option value="Kuwait">🇰🇼 Kuwait (Kuwait City, Ahmadi)</option>
-                  <option value="Saudi Arabia">🇸🇦 Saudi Arabia (Riyadh, Jeddah)</option>
-                </optgroup>
-
-                <optgroup label="🌏 Emerging High-Volume Markets">
-                  <option value="India">🇮🇳 India (Bengaluru, Mumbai, Delhi NCR, etc.)</option>
-                </optgroup>
+                <option value="Remote">🌍 Global Remote</option>
+                <option value="Australia">🇦🇺 Australia</option>
+                <option value="Canada">🇨🇦 Canada</option>
+                <option value="Germany">🇩🇪 Germany</option>
+                <option value="India">🇮🇳 India</option>
+                <option value="Ireland">🇮🇪 Ireland</option>
+                <option value="Kuwait">🇰🇼 Kuwait</option>
+                <option value="Netherlands">🇳🇱 Netherlands</option>
+                <option value="New Zealand">🇳🇿 New Zealand</option>
+                <option value="Qatar">🇶🇦 Qatar</option>
+                <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
+                <option value="Singapore">🇸🇬 Singapore</option>
+                <option value="Switzerland">🇨🇭 Switzerland</option>
+                <option value="UAE">🇦🇪 United Arab Emirates (UAE)</option>
+                <option value="United Kingdom">🇬🇧 United Kingdom</option>
+                <option value="United States">🇺🇸 United States</option>
+                <option value="Europe">🇪🇺 Europe (All)</option>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-subtle">
                 <ChevronDown className="h-3 w-3" />
