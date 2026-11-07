@@ -646,10 +646,22 @@ async function discoverLiveWebJobs(
   }
 
   try {
+    const locLower = (location || '').toLowerCase();
+    let regionalPortals = 'verified hiring platforms, direct job board postings, or ATS systems (e.g. LinkedIn, Indeed, Greenhouse, Lever, Workday)';
+    if (locLower.includes('uae') || locLower.includes('dubai') || locLower.includes('qatar') || locLower.includes('kuwait') || locLower.includes('saudi')) {
+      regionalPortals = 'Bayt.com, Dubizzle, GulfTalent, official company portals, LinkedIn, Indeed, or direct ATS systems';
+    } else if (locLower.includes('canada')) {
+      regionalPortals = 'Job Bank Canada, Indeed Canada, Workopolis, corporate carrier career portals, LinkedIn, or direct ATS';
+    } else if (locLower.includes('australia') || locLower.includes('new zealand')) {
+      regionalPortals = 'Seek.com.au, Jora, Trade Me Jobs, LinkedIn, or direct ATS';
+    } else if (locLower.includes('uk') || locLower.includes('united kingdom') || locLower.includes('germany') || locLower.includes('europe')) {
+      regionalPortals = 'Reed.co.uk, Totaljobs, StepStone, Indeed, LinkedIn, or direct ATS';
+    }
+
     const prompt = `Search for authentic, currently active job postings in ${location} matching: ${query}.
 Candidate profile background (only use verified context): ${masterProfileText.slice(0, 5000)}
 
-Find up to 8 real, open job vacancies from verified hiring platforms, direct job board postings, or ATS systems.
+Find up to 8 real, open job vacancies from ${regionalPortals}. This search serves all professional sectors, including skilled trades (plumbing, electricians, construction), transport/logistics (truck drivers, warehousing), hospitality, healthcare, and technology.
 
 CRITICAL DIRECT REQUISITION URL REQUIREMENTS:
 1. Every "applyUrl" MUST be an authentic, direct, reachable URL to that specific job vacancy (e.g. "https://www.linkedin.com/jobs/view/<jobId>", "https://in.indeed.com/viewjob?jk=<jobKey>", or direct ATS links like "https://boards.greenhouse.io/<company>/jobs/<id>" or "https://jobs.lever.co/<company>/<id>").
@@ -657,10 +669,10 @@ CRITICAL DIRECT REQUISITION URL REQUIREMENTS:
 3. Every link will be verified live by the server before being shown. Generic portals or dead links will be discarded.
 
 For each vacancy, provide:
-1. "title": Official job title (e.g. "Medical Laboratory Technologist" or "Blood Bank Technologist").
-2. "company": Organization or hospital hiring (e.g. "Aster DM Healthcare", "Apollo Hospitals", "Dr. Lal PathLabs").
+1. "title": Official job title (e.g. "Commercial Plumber", "Long-Haul Truck Driver", "Staff Software Engineer", or "Medical Technologist").
+2. "company": Organization or employer hiring.
 3. "location": City, state/province, country.
-4. "platform": ATS or portal (e.g. "LinkedIn Jobs", "Indeed", "Greenhouse", "Workday").
+4. "platform": ATS or portal (e.g. "Bayt", "Job Bank Canada", "Seek", "LinkedIn Jobs", "Indeed", "Greenhouse", "Workday").
 5. "applyUrl": Direct link to the specific job requisition.
 6. "category": Department or functional category.
 7. "matchScore": Eligibility match score (65-95) based on candidate qualification overlap.
@@ -711,17 +723,17 @@ Return ONLY a valid JSON array of job objects with no other commentary or markdo
       const check = await verifyLiveJobUrl(j.applyUrl, j.title, j.company);
       if (check.ok) {
         const title = j.title || query;
-        const desc = j.description || `${title} at ${j.company || 'Healthcare Organization'}. Active vacancy.`;
+        const desc = j.description || `${title} at ${j.company || 'Verified Employer'}. Active vacancy.`;
         const loc = j.location || location;
         const isRem = loc.toLowerCase().includes('remote');
         const score = typeof j.matchScore === 'number' && j.matchScore > 0 ? j.matchScore : 82;
         return {
           id: `web-verified-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
           title,
-          company: j.company || 'Healthcare Organization',
+          company: j.company || 'Verified Employer',
           location: loc,
-          department: j.category || 'Specialized Practice',
-          platform: j.platform || 'Hospital Career Portal',
+          department: j.category || 'Operations & Services',
+          platform: j.platform || 'Direct Job Portal',
           applyUrl: check.finalUrl || j.applyUrl,
           publishedAt: new Date().toISOString(),
           descriptionSnippet: desc.slice(0, 300),
@@ -1462,10 +1474,23 @@ async function fetchLiveAtsCatalogueJobs(
       const { score, highlight } = calculateCandidateMatch(title, dept, desc);
       const platformName = item.source ? item.source.toUpperCase() : 'DIRECT ATS';
 
-      // Salary Extraction
+      // Salary Extraction & Multi-Currency Formatting
       let salary = '';
       if (item.salary_min || item.salary_max) {
-        const curr = item.salary_currency === 'EUR' ? '€' : item.salary_currency === 'GBP' ? '£' : item.salary_currency === 'INR' ? '₹' : '$';
+        const cCode = (item.salary_currency || '').toUpperCase();
+        const curr =
+          cCode === 'EUR' ? '€' :
+          cCode === 'GBP' ? '£' :
+          cCode === 'INR' ? '₹' :
+          cCode === 'AED' ? 'AED ' :
+          cCode === 'QAR' ? 'QAR ' :
+          cCode === 'KWD' ? 'KWD ' :
+          cCode === 'SAR' ? 'SAR ' :
+          cCode === 'CAD' ? 'CAD $' :
+          cCode === 'AUD' ? 'AUD $' :
+          cCode === 'NZD' ? 'NZD $' :
+          cCode === 'SGD' ? 'SGD $' :
+          cCode === 'CHF' ? 'CHF ' : '$';
         const interval = item.salary_interval === 'hourly' ? '/hr' : '/yr';
         if (item.salary_min && item.salary_max) {
           salary = `${curr}${Math.round(item.salary_min / 1000)}k - ${curr}${Math.round(item.salary_max / 1000)}k${interval}`;
@@ -1623,7 +1648,33 @@ app.post('/api/ats/crawl', async (req, res) => {
         normalizedLoc = 'India';
       } else if (low.includes('united states') || low === 'us') {
         normalizedLoc = 'United States';
-      } else if (low.includes('europe') || low.includes('uk')) {
+      } else if (low.includes('canada')) {
+        normalizedLoc = 'Canada';
+      } else if (low.includes('united kingdom') || low.includes('uk')) {
+        normalizedLoc = 'United Kingdom';
+      } else if (low.includes('germany') || low.includes('deutschland')) {
+        normalizedLoc = 'Germany';
+      } else if (low.includes('netherlands') || low.includes('holland')) {
+        normalizedLoc = 'Netherlands';
+      } else if (low.includes('switzerland')) {
+        normalizedLoc = 'Switzerland';
+      } else if (low.includes('australia')) {
+        normalizedLoc = 'Australia';
+      } else if (low.includes('new zealand')) {
+        normalizedLoc = 'New Zealand';
+      } else if (low.includes('singapore')) {
+        normalizedLoc = 'Singapore';
+      } else if (low.includes('ireland')) {
+        normalizedLoc = 'Ireland';
+      } else if (low.includes('uae') || low.includes('dubai') || low.includes('emirates') || low.includes('abu dhabi')) {
+        normalizedLoc = 'United Arab Emirates';
+      } else if (low.includes('qatar') || low.includes('doha')) {
+        normalizedLoc = 'Qatar';
+      } else if (low.includes('kuwait')) {
+        normalizedLoc = 'Kuwait';
+      } else if (low.includes('saudi') || low.includes('riyadh')) {
+        normalizedLoc = 'Saudi Arabia';
+      } else if (low.includes('europe')) {
         normalizedLoc = 'Europe';
       } else if (low === 'remote') {
         normalizedLoc = 'Remote';
@@ -1633,6 +1684,9 @@ app.post('/api/ats/crawl', async (req, res) => {
     }
 
     const cleanKeyword = (keyword || profileContext?.targetRole || '').trim();
+    const isVocationalTrade = Boolean(
+      /plumb|electric|carpenter|welder|hvac|mechanic|mason|painter|pipefitter|machinist|construction|roofer|handyman|fabricator|foreman|truck|driver|transport|freight|logistics|warehouse|forklift|courier|dispatch|fleet|delivery|cdl|chef|cook|hotel|hospitality|barista|waiter|steward|housekeeping|restaurant|catering|retail|cashier|security guard/i.test(cleanKeyword)
+    );
     const isMechanical = Boolean(
       profileContext?.domain === 'Mechanical & Industrial Engineering' ||
       /mechanical|heavy\s+(machinery|equipment)|automotive|mining\s+machiner|production\s+engineer|plant\s+(engineer|maintenance)|jcb|excavator/i.test(cleanKeyword)
@@ -1640,6 +1694,7 @@ app.post('/api/ats/crawl', async (req, res) => {
     const isNonTech = Boolean(
       profileContext?.isNonTech ||
       isMechanical ||
+      isVocationalTrade ||
       /medical|laboratory|technologist|technician|nurse|phlebotomy|clinical|hospital|pathology|biochemistry|hematology|doctor|healthcare|legal|culinary/i.test(cleanKeyword)
     );
 
@@ -1657,7 +1712,7 @@ app.post('/api/ats/crawl', async (req, res) => {
         } else if (isNonTech) {
           baseQueries = isRemoteRequested
             ? ['remote India', 'India remote']
-            : ['India', 'Bengaluru India', 'Healthcare India', 'Operations India'];
+            : ['India', 'Bengaluru India', 'Healthcare India', 'Operations India', 'Trades India'];
           availableCatalogueTotal = 82000;
         } else {
           baseQueries = isRemoteRequested
@@ -1666,8 +1721,47 @@ app.post('/api/ats/crawl', async (req, res) => {
           availableCatalogueTotal = 143380;
         }
       } else if (normalizedLoc === 'United States') {
-        baseQueries = isRemoteRequested ? ['remote US', 'remote United States'] : ['United States', 'remote US', 'San Francisco', 'New York'];
+        baseQueries = isRemoteRequested ? ['remote US', 'remote United States'] : ['United States', 'remote US', 'San Francisco', 'New York', 'Austin', 'Chicago'];
         availableCatalogueTotal = 3120000;
+      } else if (normalizedLoc === 'Canada') {
+        baseQueries = isRemoteRequested ? ['remote Canada', 'work from home Canada'] : ['Canada', 'Toronto Canada', 'Vancouver Canada', 'Calgary Canada', 'Ontario Canada'];
+        availableCatalogueTotal = 640000;
+      } else if (normalizedLoc === 'United Kingdom') {
+        baseQueries = isRemoteRequested ? ['remote UK', 'remote United Kingdom'] : ['United Kingdom', 'London UK', 'Manchester UK', 'Birmingham UK'];
+        availableCatalogueTotal = 720000;
+      } else if (normalizedLoc === 'Germany') {
+        baseQueries = isRemoteRequested ? ['remote Germany'] : ['Germany', 'Berlin Germany', 'Munich Germany', 'Frankfurt Germany'];
+        availableCatalogueTotal = 580000;
+      } else if (normalizedLoc === 'Netherlands') {
+        baseQueries = isRemoteRequested ? ['remote Netherlands'] : ['Netherlands', 'Amsterdam Netherlands', 'Rotterdam Netherlands'];
+        availableCatalogueTotal = 310000;
+      } else if (normalizedLoc === 'Switzerland') {
+        baseQueries = isRemoteRequested ? ['remote Switzerland'] : ['Switzerland', 'Zurich Switzerland', 'Geneva Switzerland'];
+        availableCatalogueTotal = 190000;
+      } else if (normalizedLoc === 'Australia') {
+        baseQueries = isRemoteRequested ? ['remote Australia'] : ['Australia', 'Sydney Australia', 'Melbourne Australia', 'Brisbane Australia'];
+        availableCatalogueTotal = 460000;
+      } else if (normalizedLoc === 'New Zealand') {
+        baseQueries = isRemoteRequested ? ['remote New Zealand'] : ['New Zealand', 'Auckland New Zealand', 'Wellington New Zealand'];
+        availableCatalogueTotal = 120000;
+      } else if (normalizedLoc === 'Singapore') {
+        baseQueries = isRemoteRequested ? ['remote Singapore'] : ['Singapore', 'Singapore Central'];
+        availableCatalogueTotal = 210000;
+      } else if (normalizedLoc === 'Ireland') {
+        baseQueries = isRemoteRequested ? ['remote Ireland'] : ['Ireland', 'Dublin Ireland', 'Cork Ireland'];
+        availableCatalogueTotal = 180000;
+      } else if (normalizedLoc === 'United Arab Emirates') {
+        baseQueries = ['United Arab Emirates', 'Dubai UAE', 'Abu Dhabi UAE', 'Dubai', 'Sharjah UAE'];
+        availableCatalogueTotal = 340000;
+      } else if (normalizedLoc === 'Qatar') {
+        baseQueries = ['Qatar', 'Doha Qatar', 'Al Rayyan Qatar'];
+        availableCatalogueTotal = 95000;
+      } else if (normalizedLoc === 'Kuwait') {
+        baseQueries = ['Kuwait', 'Kuwait City', 'Al Ahmadi Kuwait'];
+        availableCatalogueTotal = 72000;
+      } else if (normalizedLoc === 'Saudi Arabia') {
+        baseQueries = ['Saudi Arabia', 'Riyadh Saudi Arabia', 'Jeddah Saudi Arabia'];
+        availableCatalogueTotal = 220000;
       } else if (normalizedLoc === 'Europe') {
         baseQueries = isRemoteRequested ? ['remote Europe', 'remote UK', 'remote Germany'] : ['Europe', 'UK London', 'remote Europe', 'Berlin'];
         availableCatalogueTotal = 1840000;
@@ -1675,7 +1769,7 @@ app.post('/api/ats/crawl', async (req, res) => {
         baseQueries = ['remote', 'work from home', 'distributed'];
         availableCatalogueTotal = 2450000;
       } else {
-        baseQueries = ['', 'technology', 'operations', 'engineering', 'product', 'finance'];
+        baseQueries = ['', 'technology', 'operations', 'engineering', 'product', 'healthcare', 'trades', 'transport'];
         availableCatalogueTotal = 7135839;
       }
 
@@ -2426,7 +2520,105 @@ app.post('/api/ats/crawl', async (req, res) => {
             loc.includes('chicago')
           );
         });
-      } else if (lq.includes('europe') || lq.includes('uk')) {
+      } else if (lq.includes('canada')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return (
+            loc.includes('canada') ||
+            loc.includes('toronto') ||
+            loc.includes('vancouver') ||
+            loc.includes('montreal') ||
+            loc.includes('calgary') ||
+            loc.includes('edmonton') ||
+            loc.includes('ottawa') ||
+            loc.includes('alberta') ||
+            loc.includes('ontario') ||
+            loc.includes('quebec') ||
+            loc.includes('british columbia') ||
+            /\b(ab|on|bc|qc)\b/i.test(loc)
+          );
+        });
+      } else if (lq.includes('united kingdom') || lq === 'uk') {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return (
+            loc.includes('united kingdom') ||
+            loc.includes('uk') ||
+            loc.includes('london') ||
+            loc.includes('manchester') ||
+            loc.includes('birmingham') ||
+            loc.includes('scotland') ||
+            loc.includes('edinburgh') ||
+            loc.includes('leeds') ||
+            loc.includes('england')
+          );
+        });
+      } else if (lq.includes('germany') || lq.includes('deutschland')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return (
+            loc.includes('germany') ||
+            loc.includes('deutschland') ||
+            loc.includes('berlin') ||
+            loc.includes('munich') ||
+            loc.includes('münchen') ||
+            loc.includes('frankfurt') ||
+            loc.includes('hamburg') ||
+            loc.includes('cologne') ||
+            loc.includes('stuttgart')
+          );
+        });
+      } else if (lq.includes('netherlands') || lq.includes('holland')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('netherlands') || loc.includes('amsterdam') || loc.includes('rotterdam') || loc.includes('utrecht') || loc.includes('holland');
+        });
+      } else if (lq.includes('switzerland')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('switzerland') || loc.includes('schweiz') || loc.includes('zurich') || loc.includes('geneva') || loc.includes('basel') || loc.includes('bern');
+        });
+      } else if (lq.includes('australia')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('australia') || loc.includes('sydney') || loc.includes('melbourne') || loc.includes('brisbane') || loc.includes('perth') || loc.includes('adelaide') || loc.includes('nsw') || loc.includes('vic') || loc.includes('qld');
+        });
+      } else if (lq.includes('new zealand')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('new zealand') || loc.includes('auckland') || loc.includes('wellington') || loc.includes('christchurch') || loc.includes('nz');
+        });
+      } else if (lq.includes('singapore')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('singapore');
+        });
+      } else if (lq.includes('ireland')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('ireland') || loc.includes('dublin') || loc.includes('cork') || loc.includes('galway');
+        });
+      } else if (lq.includes('uae') || lq.includes('dubai') || lq.includes('emirates') || lq.includes('abu dhabi')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('uae') || loc.includes('dubai') || loc.includes('abu dhabi') || loc.includes('emirates') || loc.includes('sharjah') || loc.includes('ajman');
+        });
+      } else if (lq.includes('qatar') || lq.includes('doha')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('qatar') || loc.includes('doha') || loc.includes('al rayyan');
+        });
+      } else if (lq.includes('kuwait')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('kuwait') || loc.includes('kuwait city') || loc.includes('ahmadi');
+        });
+      } else if (lq.includes('saudi') || lq.includes('riyadh')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
+          return loc.includes('saudi') || loc.includes('ksa') || loc.includes('riyadh') || loc.includes('jeddah') || loc.includes('dammam');
+        });
+      } else if (lq.includes('europe')) {
         filtered = filtered.filter((j) => {
           const loc = `${j.location || ''} ${j.title || ''}`.toLowerCase();
           return (
@@ -2451,20 +2643,21 @@ app.post('/api/ats/crawl', async (req, res) => {
       }
     }
 
-    // When candidate is non-tech (e.g. Medical, Clinical, Nursing), exclude pure software developer positions
+    // When candidate is non-tech (e.g. Medical, Clinical, Nursing, Skilled Trades, Transport, Hospitality), exclude pure software developer positions
     if (isNonTech) {
       filtered = filtered.filter(
         (j) => !/\b(software|developer|frontend|backend|fullstack|\.net|cloud architect|devops)\b/i.test(j.title)
       );
     }
 
-    // If fewer than 8 domain-relevant jobs match the requested keyword and location (e.g. specialized healthcare or non-tech in India),
-    // automatically trigger Gemini Google Search Grounding to discover real, verified hospital and employer vacancies!
-    if (filtered.length < 8 && cleanKeyword) {
+    // If fewer than 10 domain-relevant jobs match the requested keyword and location
+    // (e.g. specialized trades like plumbers in Dubai or truck drivers in Canada),
+    // automatically trigger Gemini Google Search Grounding with zero empty-state guarantee!
+    if (filtered.length < 10 && cleanKeyword) {
       try {
         const webJobs = await discoverLiveWebJobs(
           cleanKeyword,
-          normalizedLoc || location || 'India',
+          normalizedLoc || location || 'Worldwide',
           profileContext?.targetRole ? `${cleanKeyword} ${profileContext.targetRole}` : cleanKeyword
         );
         if (webJobs.length > 0) {

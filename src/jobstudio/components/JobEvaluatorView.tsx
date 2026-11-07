@@ -833,17 +833,23 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       if (selectedDepartment !== 'All') {
         const text = `${job.title || ''} ${job.department || ''}`.toLowerCase();
         if (selectedDepartment === 'Engineering') {
-          if (!/software|engineer|developer|frontend|backend|full stack|devops|infrastructure|sre|platform|architect|systems/i.test(text)) return false;
+          if (!/software|engineer|developer|frontend|backend|full\s*stack|devops|infrastructure|sre|platform|architect|systems|mobile|ios|android|cloud/i.test(text)) return false;
+        } else if (selectedDepartment === 'Trades') {
+          if (!/plumb|electric|carpenter|welder|hvac|mechanic|mason|painter|pipefitter|machinist|construction|roofer|handyman|technician|fitter|fabricator|foreman|site supervisor/i.test(text)) return false;
+        } else if (selectedDepartment === 'Logistics') {
+          if (!/truck|driver|transport|freight|logistics|warehouse|forklift|courier|dispatch|fleet|delivery|cdl|shipping|receiving|material handler/i.test(text)) return false;
+        } else if (selectedDepartment === 'Hospitality') {
+          if (!/chef|cook|hotel|hospitality|barista|waiter|steward|housekeeping|restaurant|catering|retail|cashier|store|customer service|front desk|concierge|bartender|facilities/i.test(text)) return false;
         } else if (selectedDepartment === 'Product & Design') {
-          if (!/product manager|product management|designer|design|ux|ui|\bpm\b/i.test(text)) return false;
+          if (!/product manager|product management|designer|design|ux|ui|\bpm\b|creative|art director/i.test(text)) return false;
         } else if (selectedDepartment === 'Operations & Strategy') {
-          if (!/operations|operational|support|specialist|analyst|coordinator|program manager|project manager|bizops|strategy/i.test(text)) return false;
+          if (!/operations|operational|support|specialist|analyst|coordinator|program manager|project manager|bizops|strategy|supply chain|hr|finance|procurement/i.test(text)) return false;
         } else if (selectedDepartment === 'Data & AI') {
-          if (!/data|\bai\b|machine learning|\bml\b|deep learning|researcher|scientist|analytics/i.test(text)) return false;
+          if (!/data|\bai\b|machine learning|\bml\b|deep learning|researcher|scientist|analytics|prompt|llm/i.test(text)) return false;
         } else if (selectedDepartment === 'Sales & Growth') {
-          if (!/sales|account|customer success|growth|marketing|bdr|sdr|revops/i.test(text)) return false;
+          if (!/sales|account|customer success|growth|marketing|bdr|sdr|revops|business development/i.test(text)) return false;
         } else if (selectedDepartment === 'Healthcare') {
-          if (!/medical|laboratory|technologist|technician|hospital|clinic|clinical|nurse|nursing|phlebotomy|pathology|biochem|hematology|health|doctor|pharma|apheresis/i.test(text)) return false;
+          if (!/medical|laboratory|technologist|technician|hospital|clinic|clinical|nurse|nursing|phlebotomy|pathology|biochem|hematology|health|doctor|pharma|apheresis|caregiver/i.test(text)) return false;
         }
       }
       return true;
@@ -1353,11 +1359,32 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 }}
                 className="appearance-none pl-3 pr-7 py-1.5 bg-surface hover:bg-surface-2 text-foreground font-medium rounded-xl text-xs outline-none cursor-pointer border border-transparent focus:border-brand transition-all"
               >
-                <option value="All">All Locations</option>
-                <option value="India">🇮🇳 India (Bengaluru, Hyderabad, etc.)</option>
-                <option value="United States">🇺🇸 United States (SF, NY, Austin, etc.)</option>
-                <option value="Europe / UK">🇪🇺 Europe / UK (London, Dublin, etc.)</option>
-                <option value="Remote">🌍 Global Remote</option>
+                <option value="All">All Locations (Worldwide)</option>
+                <option value="Remote">🌍 Global Remote (Work From Anywhere)</option>
+
+                <optgroup label="🌟 High-Income Markets (US, Europe, APAC)">
+                  <option value="United States">🇺🇸 United States (SF, NY, Austin, etc.)</option>
+                  <option value="Canada">🇨🇦 Canada (Toronto, Vancouver, Calgary, etc.)</option>
+                  <option value="United Kingdom">🇬🇧 United Kingdom (London, Manchester, etc.)</option>
+                  <option value="Germany">🇩🇪 Germany (Berlin, Munich, Frankfurt, etc.)</option>
+                  <option value="Netherlands">🇳🇱 Netherlands (Amsterdam, Rotterdam, etc.)</option>
+                  <option value="Switzerland">🇨🇭 Switzerland (Zurich, Geneva, Basel, etc.)</option>
+                  <option value="Australia">🇦🇺 Australia (Sydney, Melbourne, Brisbane, etc.)</option>
+                  <option value="New Zealand">🇳🇿 New Zealand (Auckland, Wellington, etc.)</option>
+                  <option value="Singapore">🇸🇬 Singapore (Central, Jurong, etc.)</option>
+                  <option value="Ireland">🇮🇪 Ireland (Dublin, Cork, Galway, etc.)</option>
+                </optgroup>
+
+                <optgroup label="🏙️ Gulf & Middle East Hubs (Tax-Free / Relocation)">
+                  <option value="UAE">🇦🇪 UAE / Dubai & Abu Dhabi</option>
+                  <option value="Qatar">🇶🇦 Qatar (Doha, Al Rayyan)</option>
+                  <option value="Kuwait">🇰🇼 Kuwait (Kuwait City, Ahmadi)</option>
+                  <option value="Saudi Arabia">🇸🇦 Saudi Arabia (Riyadh, Jeddah)</option>
+                </optgroup>
+
+                <optgroup label="🌏 Emerging High-Volume Markets">
+                  <option value="India">🇮🇳 India (Bengaluru, Mumbai, Delhi NCR, etc.)</option>
+                </optgroup>
               </select>
               <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-subtle">
                 <ChevronDown className="h-3 w-3" />
@@ -1706,11 +1733,14 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 <span className="text-[11px] text-subtle uppercase tracking-wider font-semibold mr-1 shrink-0">Discipline:</span>
                 {[
                   { id: 'All', label: 'All Roles' },
+                  { id: 'Trades', label: '🔧 Skilled Trades & Construction' },
+                  { id: 'Logistics', label: '🚛 Logistics & Transport' },
+                  { id: 'Hospitality', label: '🛎️ Hospitality & Services' },
                   { id: 'Healthcare', label: '🩺 Healthcare & Clinical' },
                   { id: 'Engineering', label: '💻 Engineering' },
-                  { id: 'Product & Design', label: '🎨 Product & Design' },
-                  { id: 'Operations & Strategy', label: '⚙️ Operations' },
                   { id: 'Data & AI', label: '🤖 Data & AI' },
+                  { id: 'Product & Design', label: '🎨 Product & Design' },
+                  { id: 'Operations & Strategy', label: '⚙️ Operations & Corporate' },
                   { id: 'Sales & Growth', label: '📈 Sales / Growth' },
                 ].map((dept) => {
                   const isActive = selectedDepartment === dept.id;
