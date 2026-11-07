@@ -34,6 +34,25 @@ const NON_TECH_KEYWORDS = [
   'lawyer',
   'paralegal',
   'civil engineer',
+  'mechanical',
+  'mechanical engineer',
+  'heavy equipment',
+  'heavy machinery',
+  'machinery',
+  'excavator',
+  'jcb',
+  'automotive',
+  'production engineer',
+  'maintenance engineer',
+  'plant maintenance',
+  'plant engineer',
+  'erection',
+  'commissioning',
+  'mining machinery',
+  'hvac',
+  'piping',
+  'welding',
+  'fabrication',
   'teacher',
   'educator',
   'hospitality',
@@ -130,6 +149,8 @@ export function extractProfileSearchContext(
   let domain = 'Technology & Software';
   if (/medical|laboratory|pathology|hospital|nurse|phlebotomy|clinical|biochemistry|hematology|health/i.test(checkText)) {
     domain = 'Healthcare & Life Sciences';
+  } else if (/mechanical|heavy\s+(machinery|equipment)|automotive|mining\s+machiner|production\s+engineer|plant\s+(engineer|maintenance)|jcb|excavator|erection\s+and\s+commissioning/i.test(checkText)) {
+    domain = 'Mechanical & Industrial Engineering';
   } else if (/fintech|payment|dispute|chargeback|card operation|reconciliation|billing|merchant/i.test(checkText)) {
     domain = 'Fintech & Payment Operations';
   } else if (/finance|accounting|audit|banking|tax|payroll/i.test(checkText)) {
@@ -156,6 +177,21 @@ export function extractProfileSearchContext(
         'Operations Analyst',
         'Customer Operations'
       );
+    } else if (domain === 'Mechanical & Industrial Engineering' || /mechanical|heavy\s+(machinery|equipment)|plant\s+(maintenance|engineer)|production\s+engineer|jcb|excavator/i.test(checkText)) {
+      const mechanicalVariants = [
+        'Mechanical Engineer',
+        'Service Engineer Heavy Machinery',
+        'Service Manager Heavy Equipment',
+        'Maintenance Engineer',
+        'Production Engineer',
+        'Field Service Engineer',
+        'Plant Operations Engineer',
+      ];
+      for (const v of mechanicalVariants) {
+        if (!searchQueries.includes(v)) {
+          searchQueries.push(v);
+        }
+      }
     } else if (/medical laboratory technologist/i.test(targetRole)) {
       searchQueries.push('Medical Laboratory Technician', 'Medical Technologist', 'Laboratory Technologist');
     } else if (/medical laboratory technician/i.test(targetRole)) {

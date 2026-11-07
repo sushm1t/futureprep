@@ -1633,8 +1633,13 @@ app.post('/api/ats/crawl', async (req, res) => {
     }
 
     const cleanKeyword = (keyword || profileContext?.targetRole || '').trim();
+    const isMechanical = Boolean(
+      profileContext?.domain === 'Mechanical & Industrial Engineering' ||
+      /mechanical|heavy\s+(machinery|equipment)|automotive|mining\s+machiner|production\s+engineer|plant\s+(engineer|maintenance)|jcb|excavator/i.test(cleanKeyword)
+    );
     const isNonTech = Boolean(
       profileContext?.isNonTech ||
+      isMechanical ||
       /medical|laboratory|technologist|technician|nurse|phlebotomy|clinical|hospital|pathology|biochemistry|hematology|doctor|healthcare|legal|culinary/i.test(cleanKeyword)
     );
 
@@ -1644,10 +1649,22 @@ app.post('/api/ats/crawl', async (req, res) => {
       // 1. Regional baseline queries ensure "All Open Roles" always has hundreds/thousands of live positions
       let baseQueries: string[] = [];
       if (normalizedLoc === 'India') {
-        baseQueries = isRemoteRequested
-          ? ['remote India', 'India remote', 'work from home India']
-          : ['India', 'Bengaluru India', 'remote India', 'operations India', 'fintech India'];
-        availableCatalogueTotal = 143380;
+        if (isMechanical) {
+          baseQueries = isRemoteRequested
+            ? ['remote engineering India', 'field service India']
+            : ['India', 'Bengaluru India', 'Mechanical Engineer India', 'Service Engineer India', 'Maintenance Engineer India', 'Production Engineer India', 'Heavy Equipment India'];
+          availableCatalogueTotal = 98450;
+        } else if (isNonTech) {
+          baseQueries = isRemoteRequested
+            ? ['remote India', 'India remote']
+            : ['India', 'Bengaluru India', 'Healthcare India', 'Operations India'];
+          availableCatalogueTotal = 82000;
+        } else {
+          baseQueries = isRemoteRequested
+            ? ['remote India', 'India remote', 'work from home India']
+            : ['India', 'Bengaluru India', 'remote India', 'operations India', 'fintech India'];
+          availableCatalogueTotal = 143380;
+        }
       } else if (normalizedLoc === 'United States') {
         baseQueries = isRemoteRequested ? ['remote US', 'remote United States'] : ['United States', 'remote US', 'San Francisco', 'New York'];
         availableCatalogueTotal = 3120000;
@@ -1675,6 +1692,11 @@ app.post('/api/ats/crawl', async (req, res) => {
         }
         if (/payment|fintech|dispute|chargeback|card operation|reconciliation/i.test(cleanKeyword)) {
           ['Payment Operations', 'Fintech Operations', 'Disputes Specialist', 'Card Operations', 'Real-Time Operations', 'Incident Coordinator', 'Operations Analyst'].forEach((v) => {
+            if (!targetedQueries.includes(v)) targetedQueries.push(v);
+          });
+        }
+        if (/mechanical|equipment|machinery|maintenance|production\s+engineer/i.test(cleanKeyword) || isMechanical) {
+          ['Mechanical Engineer', 'Service Engineer', 'Maintenance Engineer', 'Production Engineer', 'Plant Engineer', 'Field Service Engineer'].forEach((v) => {
             if (!targetedQueries.includes(v)) targetedQueries.push(v);
           });
         }
@@ -1950,7 +1972,7 @@ app.post('/api/ats/crawl', async (req, res) => {
           workplaceType: 'Remote',
           seniority: 'Mid-Level',
           matchScore: 88,
-          matchHighlight: 'Aligns directly with candidate portfolio management and enterprise B2B billing experience at Torc Infotech.',
+          matchHighlight: 'Aligns directly with candidate portfolio management and enterprise B2B billing experience.',
           verifiedLive: true,
         },
         {
@@ -2063,7 +2085,14 @@ app.post('/api/ats/crawl', async (req, res) => {
         },
       ];
 
-      rawJobs.push(...fintechVerifiedRoles);
+      // Only inject fintech verified roles if candidate profile or search query is fintech/payment operations
+      const isFintechProfile = Boolean(
+        profileContext?.domain === 'Fintech & Payment Operations' ||
+        /payment|fintech|dispute|chargeback|card operation|reconciliation|billing/i.test(cleanKeyword)
+      );
+      if (isFintechProfile) {
+        rawJobs.push(...fintechVerifiedRoles);
+      }
 
       // If the crawled catalogue returned fewer than 5 jobs matching the keyword/profile (e.g. healthcare in India),
       // auto-discover real, authenticated vacancies across hospital portals, LinkedIn, and direct career sites via Gemini Google Search!

@@ -21,11 +21,90 @@ export interface MatchableJob {
   rawDescription?: string;
 }
 
+// Seniority, hierarchy, and regional modifiers in job titles that do not constitute functional discipline
+const TITLE_MODIFIERS = new Set([
+  'senior', 'sr', 'junior', 'jr', 'lead', 'principal', 'staff', 'head', 'director', 'vp',
+  'manager', 'management', 'specialist', 'consultant', 'analyst', 'coordinator', 'officer',
+  'associate', 'assistant', 'intern', 'trainee', 'incharge', 'executive', 'supervisor',
+  'remote', 'hybrid', 'onsite', 'on-site', 'india', 'us', 'usa', 'global', 'apac', 'emea',
+  'latam', 'regional', 'area', 'country', 'north', 'south', 'east', 'west', 'central',
+  'group', 'team', 'practice', 'general', 'entry', 'mid'
+]);
+
+// 1. Sales & Business Development Gate:
+// Non-sales candidates must never match sales roles (e.g. Sales Manager, Account Executive, BDR, SDR).
+// Merely having "sales" in a dealer or company name (e.g. "Kadoor Sales Corporation") is NOT a sales background.
+const isSalesRole = (title: string): boolean =>
+  /\b(sales\s+(manager|representative|executive|lead|director|development|associate|agent)|account\s+executive|business\s+development\s+(manager|representative|lead|specialist)|sdr|bdr|inside\s+sales|commercial\s+sales|head\s+of\s+sales)\b/i.test(title);
+
+const hasSalesBackground = (terms: Set<string>): boolean => {
+  const salesCompetencies = [
+    'quota', 'pipeline', 'prospecting', 'cold', 'outbound', 'closing', 'leads', 'prospects',
+    'deal', 'deals', 'b2b', 'b2c', 'funnel', 'quota-carrying', 'crm', 'salesforce', 'hubspot',
+    'bookings', 'client acquisition'
+  ];
+  const hasDirectRole = terms.has('sdr') || terms.has('bdr') || terms.has('closing') || (terms.has('business') && terms.has('development'));
+  const hasSalesKeyword = terms.has('sales') || terms.has('selling') || terms.has('commercial');
+  const matchingCompetencies = salesCompetencies.filter((c) => terms.has(c)).length;
+  return hasDirectRole || (hasSalesKeyword && matchingCompetencies >= 1);
+};
+
+// 2. SAP & ERP Specialist Gate:
+const isSapRole = (title: string): boolean =>
+  /\b(sap|abap|s4hana|s\/4hana|sap-fiori|sap-sd|sap-mm|sap-fi|sap-co|sap-pp|sap-basis)\b/i.test(title);
+
+// 3. Software / Cloud / Web Developer Gate (vs Physical / Mechanical / Civil Engineering):
+// Candidates with engineering degrees (Mechanical, Civil, Industrial, Mining, Chemical) who have no software
+// coding skills must not match software development, web engineering, backend, or AI coding roles.
+const isSoftwareDevRole = (title: string): boolean =>
+  /\b(software|front[- ]?end|back[- ]?end|full[- ]?stack|web\s+developer|developer|programmer|devops|site\s+reliability|cloud\s+(architect|engineer)|mobile\s+developer|ios\s+developer|android\s+developer|react\s+developer|python\s+developer|java\s+developer|golang\s+developer|data\s+engineer|machine\s+learning\s+engineer|ai\s+engineer|systems\s+software)\b/i.test(title);
+
+const hasSoftwareDevBackground = (terms: Set<string>): boolean => {
+  const codeTerms = [
+    'software', 'development', 'developer', 'programmer', 'coding', 'code', 'react', 'python',
+    'javascript', 'typescript', 'java', 'c++', 'c#', 'golang', 'rust', 'kubernetes', 'docker',
+    'aws', 'cloud', 'sql', 'git', 'api', 'graphql', 'node', 'django', 'fastapi', 'devops',
+    'ci/cd', 'frontend', 'backend', 'fullstack', 'database', 'html', 'css', 'ai', 'algorithm',
+    'machine learning'
+  ];
+  return codeTerms.filter((t) => terms.has(t)).length >= 2;
+};
+
+// 4. Healthcare / Clinical Gate:
+const isClinicalRole = (title: string): boolean =>
+  /\b(nurse|nursing|physician|doctor|pharmacist|pharmacy|phlebotom|medical\s+laboratory|patholog|radiolog|dentist|paramedic|clinical\s+specialist|histotechnolog)\b/i.test(title);
+
+const hasClinicalBackground = (terms: Set<string>): boolean =>
+  ['clinical', 'medical', 'hospital', 'nurse', 'nursing', 'phlebotomy', 'laboratory', 'pathology', 'biochemistry', 'hematology', 'patient', 'doctor', 'physician', 'pharmacist'].some((t) => terms.has(t));
+
+// 5. Data Analyst / BI Gate:
+const isDataAnalystRole = (title: string): boolean =>
+  /\b(data\s+analyst|bi\s+analyst|business\s+intelligence\s+analyst|analytics\s+engineer)\b/i.test(title);
+
+const hasDataAnalystBackground = (terms: Set<string>): boolean => {
+  const analyticsTerms = ['sql', 'python', 'tableau', 'powerbi', 'looker', 'excel', 'pandas', 'statistics', 'dashboard', 'bi', 'analytics'];
+  return analyticsTerms.filter((t) => terms.has(t)).length >= 2;
+};
+
+// 6. HR / Benefits / Payroll Gate:
+const isHrBenefitsRole = (title: string): boolean =>
+  /\b(benefits\s+analyst|payroll|hr\s+generalist|human\s+resources|people\s+operations|talent\s+acquisition|recruiter)\b/i.test(title);
+
+const hasHrBenefitsBackground = (terms: Set<string>): boolean =>
+  ['hr', 'human resources', 'benefits', 'payroll', 'recruiting', 'talent', 'onboarding', 'people'].some((t) => terms.has(t));
+
+// 7. Call Centre / Customer Support Agent Gate:
+const isCallCentreRole = (title: string): boolean =>
+  /\b(call\s+centre|customer\s+support\s+operations\s+analyst|contact\s+centre|teleperformance|bpo)\b/i.test(title);
+
+const hasCallCentreBackground = (terms: Set<string>): boolean =>
+  ['call centre', 'contact centre', 'zendesk', 'freshdesk', 'teleperformance', 'bpo', 'telephony'].some((t) => terms.has(t));
+
 // Engineering roles need evidence of engineering background, not shared business vocabulary.
 const hasEngineeringBackground = (terms: Set<string>): boolean => {
-  if (['engineer', 'engineering', 'developer', 'programmer'].some(term => terms.has(term))) return true;
-  const technicalSkills = ['python', 'javascript', 'typescript', 'java', 'c++', 'pytorch', 'tensorflow', 'react', 'kubernetes', 'solidworks', 'autocad'];
-  return technicalSkills.filter(term => terms.has(term)).length >= 2;
+  if (['engineer', 'engineering', 'developer', 'programmer'].some((term) => terms.has(term))) return true;
+  const technicalSkills = ['python', 'javascript', 'typescript', 'java', 'c++', 'pytorch', 'tensorflow', 'react', 'kubernetes', 'solidworks', 'autocad', 'cad', 'ansys', 'matlab', 'catia'];
+  return technicalSkills.filter((term) => terms.has(term)).length >= 2;
 };
 
 export const MIN_DESCRIPTION_FOR_CONFIDENT_FIT = 400;
@@ -33,9 +112,29 @@ export const MIN_DESCRIPTION_FOR_CONFIDENT_FIT = 400;
 /** Returns a quick 0-85 estimate; requirements weigh more than title overlap. */
 export const scoreJobAgainstProfile = (job: MatchableJob, profileTerms: Set<string>): number => {
   if (profileTerms.size === 0) return 0;
+
+  // Domain Disqualification Gates:
+  if (isSalesRole(job.title) && !hasSalesBackground(profileTerms)) return 0;
+  if (isSapRole(job.title) && !profileTerms.has('sap') && !profileTerms.has('abap')) return 0;
+  if (isSoftwareDevRole(job.title) && !hasSoftwareDevBackground(profileTerms)) return 0;
+  if (isClinicalRole(job.title) && !hasClinicalBackground(profileTerms)) return 0;
+  if (isDataAnalystRole(job.title) && !hasDataAnalystBackground(profileTerms)) return 0;
+  if (isHrBenefitsRole(job.title) && !hasHrBenefitsBackground(profileTerms)) return 0;
+  if (isCallCentreRole(job.title) && !hasCallCentreBackground(profileTerms)) return 0;
   if (/\b(engineer|engineering|developer|programmer)\b/i.test(job.title) && !hasEngineeringBackground(profileTerms)) return 0;
+
   const titleTerms = [...new Set(tokenize(job.title))];
   if (titleTerms.length === 0) return 0;
+
+  // Check functional discipline terms (excluding modifiers like Senior, Manager, Remote, India)
+  const disciplineTerms = titleTerms.filter((t) => !TITLE_MODIFIERS.has(t));
+  if (disciplineTerms.length > 0) {
+    const disciplineHits = disciplineTerms.filter((t) => profileTerms.has(t)).length;
+    if (disciplineHits === 0) {
+      return 0;
+    }
+  }
+
   const titleHits = titleTerms.filter((t) => profileTerms.has(t)).length;
   const titleRatio = titleHits / titleTerms.length;
 

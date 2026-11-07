@@ -128,5 +128,61 @@ describe('extractProfileSearchContext', () => {
     expect(ctx.searchQueries).toContain('Card Disputes Specialist');
     expect(ctx.searchQueries).toContain('Real-Time Analyst');
   });
+
+  it('correctly extracts Mechanical Engineer role, India location, and Mechanical domain for Amarjith profile', () => {
+    const amarjithResume: TailoredResumeData = {
+      full_name: 'Amarjith P K',
+      target_role: 'Mechanical Engineer',
+      contact_info: {
+        email: 'amarjithpk@gmail.com',
+        phone: '+91 9048657529',
+        location: 'Vadakara, Calicut, Kerala, India (Pin: 673104)',
+        linkedin: '',
+      },
+      tailored_summary: 'Passionate Mechanical Engineer with proven leadership in heavy machinery maintenance, JCB equipment troubleshooting, and production engineering.',
+      skills: ['Public Relations', 'Teamwork', 'Time Management', 'Leadership', 'Effective Communication', 'Critical Thinking'],
+      experiences: [
+        {
+          title: 'Service Manager',
+          company: 'Autoscan India Pvt Ltd (JCB INDIA LTD)',
+          date_range: 'Sep 2025 – Present',
+          location: 'Kerala, India',
+          bullets: ['Troubleshooting of JCB Excavators, Mini Excavators and Wheel Loaders.', 'Making detailed failure reports of machines.'],
+        },
+        {
+          title: 'Area Service Manager',
+          company: 'Shrivenkatesha Heavy Equipments (HYUNDAI HEAVY MACHINERY DEALER, KERALA)',
+          date_range: 'Sep 2024 – Sep 2025',
+          location: 'Kerala, India',
+          bullets: ['Ensure quality service and resolve customer issues and complaints.'],
+        },
+        {
+          title: 'Production Engineer',
+          company: 'Creative Engineers (MINING MACHINERY MANUFACTURER, BANGALORE)',
+          date_range: 'Jan 2014 – Mar 2017',
+          location: 'Bangalore, India',
+          bullets: ['Experienced in Erection and Commissioning of Mining Machineries.'],
+        },
+      ],
+      education: [
+        {
+          degree: 'BE Mechanical',
+          institution: 'Annamalai University',
+          year: '2008-2012',
+        },
+      ],
+      certifications: [],
+    };
+
+    const ctx = extractProfileSearchContext(amarjithResume);
+    expect(ctx.targetRole).toBe('Mechanical Engineer');
+    expect(ctx.location).toBe('India');
+    expect(ctx.domain).toBe('Mechanical & Industrial Engineering');
+    expect(ctx.isNonTech).toBe(true);
+    expect(ctx.searchQueries).toContain('Mechanical Engineer');
+    expect(ctx.searchQueries).toContain('Service Engineer Heavy Machinery');
+    expect(ctx.searchQueries).toContain('Maintenance Engineer');
+    expect(ctx.searchQueries).toContain('Production Engineer');
+  });
 });
 
