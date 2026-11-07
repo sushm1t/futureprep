@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { quickFitTier } from './profileMatch';
+import { quickFitTier } from '@/jobstudio/utils/profileMatch';
 describe('quickFitTier', () => {
   it('Strong at 65+', () => expect(quickFitTier(65).label).toBe('Strong fit'));
   it('Good at 52-64', () => { expect(quickFitTier(52).label).toBe('Good fit'); expect(quickFitTier(64).label).toBe('Good fit'); });
