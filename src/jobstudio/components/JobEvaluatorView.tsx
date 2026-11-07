@@ -1598,106 +1598,106 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           {/* Search Results Grid */}
           {atsJobs.length > 0 && (
             <div className="space-y-3 pt-3 border-t border-border">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-1">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-display font-semibold text-sm sm:text-base text-foreground">
-                      {selectedAtsCompany === 'all' ? (
-                        <>Live Openings across <span className="text-brand">{uniqueCompaniesCount} Companies</span></>
-                      ) : (
-                        <>Live Openings at <span className="text-brand">{atsCompanies.find((c) => c.slug === selectedAtsCompany)?.name || selectedAtsCompany}</span></>
-                      )}
-                    </span>
-                    <span className="text-[11px] font-mono text-success flex items-center gap-1.5 bg-success/10 px-2 py-0.5 rounded-full">
-                      <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                      Live Stream
-                    </span>
-                  </div>
-                  <p className="text-xs text-subtle mt-0.5">
-                    Showing <strong className="text-foreground font-semibold">{filteredAtsJobs.length}</strong> {hasProfile && !showAllRoles ? 'matched positions' : 'open positions'}
-                    {selectedAtsLocation !== 'All' && (
-                      <span> in <strong className="text-brand font-semibold">{selectedAtsLocation}</strong></span>
+              {/* Header Title & Subtitle (Full Width) */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-display font-semibold text-sm sm:text-base text-foreground">
+                    {selectedAtsCompany === 'all' ? (
+                      <>Live Openings across <span className="text-brand">{uniqueCompaniesCount} Companies</span></>
+                    ) : (
+                      <>Live Openings at <span className="text-brand">{atsCompanies.find((c) => c.slug === selectedAtsCompany)?.name || selectedAtsCompany}</span></>
                     )}
-                    {selectedDepartment !== 'All' && (
-                      <span> · <strong className="text-foreground font-semibold">{selectedDepartment}</strong></span>
-                    )}
-                  </p>
+                  </span>
+                  <span className="text-[11px] font-mono text-success inline-flex items-center gap-1.5 bg-success/10 px-2 py-0.5 rounded-full shrink-0">
+                    <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
+                    Live Stream
+                  </span>
                 </div>
+                <p className="text-xs text-subtle">
+                  Showing <strong className="text-foreground font-semibold">{filteredAtsJobs.length}</strong> {hasProfile && !showAllRoles ? 'matched positions' : 'open positions'}
+                  {selectedAtsLocation !== 'All' && (
+                    <span> in <strong className="text-brand font-semibold">{selectedAtsLocation}</strong></span>
+                  )}
+                  {selectedDepartment !== 'All' && (
+                    <span> · <strong className="text-foreground font-semibold">{selectedDepartment}</strong></span>
+                  )}
+                </p>
+              </div>
 
-                <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
-                  {/* Share Fetched Roles Button & Quick Copy */}
-                  <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-border text-xs">
+              {/* View Switcher and Share Actions Row */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+                {/* LinkedIn-Style Discovery Switcher (Best Matches vs All Open Roles) */}
+                {hasProfile ? (
+                  <div className="flex items-center bg-surface p-1 rounded-xl border border-border text-xs gap-1 shrink-0">
                     <button
                       type="button"
-                      onClick={() => setIsShareModalOpen(true)}
-                      className="px-2.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 hover:bg-surface-2 text-foreground group"
-                      title="Share link to all fetched roles"
-                      aria-label="Share fetched roles"
+                      onClick={() => setShowAllRoles(false)}
+                      className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        !showAllRoles
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'text-subtle hover:text-foreground'
+                      }`}
                     >
-                      <Share2 className="w-3.5 h-3.5 text-brand group-hover:scale-110 transition-transform" />
-                      <span>Share Roles</span>
-                      <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-brand/15 text-brand border border-brand/20">
-                        {filteredAtsJobs.length}
+                      <span>🎯 Best Matches</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${!showAllRoles ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-subtle'}`}>
+                        {profileMatchedJobs.length}
                       </span>
                     </button>
                     <button
                       type="button"
-                      onClick={handleDirectCopyShareLink}
-                      className={`px-2 py-1.5 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1 ${
-                        isDirectCopied
-                          ? 'bg-success/20 text-success font-semibold'
-                          : 'text-subtle hover:text-foreground hover:bg-surface-2'
+                      onClick={() => setShowAllRoles(true)}
+                      className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                        showAllRoles
+                          ? 'bg-primary text-primary-foreground shadow-xs'
+                          : 'text-subtle hover:text-foreground'
                       }`}
-                      title={isDirectCopied ? 'Link copied!' : 'Copy direct share link'}
-                      aria-label="Copy direct share link"
                     >
-                      {isDirectCopied ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 text-success" />
-                          <span className="text-[11px]">Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline text-[11px]">Copy Link</span>
-                        </>
-                      )}
+                      <span>🌐 All Open Roles</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${showAllRoles ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-subtle'}`}>
+                        {baseFilteredAtsJobs.length}
+                      </span>
                     </button>
                   </div>
+                ) : <div />}
 
-                  {/* LinkedIn-Style Discovery Switcher */}
-                  {hasProfile && (
-                    <div className="flex items-center bg-surface p-1 rounded-xl border border-border text-xs gap-1">
-                      <button
-                        type="button"
-                        onClick={() => setShowAllRoles(false)}
-                        className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                          !showAllRoles
-                            ? 'bg-primary text-primary-foreground shadow-xs'
-                            : 'text-subtle hover:text-foreground'
-                        }`}
-                      >
-                        <span>🎯 Best Matches</span>
-                        <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${!showAllRoles ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-subtle'}`}>
-                          {profileMatchedJobs.length}
-                        </span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowAllRoles(true)}
-                        className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                          showAllRoles
-                            ? 'bg-primary text-primary-foreground shadow-xs'
-                            : 'text-subtle hover:text-foreground'
-                        }`}
-                      >
-                        <span>🌐 All Open Roles</span>
-                        <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${showAllRoles ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-subtle'}`}>
-                          {baseFilteredAtsJobs.length}
-                        </span>
-                      </button>
-                    </div>
-                  )}
+                {/* Share Fetched Roles Button & Quick Copy */}
+                <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-border text-xs shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setIsShareModalOpen(true)}
+                    className="px-2.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 hover:bg-surface-2 text-foreground group"
+                    title="Share link to all fetched roles"
+                    aria-label="Share fetched roles"
+                  >
+                    <Share2 className="w-3.5 h-3.5 text-brand group-hover:scale-110 transition-transform" />
+                    <span>Share Roles</span>
+                    <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-brand/15 text-brand border border-brand/20">
+                      {filteredAtsJobs.length}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleDirectCopyShareLink}
+                    className={`px-2 py-1.5 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1 ${
+                      isDirectCopied
+                        ? 'bg-success/20 text-success font-semibold'
+                        : 'text-subtle hover:text-foreground hover:bg-surface-2'
+                    }`}
+                    title={isDirectCopied ? 'Link copied!' : 'Copy direct share link'}
+                    aria-label="Copy direct share link"
+                  >
+                    {isDirectCopied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-success" />
+                        <span className="text-[11px]">Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" />
+                        <span className="text-[11px]">Copy Link</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
 
