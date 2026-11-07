@@ -792,7 +792,95 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             combined.includes('boston') ||
             combined.includes('chicago');
           if (!isUS) return false;
-        } else if (lq.includes('europe') || lq.includes('uk')) {
+        } else if (lq.includes('uae') || lq.includes('emirates') || lq.includes('dubai') || lq.includes('abu dhabi')) {
+          const isUae =
+            combined.includes('uae') ||
+            combined.includes('united arab emirates') ||
+            combined.includes('dubai') ||
+            combined.includes('abu dhabi') ||
+            combined.includes('sharjah') ||
+            combined.includes('ajman');
+          if (!isUae) return false;
+        } else if (lq.includes('canada')) {
+          const isCa =
+            combined.includes('canada') ||
+            combined.includes('toronto') ||
+            combined.includes('vancouver') ||
+            combined.includes('montreal') ||
+            combined.includes('calgary') ||
+            combined.includes('alberta') ||
+            combined.includes('ontario') ||
+            combined.includes('quebec') ||
+            combined.includes('british columbia');
+          if (!isCa) return false;
+        } else if (lq.includes('australia')) {
+          const isAu =
+            combined.includes('australia') ||
+            combined.includes('sydney') ||
+            combined.includes('melbourne') ||
+            combined.includes('brisbane') ||
+            combined.includes('perth') ||
+            combined.includes('adelaide');
+          if (!isAu) return false;
+        } else if (lq.includes('new zealand')) {
+          const isNz =
+            combined.includes('new zealand') ||
+            combined.includes('auckland') ||
+            combined.includes('wellington') ||
+            combined.includes('christchurch');
+          if (!isNz) return false;
+        } else if (lq.includes('singapore')) {
+          if (!combined.includes('singapore')) return false;
+        } else if (lq.includes('germany') || lq.includes('deutschland')) {
+          const isDe =
+            combined.includes('germany') ||
+            combined.includes('deutschland') ||
+            combined.includes('berlin') ||
+            combined.includes('munich') ||
+            combined.includes('frankfurt') ||
+            combined.includes('hamburg');
+          if (!isDe) return false;
+        } else if (lq.includes('netherlands') || lq.includes('holland')) {
+          const isNl =
+            combined.includes('netherlands') ||
+            combined.includes('amsterdam') ||
+            combined.includes('rotterdam') ||
+            combined.includes('utrecht');
+          if (!isNl) return false;
+        } else if (lq.includes('switzerland')) {
+          const isCh =
+            combined.includes('switzerland') ||
+            combined.includes('zurich') ||
+            combined.includes('geneva') ||
+            combined.includes('basel');
+          if (!isCh) return false;
+        } else if (lq.includes('ireland')) {
+          const isIe =
+            combined.includes('ireland') ||
+            combined.includes('dublin') ||
+            combined.includes('cork') ||
+            combined.includes('galway');
+          if (!isIe) return false;
+        } else if (lq.includes('qatar')) {
+          const isQa =
+            combined.includes('qatar') ||
+            combined.includes('doha') ||
+            combined.includes('al rayyan');
+          if (!isQa) return false;
+        } else if (lq.includes('kuwait')) {
+          const isKw =
+            combined.includes('kuwait') ||
+            combined.includes('kuwait city') ||
+            combined.includes('ahmadi');
+          if (!isKw) return false;
+        } else if (lq.includes('saudi')) {
+          const isSa =
+            combined.includes('saudi') ||
+            combined.includes('riyadh') ||
+            combined.includes('jeddah') ||
+            combined.includes('dammam');
+          if (!isSa) return false;
+        } else if (lq.includes('europe') || lq.includes('uk') || lq.includes('united kingdom')) {
           const isEuUk =
             combined.includes('europe') ||
             combined.includes('london') ||
@@ -818,14 +906,19 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       // When exploring "All Open Roles" or broad profile matching, show the full catalog unless user typed an ad-hoc query.
       // In "Best Matches", profileTerms scoring evaluates the candidate's actual qualifications against the entire catalog.
       if (atsKeyword.trim()) {
-        const isDefaultProfileRole = hasProfile && atsKeyword.toLowerCase().trim() === (profileSearchContext.targetRole || '').toLowerCase().trim();
+        const isDefaultProfileRole = hasProfile && (
+          atsKeyword.toLowerCase().trim() === (profileSearchContext.targetRole || '').toLowerCase().trim() ||
+          (profileSearchContext.targetRole && (profileSearchContext.targetRole.toLowerCase().includes(atsKeyword.toLowerCase().trim()) || atsKeyword.toLowerCase().trim().includes(profileSearchContext.targetRole.toLowerCase())))
+        );
         if (!isDefaultProfileRole) {
           const q = atsKeyword.toLowerCase().trim();
+          const cleanQ = q.replace(/[–—/|•\-]/g, ' ').replace(/\s+/g, ' ').trim();
           const text = `${job.title} ${job.company} ${job.department || ''} ${job.descriptionSnippet || ''}`.toLowerCase();
-          const tokens = q.split(/\s+/).filter((t) => t.length > 2);
+          const tokens = cleanQ.split(/\s+/).filter((t) => t.length > 2);
           const matches =
             text.includes(q) ||
-            (tokens.length > 1 && tokens.filter((t) => text.includes(t)).length >= Math.min(2, Math.ceil(tokens.length * 0.5)));
+            (cleanQ && text.includes(cleanQ)) ||
+            (tokens.length > 0 && tokens.some((t) => text.includes(t)));
           if (!matches) return false;
         }
       }
