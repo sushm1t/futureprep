@@ -101,7 +101,17 @@ const getTailoredCountKey = (email?: string): string => {
 };
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<string>('home');
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        if (p.get('tab') === 'evaluator' || p.has('keyword') || p.has('share')) {
+          return 'evaluator';
+        }
+      } catch { /* ignore */ }
+    }
+    return 'home';
+  });
   const [sessionChecked, setSessionChecked] = useState(false);
   const [opportunities, setOpportunities] = useState<JobOpportunity[]>([]);
   const [selectedJobId, setSelectedJobId] = useState<string>('');
@@ -338,7 +348,9 @@ export default function App() {
       // login state applies so the signed-out snap-back rule cannot override it.
       const signingIn = sessionStorage.getItem('jobstudio_auth_intent') !== null;
       sessionStorage.removeItem('jobstudio_auth_intent');
-      setActiveTab(signingIn ? 'evaluator' : readWorkspaceTab(user.id));
+      const urlParams = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : null;
+      const hasEvaluatorParam = urlParams?.get('tab') === 'evaluator' || urlParams?.has('keyword') || urlParams?.has('share');
+      setActiveTab(hasEvaluatorParam || signingIn ? 'evaluator' : readWorkspaceTab(user.id));
       window.scrollTo(0, 0);
     };
     // Serialize restoration so overlapping sign-in events cannot finish the

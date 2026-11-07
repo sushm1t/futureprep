@@ -38,6 +38,9 @@ import {
   RotateCcw,
   ArrowLeft,
   MoreHorizontal,
+  Share2,
+  Copy,
+  Check,
 } from 'lucide-react';
 import {
   JobEvaluationData,
@@ -266,15 +269,62 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     return extractProfileSearchContext(activeResume, masterProfileText);
   }, [activeResume, masterProfileText]);
 
-  const [selectedAtsCompany, setSelectedAtsCompany] = useState<string>('all');
+  const hasAutoCrawledUrlRef = useRef(false);
+
+  const [selectedAtsCompany, setSelectedAtsCompany] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        return p.get('company') || p.get('co') || 'all';
+      } catch { /* ignore */ }
+    }
+    return 'all';
+  });
   const [atsCustomInput, setAtsCustomInput] = useState<string>('');
-  const [atsKeyword, setAtsKeyword] = useState<string>(() => profileSearchContext.targetRole || '');
-  const [selectedSeniority, setSelectedSeniority] = useState<SeniorityFilter>('All');
-  const [selectedWorkplace, setSelectedWorkplace] = useState<WorkplaceFilter>('All');
-  const [selectedAtsLocation, setSelectedAtsLocation] = useState<string>(() => profileSearchContext.location || 'All');
+  const [atsKeyword, setAtsKeyword] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const k = p.get('keyword') || p.get('q');
+        if (k) return k;
+      } catch { /* ignore */ }
+    }
+    return profileSearchContext.targetRole || '';
+  });
+  const [selectedSeniority, setSelectedSeniority] = useState<SeniorityFilter>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const s = p.get('seniority');
+        if (s) return s as SeniorityFilter;
+      } catch { /* ignore */ }
+    }
+    return 'All';
+  });
+  const [selectedWorkplace, setSelectedWorkplace] = useState<WorkplaceFilter>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const w = p.get('workplace');
+        if (w) return w as WorkplaceFilter;
+      } catch { /* ignore */ }
+    }
+    return 'All';
+  });
+  const [selectedAtsLocation, setSelectedAtsLocation] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const l = p.get('location') || p.get('loc');
+        if (l) return l;
+      } catch { /* ignore */ }
+    }
+    return profileSearchContext.location || 'All';
+  });
 
   const lastProfileRoleRef = useRef(profileSearchContext.targetRole);
   useEffect(() => {
+    if (hasAutoCrawledUrlRef.current) return;
     if (profileSearchContext.targetRole && profileSearchContext.targetRole !== lastProfileRoleRef.current) {
       const prev = lastProfileRoleRef.current;
       lastProfileRoleRef.current = profileSearchContext.targetRole;
@@ -347,13 +397,32 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
   const [isCrawlingAts, setIsCrawlingAts] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
   const [hasMoreAtsJobs, setHasMoreAtsJobs] = useState<boolean>(true);
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('All');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return new URLSearchParams(window.location.search).get('dept') || 'All';
+      } catch { /* ignore */ }
+    }
+    return 'All';
+  });
   const [atsJobs, setAtsJobs] = useState<ATSJobListing[]>([]);
   const [totalInCatalogue, setTotalInCatalogue] = useState<number>(7135839);
   const [atsFeedback, setAtsFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [showAllRoles, setShowAllRoles] = useState<boolean>(false);
+  const [showAllRoles, setShowAllRoles] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return new URLSearchParams(window.location.search).get('view') === 'all';
+      } catch { /* ignore */ }
+    }
+    return false;
+  });
   const [importedAtsIds, setImportedAtsIds] = useState<Map<string, string>>(new Map());
   const [importingCount, setImportingCount] = useState(0);
+
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [isLinkCopied, setIsLinkCopied] = useState<boolean>(false);
+  const [isDirectCopied, setIsDirectCopied] = useState<boolean>(false);
+  const [isListCopied, setIsListCopied] = useState<boolean>(false);
 
   const handleCrawlAts = async (
     companyInputOverride?: string,
@@ -474,6 +543,128 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     } finally {
       setIsCrawlingAts(false);
       setIsLoadingMore(false);
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || hasAutoCrawledUrlRef.current) return;
+    try {
+      const p = new URLSearchParams(window.location.search);
+      const hasSearch = p.has('keyword') || p.has('q') || p.has('location') || p.has('company') || p.has('share');
+      if (hasSearch) {
+        hasAutoCrawledUrlRef.current = true;
+        const k = p.get('keyword') || p.get('q') || atsKeyword;
+        const l = p.get('location') || p.get('loc') || selectedAtsLocation;
+        const c = p.get('company') || p.get('co') || selectedAtsCompany;
+        const s = (p.get('seniority') as SeniorityFilter) || selectedSeniority;
+        const w = (p.get('workplace') as WorkplaceFilter) || selectedWorkplace;
+        handleCrawlAts(c, s, w, l, k);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const buildShareUrl = () => {
+    if (typeof window === 'undefined') return '';
+    try {
+      const url = new URL(window.location.origin + window.location.pathname);
+      url.searchParams.set('tab', 'evaluator');
+      if (atsKeyword.trim()) {
+        url.searchParams.set('keyword', atsKeyword.trim());
+      }
+      if (selectedAtsLocation && selectedAtsLocation !== 'All') {
+        url.searchParams.set('location', selectedAtsLocation);
+      }
+      if (selectedAtsCompany && selectedAtsCompany !== 'all') {
+        url.searchParams.set('company', selectedAtsCompany);
+      }
+      if (selectedSeniority && selectedSeniority !== 'All') {
+        url.searchParams.set('seniority', selectedSeniority);
+      }
+      if (selectedWorkplace && selectedWorkplace !== 'All') {
+        url.searchParams.set('workplace', selectedWorkplace);
+      }
+      if (selectedDepartment && selectedDepartment !== 'All') {
+        url.searchParams.set('dept', selectedDepartment);
+      }
+      if (showAllRoles) {
+        url.searchParams.set('view', 'all');
+      }
+      return url.toString();
+    } catch {
+      return window.location.href;
+    }
+  };
+
+  const getFormattedRolesList = () => {
+    const url = buildShareUrl();
+    const locationText = selectedAtsLocation && selectedAtsLocation !== 'All' ? ` in ${selectedAtsLocation}` : '';
+    const header = `🎯 Live Roles on JobStudio (${filteredAtsJobs.length} positions)\nSearch: ${searchRoleLabel}${locationText}\n`;
+    const items = filteredAtsJobs.slice(0, 25).map((job, index) => {
+      const loc = job.location ? ` | ${job.location}` : '';
+      const wp = job.workplaceType ? ` (${job.workplaceType})` : '';
+      const link = job.applyUrl ? `\n   Apply: ${job.applyUrl}` : '';
+      return `${index + 1}. ${job.title} — ${job.company}${loc}${wp}${link}`;
+    }).join('\n\n');
+    const footer = `\n\nExplore and evaluate match score on JobStudio:\n${url}`;
+    return `${header}\n${items}${footer}`;
+  };
+
+  const handleCopyShareUrl = async () => {
+    const url = buildShareUrl();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        setIsLinkCopied(true);
+        setTimeout(() => setIsLinkCopied(false), 2500);
+      }
+    } catch (err) {
+      console.warn('Failed to copy link:', err);
+    }
+  };
+
+  const handleDirectCopyShareLink = async () => {
+    const url = buildShareUrl();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(url);
+        setIsDirectCopied(true);
+        setTimeout(() => setIsDirectCopied(false), 2500);
+      }
+    } catch (err) {
+      console.warn('Failed to direct copy link:', err);
+      setIsShareModalOpen(true);
+    }
+  };
+
+  const handleCopyRolesList = async () => {
+    const text = getFormattedRolesList();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+        setIsListCopied(true);
+        setTimeout(() => setIsListCopied(false), 2500);
+      }
+    } catch (err) {
+      console.warn('Failed to copy roles list:', err);
+    }
+  };
+
+  const handleNativeShare = async () => {
+    const url = buildShareUrl();
+    if (typeof navigator !== 'undefined' && typeof navigator.share === 'function') {
+      try {
+        await navigator.share({
+          title: `Live Roles for ${searchRoleLabel} on JobStudio`,
+          text: `Found ${filteredAtsJobs.length} live openings for ${searchRoleLabel}${selectedAtsLocation !== 'All' ? ` in ${selectedAtsLocation}` : ''} on JobStudio:`,
+          url,
+        });
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          handleCopyShareUrl();
+        }
+      }
+    } else {
+      handleCopyShareUrl();
     }
   };
 
@@ -1433,39 +1624,81 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   </p>
                 </div>
 
-                {/* LinkedIn-Style Discovery Switcher */}
-                {hasProfile && (
-                  <div className="flex items-center bg-surface p-1 rounded-xl border border-border text-xs gap-1 self-start sm:self-auto shrink-0">
+                <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto shrink-0">
+                  {/* Share Fetched Roles Button & Quick Copy */}
+                  <div className="flex items-center gap-1 bg-surface p-1 rounded-xl border border-border text-xs">
                     <button
                       type="button"
-                      onClick={() => setShowAllRoles(false)}
-                      className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        !showAllRoles
-                          ? 'bg-primary text-primary-foreground shadow-xs'
-                          : 'text-subtle hover:text-foreground'
-                      }`}
+                      onClick={() => setIsShareModalOpen(true)}
+                      className="px-2.5 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 hover:bg-surface-2 text-foreground group"
+                      title="Share link to all fetched roles"
+                      aria-label="Share fetched roles"
                     >
-                      <span>🎯 Best Matches</span>
-                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${!showAllRoles ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-subtle'}`}>
-                        {profileMatchedJobs.length}
+                      <Share2 className="w-3.5 h-3.5 text-brand group-hover:scale-110 transition-transform" />
+                      <span>Share Roles</span>
+                      <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-brand/15 text-brand border border-brand/20">
+                        {filteredAtsJobs.length}
                       </span>
                     </button>
                     <button
                       type="button"
-                      onClick={() => setShowAllRoles(true)}
-                      className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
-                        showAllRoles
-                          ? 'bg-primary text-primary-foreground shadow-xs'
-                          : 'text-subtle hover:text-foreground'
+                      onClick={handleDirectCopyShareLink}
+                      className={`px-2 py-1.5 rounded-lg font-medium transition-all cursor-pointer flex items-center gap-1 ${
+                        isDirectCopied
+                          ? 'bg-success/20 text-success font-semibold'
+                          : 'text-subtle hover:text-foreground hover:bg-surface-2'
                       }`}
+                      title={isDirectCopied ? 'Link copied!' : 'Copy direct share link'}
+                      aria-label="Copy direct share link"
                     >
-                      <span>🌐 All Open Roles</span>
-                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${showAllRoles ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-subtle'}`}>
-                        {baseFilteredAtsJobs.length}
-                      </span>
+                      {isDirectCopied ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-success" />
+                          <span className="text-[11px]">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span className="hidden sm:inline text-[11px]">Copy Link</span>
+                        </>
+                      )}
                     </button>
                   </div>
-                )}
+
+                  {/* LinkedIn-Style Discovery Switcher */}
+                  {hasProfile && (
+                    <div className="flex items-center bg-surface p-1 rounded-xl border border-border text-xs gap-1">
+                      <button
+                        type="button"
+                        onClick={() => setShowAllRoles(false)}
+                        className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          !showAllRoles
+                            ? 'bg-primary text-primary-foreground shadow-xs'
+                            : 'text-subtle hover:text-foreground'
+                        }`}
+                      >
+                        <span>🎯 Best Matches</span>
+                        <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${!showAllRoles ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-subtle'}`}>
+                          {profileMatchedJobs.length}
+                        </span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowAllRoles(true)}
+                        className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer flex items-center gap-1.5 ${
+                          showAllRoles
+                            ? 'bg-primary text-primary-foreground shadow-xs'
+                            : 'text-subtle hover:text-foreground'
+                        }`}
+                      >
+                        <span>🌐 All Open Roles</span>
+                        <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${showAllRoles ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-subtle'}`}>
+                          {baseFilteredAtsJobs.length}
+                        </span>
+                      </button>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Quick Discipline Filter Bar (LinkedIn style) */}
@@ -3066,6 +3299,185 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       )}
         </div>
       </div>
+
+      {/* Share Fetched Roles Dialog */}
+      {isShareModalOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="share-roles-title"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md overflow-y-auto"
+        >
+          <div className="bg-card border border-border rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col my-auto animate-in fade-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="mobile-dialog-heading px-6 py-5 border-b border-border flex items-center justify-between bg-card">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-brand/10 border border-brand/25 flex items-center justify-center text-brand shrink-0">
+                  <Share2 className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 id="share-roles-title" className="font-display text-base sm:text-lg font-semibold text-foreground">
+                    Share Fetched Roles
+                  </h3>
+                  <p className="text-xs text-subtle">
+                    Share {filteredAtsJobs.length} live positions for {searchRoleLabel}
+                    {selectedAtsLocation !== 'All' ? ` in ${selectedAtsLocation}` : ''}
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsShareModalOpen(false)}
+                className="p-1.5 rounded-lg text-subtle hover:text-foreground hover:bg-surface transition-colors cursor-pointer"
+                aria-label="Close share dialog"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Body */}
+            <div className="p-6 space-y-5 overflow-y-auto max-h-[75vh]">
+              {/* Shareable Link Box */}
+              <div className="space-y-2">
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>Direct Shareable Link</span>
+                  {isLinkCopied && (
+                    <span className="text-xs text-success flex items-center gap-1 font-mono">
+                      <Check className="w-3.5 h-3.5" /> Copied to clipboard!
+                    </span>
+                  )}
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={buildShareUrl()}
+                    className="flex-1 bg-surface border border-border rounded-xl px-3.5 py-2.5 text-xs font-mono text-foreground focus:outline-hidden focus:border-brand/60 select-all"
+                  />
+                  <Button
+                    type="button"
+                    variant={isLinkCopied ? 'secondary' : 'default'}
+                    onClick={handleCopyShareUrl}
+                    className="shrink-0 text-xs font-semibold cursor-pointer"
+                  >
+                    {isLinkCopied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 mr-1 text-success" />
+                        Copied
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5 mr-1" />
+                        Copy Link
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <p className="text-[11px] text-subtle">
+                  Anyone opening this link will see these exact search filters and all matching live positions loaded automatically.
+                </p>
+              </div>
+
+              {/* Action Buttons: Native Share + Copy Formatted Text List */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={handleCopyRolesList}
+                  className={`p-3 rounded-xl border text-xs font-medium transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                    isListCopied
+                      ? 'bg-success/15 border-success/40 text-success'
+                      : 'border-border bg-surface hover:bg-surface-2 text-foreground'
+                  }`}
+                >
+                  {isListCopied ? (
+                    <>
+                      <Check className="w-4 h-4 text-success" />
+                      <span className="font-semibold">Text List Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4 text-brand" />
+                      <span>Copy List (for WhatsApp / Slack)</span>
+                    </>
+                  )}
+                </button>
+
+                {typeof navigator !== 'undefined' && typeof navigator.share === 'function' ? (
+                  <button
+                    type="button"
+                    onClick={handleNativeShare}
+                    className="p-3 rounded-xl border border-border bg-surface hover:bg-surface-2 text-foreground text-xs font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <ExternalLink className="w-4 h-4 text-brand" />
+                    <span>Share via Apps...</span>
+                  </button>
+                ) : (
+                  <div className="p-3 rounded-xl border border-border/60 bg-surface/50 text-[11px] text-subtle flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand/60 shrink-0" />
+                    <span>Link ready to paste into any chat or email</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Roles Preview */}
+              <div className="space-y-2 pt-2 border-t border-border">
+                <div className="flex items-center justify-between text-xs text-subtle">
+                  <span className="font-semibold text-foreground uppercase tracking-wider text-[11px]">
+                    Positions Included ({filteredAtsJobs.length})
+                  </span>
+                  <span>{uniqueCompaniesCount} companies</span>
+                </div>
+
+                <div className="max-h-56 overflow-y-auto space-y-2 pr-1 rounded-xl">
+                  {filteredAtsJobs.slice(0, 15).map((job) => (
+                    <div
+                      key={job.id}
+                      className="p-2.5 rounded-xl border border-border bg-surface/60 text-xs flex items-center justify-between gap-3"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="font-medium text-foreground truncate">{job.title}</div>
+                        <div className="text-[11px] text-subtle truncate flex items-center gap-2 mt-0.5">
+                          <span className="text-brand font-medium">{job.company}</span>
+                          {job.location && <span>• {job.location}</span>}
+                          {job.workplaceType && <span>• {job.workplaceType}</span>}
+                        </div>
+                      </div>
+                      {job.applyUrl && (
+                        <a
+                          href={job.applyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-1 text-subtle hover:text-foreground shrink-0"
+                          title="Open requisition"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  ))}
+                  {filteredAtsJobs.length > 15 && (
+                    <div className="text-center py-1 text-[11px] text-subtle">
+                      + {filteredAtsJobs.length - 15} more positions included in the link
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-3.5 border-t border-border bg-surface/40 flex items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => setIsShareModalOpen(false)}
+                className="text-xs cursor-pointer"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
