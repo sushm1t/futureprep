@@ -18,12 +18,14 @@ import {
   ExternalLink,
   Radio,
   ShieldCheck,
+  Shield,
 } from 'lucide-react';
 import { TailoredResumeData, WorkExperience } from '../data/defaultData';
 import { getUserMasterProfile } from '../data/candidateProfiles';
 import { downloadResumeAsPdf, printResumeVector, generatePlainTextResume } from '../utils/pdfExport';
 import { downloadResumeAsDocx, downloadResumeAsPlainText } from '../utils/docxExport';
 import { transformUrlToTracer } from '../utils/tracerLinks';
+import { maskResumePii } from '../utils/piiRedactor';
 import {
   getSavedExperienceBank,
   saveExperienceBank,
@@ -96,6 +98,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
 
   // Freehire Superpowers: Recruiter Tracer Links & Experience Bank
   const [enableTracerLinks, setEnableTracerLinks] = useState(false);
+  const [isPrivacyMasked, setIsPrivacyMasked] = useState(false);
   const [experienceBank, setExperienceBank] = useState<EvidenceAtom[]>(() => {
     const saved = getSavedExperienceBank();
     if (saved.length > 0) return saved;
@@ -133,17 +136,21 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
     saveExperienceBank(updated);
   };
 
+  const displayedResume = React.useMemo(() => {
+    return isPrivacyMasked ? maskResumePii(resume) : resume;
+  }, [resume, isPrivacyMasked]);
+
   const handleDownloadPdf = async () => {
     setIsDownloading(true);
     const safeTitle = (companyName && jobTitle)
       ? (companyName + '_' + jobTitle).replace(/[^a-zA-Z0-9_-]/g, '_')
       : 'Master';
-    const fileName = `${safeTitle}_${resume.full_name.replace(/\s+/g, '_')}_Resume.pdf`;
+    const fileName = `${safeTitle}_${displayedResume.full_name.replace(/\s+/g, '_')}_Resume.pdf`;
     const success = await downloadResumeAsPdf(
       'printable-resume-container',
       fileName,
       fitSinglePage,
-      resume
+      displayedResume
     );
     setIsDownloading(false);
     if (success) {
@@ -157,8 +164,8 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
     const safeTitle = (companyName && jobTitle)
       ? (companyName + '_' + jobTitle).replace(/[^a-zA-Z0-9_-]/g, '_')
       : 'Master';
-    const fileName = `${safeTitle}_${resume.full_name.replace(/\s+/g, '_')}_Resume.docx`;
-    downloadResumeAsDocx(resume, fileName);
+    const fileName = `${safeTitle}_${displayedResume.full_name.replace(/\s+/g, '_')}_Resume.docx`;
+    downloadResumeAsDocx(displayedResume, fileName);
     setTimeout(() => {
       setIsDocxDownloading(false);
       setDocxSuccess(true);
@@ -170,12 +177,12 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
     const safeTitle = (companyName && jobTitle)
       ? (companyName + '_' + jobTitle).replace(/[^a-zA-Z0-9_-]/g, '_')
       : 'Master';
-    const fileName = `${safeTitle}_${resume.full_name.replace(/\s+/g, '_')}_Resume.txt`;
-    downloadResumeAsPlainText(resume, fileName);
+    const fileName = `${safeTitle}_${displayedResume.full_name.replace(/\s+/g, '_')}_Resume.txt`;
+    downloadResumeAsPlainText(displayedResume, fileName);
   };
 
   const handleCopyPlainText = () => {
-    const text = generatePlainTextResume(resume);
+    const text = generatePlainTextResume(displayedResume);
     navigator.clipboard.writeText(text);
     setCopiedText(true);
     setTimeout(() => setCopiedText(false), 2000);
@@ -402,6 +409,21 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
             <span>{enableTracerLinks ? 'Radar Links: ON' : 'Radar Links: OFF'}</span>
           </button>
 
+          {/* Freehire Privacy Shield (Mask PII for Public Outreach) */}
+          <button
+            type="button"
+            onClick={() => setIsPrivacyMasked(!isPrivacyMasked)}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${
+              isPrivacyMasked
+                ? 'bg-primary/20 border-primary/40 text-brand font-semibold'
+                : 'bg-surface border-border text-muted-foreground hover:bg-surface-2'
+            }`}
+            title="Masks personal phone and full street address with privacy tokens for public sharing on LinkedIn or Discord"
+          >
+            <Shield className={`w-3.5 h-3.5 ${isPrivacyMasked ? 'text-brand' : 'text-subtle'}`} />
+            <span>{isPrivacyMasked ? 'Privacy Shield: ON' : 'Privacy Shield: OFF'}</span>
+          </button>
+
           {/* Copy Plaintext */}
           <button
             onClick={handleCopyPlainText}
@@ -509,33 +531,33 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
             return (
               <header className={`resume-header border-b-2 border-[#1D1D1F] text-center sm:text-left ${densityStyles.headerMargin}`}>
                 <h1 className="text-2xl sm:text-[26px] font-bold tracking-tight text-[#1D1D1F] uppercase">
-                  {resume.full_name}
+                  {displayedResume.full_name}
                 </h1>
                 <div className="mt-1 text-xs sm:text-[13px] text-[#6E6E73] flex flex-wrap items-center justify-center sm:justify-start gap-x-2 gap-y-0.5">
                   <a
-                    href={`mailto:${resume.email}`}
+                    href={`mailto:${displayedResume.email}`}
                     className="text-[#1D1D1F] hover:text-[#0071E3] hover:underline transition-colors duration-200"
-                    data-pdf-link={`mailto:${resume.email}`}
+                    data-pdf-link={`mailto:${displayedResume.email}`}
                     title="Send Email"
                   >
-                    {resume.email}
+                    {displayedResume.email}
                   </a>
                   <span className="text-[#D2D2D7]">|</span>
                   <a
-                    href={`tel:${resume.phone.replace(/[^0-9+]/g, '')}`}
+                    href={`tel:${displayedResume.phone.replace(/[^0-9+]/g, '')}`}
                     className="text-[#1D1D1F] hover:text-[#0071E3] hover:underline transition-colors duration-200"
-                    data-pdf-link={`tel:${resume.phone.replace(/[^0-9+]/g, '')}`}
+                    data-pdf-link={`tel:${displayedResume.phone.replace(/[^0-9+]/g, '')}`}
                     title="Call Phone Number"
                   >
-                    {resume.phone}
+                    {displayedResume.phone}
                   </a>
-                  {resume.location &&
-                   resume.location.trim().length > 0 &&
-                   !resume.location.toLowerCase().includes('kochi') &&
-                   !resume.location.toLowerCase().includes('hyderabad') && (
+                  {displayedResume.location &&
+                   displayedResume.location.trim().length > 0 &&
+                   !displayedResume.location.toLowerCase().includes('kochi') &&
+                   !displayedResume.location.toLowerCase().includes('hyderabad') && (
                     <>
                       <span className="text-[#D2D2D7]">|</span>
-                      <span>{resume.location}</span>
+                      <span>{displayedResume.location}</span>
                     </>
                   )}
                   <span className="text-[#D2D2D7]">|</span>

@@ -20,7 +20,9 @@ import {
   FileText,
   Linkedin,
   Target,
+  Shield,
 } from 'lucide-react';
+import { maskPlainTextPii } from '../utils/piiRedactor';
 
 export type ReferralRelationship = 'colleague' | 'linkedin' | 'alumni' | 'manager';
 
@@ -95,6 +97,7 @@ export const ReferralMessageView: React.FC<ReferralMessageViewProps> = ({
   const [customMessage, setCustomMessage] = useState<string | null>(null);
   const [copiedMessage, setCopiedMessage] = useState<boolean>(false);
   const [copiedBlurb, setCopiedBlurb] = useState<boolean>(false);
+  const [isPrivacyMasked, setIsPrivacyMasked] = useState<boolean>(false);
 
   // Sync when props update from evaluation
   useEffect(() => {
@@ -299,27 +302,35 @@ ${forwardableBlurb}
   // Current display text (either custom user edits or freshly generated template)
   const currentMessageText = customMessage !== null ? customMessage : `${generatedTemplate.subject}\n\n${generatedTemplate.body}`;
 
-  const wordCount = useMemo(() => {
-    return currentMessageText.trim().split(/\s+/).filter(Boolean).length;
-  }, [currentMessageText]);
+  const displayedMessage = useMemo(() => {
+    return isPrivacyMasked ? maskPlainTextPii(currentMessageText) : currentMessageText;
+  }, [currentMessageText, isPrivacyMasked]);
 
-  const charCount = currentMessageText.length;
+  const displayedBlurb = useMemo(() => {
+    return isPrivacyMasked ? maskPlainTextPii(forwardableBlurb) : forwardableBlurb;
+  }, [forwardableBlurb, isPrivacyMasked]);
+
+  const wordCount = useMemo(() => {
+    return displayedMessage.trim().split(/\s+/).filter(Boolean).length;
+  }, [displayedMessage]);
+
+  const charCount = displayedMessage.length;
 
   const handleCopyFullMessage = () => {
-    navigator.clipboard.writeText(currentMessageText);
+    navigator.clipboard.writeText(displayedMessage);
     setCopiedMessage(true);
     setTimeout(() => setCopiedMessage(false), 2000);
   };
 
   const handleCopyBlurbOnly = () => {
-    navigator.clipboard.writeText(forwardableBlurb);
+    navigator.clipboard.writeText(displayedBlurb);
     setCopiedBlurb(true);
     setTimeout(() => setCopiedBlurb(false), 2000);
   };
 
   const handleDownloadTxt = () => {
-    const filename = `Referral_Request_${(activeComp || 'Company').replace(/\s+/g, '_')}_${relationship}.txt`;
-    const blob = new Blob([currentMessageText], { type: 'text/plain;charset=utf-8' });
+    const filename = `Referral_Request_${(activeComp || 'Company').replace(/\s+/g, '_')}_${relationship}${isPrivacyMasked ? '_Masked' : ''}.txt`;
+    const blob = new Blob([displayedMessage], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
@@ -708,7 +719,7 @@ ${forwardableBlurb}
           Employees are busy. Providing this ready-to-paste blurb means your referrer doesn&apos;t have to write a single sentence to submit you into Workday, Greenhouse, or Slack.
         </p>
         <div className="p-3 bg-card border border-border rounded-xl text-xs text-foreground font-mono leading-relaxed whitespace-pre-wrap selection:bg-brand/20">
-          {forwardableBlurb}
+          {displayedBlurb}
         </div>
       </div>
 
@@ -740,7 +751,7 @@ ${forwardableBlurb}
         </div>
 
         <textarea
-          value={currentMessageText}
+          value={displayedMessage}
           onChange={(e) => setCustomMessage(e.target.value)}
           rows={14}
           className="w-full p-4 bg-surface focus:bg-card border border-border focus:border-brand rounded-xl text-xs sm:text-sm text-foreground font-mono leading-relaxed focus:outline-none transition-all resize-y"
@@ -752,7 +763,22 @@ ${forwardableBlurb}
             <Lightbulb className="w-3.5 h-3.5 text-warning shrink-0" />
             Tip: Send this via LinkedIn Message, InMail, or direct corporate email.
           </span>
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            {/* Freehire Privacy Shield Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsPrivacyMasked(!isPrivacyMasked)}
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border transition-all duration-200 cursor-pointer text-xs ${
+                isPrivacyMasked
+                  ? 'bg-primary/20 border-primary/40 text-brand font-semibold'
+                  : 'bg-surface border-border text-muted-foreground hover:bg-surface-2'
+              }`}
+              title="Masks personal email and phone in the outreach text"
+            >
+              <Shield className={`w-3.5 h-3.5 ${isPrivacyMasked ? 'text-brand' : 'text-subtle'}`} />
+              <span>{isPrivacyMasked ? 'Privacy Shield: ON' : 'Privacy Shield: OFF'}</span>
+            </button>
+
             <button
               type="button"
               onClick={handleCopyFullMessage}

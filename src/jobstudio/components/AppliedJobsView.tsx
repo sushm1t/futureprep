@@ -39,6 +39,12 @@ import { useWebMCP } from 'use-webmcp-tool';
 import { runWebMCPTool } from '@/lib/webmcp-telemetry';
 import { classifyRecruiterEmail, EmailClassificationResult } from '../utils/recruiterEmailClassifier';
 import { getSavedTracerLinks, TracerLinkRecord } from '../utils/tracerLinks';
+import {
+  evaluateApplicationSilence,
+  generateFollowUpTemplates,
+  FollowUpAngle,
+  FollowUpTemplate,
+} from '../utils/silenceLadder';
 
 interface AppliedJobsViewProps {
   appliedJobs: AppliedJobRecord[];
@@ -136,13 +142,14 @@ export function getDaysSinceApplied(job: AppliedJobRecord): number {
 }
 
 export function isFollowUpDue(job: AppliedJobRecord): boolean {
-  if (job.status !== 'Applied' && job.status !== 'Under Review') {
+  if (job.status === 'Offer Received' || job.status === 'Rejected' || job.status === 'Archived') {
     return false;
   }
   if (job.followed_up_at) {
     return false;
   }
-  return getDaysSinceApplied(job) >= 5;
+  const silence = evaluateApplicationSilence(job.applied_date, job.followed_up_at, job.status);
+  return silence.isFollowUpRecommended;
 }
 
 export function generateFollowUpEmail(job: AppliedJobRecord, candidateName: string = 'Alex Rivera') {
@@ -188,11 +195,29 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
   const [followUpModalJob, setFollowUpModalJob] = useState<AppliedJobRecord | null>(null);
   const [followUpCopied, setFollowUpCopied] = useState<boolean>(false);
   const [followUpSuccess, setFollowUpSuccess] = useState<boolean>(false);
+  const [selectedFollowUpAngle, setSelectedFollowUpAngle] = useState<FollowUpAngle>('polite_checkin');
 
   const effectiveCandidate = candidateName || currentResume?.full_name || 'Alex Rivera';
 
+  const followUpTemplates = useMemo(() => {
+    if (!followUpModalJob) return [];
+    const daysSince = getDaysSinceApplied(followUpModalJob);
+    return generateFollowUpTemplates({
+      candidateName: effectiveCandidate,
+      companyName: followUpModalJob.company_name,
+      jobTitle: followUpModalJob.job_title,
+      daysQuiet: daysSince,
+      stage: followUpModalJob.status,
+    });
+  }, [followUpModalJob, effectiveCandidate]);
+
+  const activeTemplate = useMemo(() => {
+    return followUpTemplates.find((t) => t.angle === selectedFollowUpAngle) || followUpTemplates[0] || null;
+  }, [followUpTemplates, selectedFollowUpAngle]);
+
   const openFollowUpModal = (job: AppliedJobRecord) => {
     setFollowUpModalJob(job);
+    setSelectedFollowUpAngle('polite_checkin');
     setFollowUpCopied(false);
     setFollowUpSuccess(false);
   };
@@ -1567,13 +1592,60 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
               </div>
             ) : (
               <>
+                {/* Freehire Tactical Angles Switcher */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-semibold text-subtle uppercase tracking-wider">
+                    Follow-Up Strategy & Angle
+                  </label>
+                  <div className="grid grid-cols-3 gap-1.5 p-1 bg-surface rounded-xl border border-border">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFollowUpAngle('polite_checkin')}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer text-center ${
+                        selectedFollowUpAngle === 'polite_checkin'
+                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      📬 Polite Check-In
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFollowUpAngle('value_add')}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer text-center ${
+                        selectedFollowUpAngle === 'value_add'
+                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      🚀 Value Update
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedFollowUpAngle('competing_deadline')}
+                      className={`px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all cursor-pointer text-center ${
+                        selectedFollowUpAngle === 'competing_deadline'
+                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      ⏳ Timeline Urgency
+                    </button>
+                  </div>
+                  {activeTemplate && (
+                    <p className="text-[11px] text-muted-foreground px-1">
+                      {activeTemplate.subtitle}
+                    </p>
+                  )}
+                </div>
+
                 <div className="space-y-3 text-xs">
                   <div>
                     <label className="block text-[11px] font-semibold text-subtle uppercase tracking-wider mb-1">
                       Recipient
                     </label>
                     <div className="px-3.5 py-2 bg-surface rounded-xl text-xs text-foreground font-medium border border-border">
-                      {generateFollowUpEmail(followUpModalJob, effectiveCandidate).recipient}
+                      {`Recruiter / Hiring Team at ${followUpModalJob.company_name}`}
                     </div>
                   </div>
 
@@ -1582,7 +1654,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                       Subject Line
                     </label>
                     <div className="px-3.5 py-2 bg-surface rounded-xl text-xs text-foreground font-medium border border-border select-all">
-                      {generateFollowUpEmail(followUpModalJob, effectiveCandidate).subject}
+                      {activeTemplate?.subject || generateFollowUpEmail(followUpModalJob, effectiveCandidate).subject}
                     </div>
                   </div>
 
@@ -1593,7 +1665,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                     <textarea
                       readOnly
                       rows={8}
-                      value={generateFollowUpEmail(followUpModalJob, effectiveCandidate).body}
+                      value={activeTemplate?.body || generateFollowUpEmail(followUpModalJob, effectiveCandidate).body}
                       className="w-full px-3.5 py-2.5 bg-surface border border-border rounded-xl text-xs text-foreground leading-relaxed outline-none select-all font-sans resize-none"
                     />
                   </div>
@@ -1604,8 +1676,9 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                     <button
                       type="button"
                       onClick={() => {
-                        const email = generateFollowUpEmail(followUpModalJob, effectiveCandidate);
-                        const fullText = `Subject: ${email.subject}\n\n${email.body}`;
+                        const emailSubject = activeTemplate?.subject || generateFollowUpEmail(followUpModalJob, effectiveCandidate).subject;
+                        const emailBody = activeTemplate?.body || generateFollowUpEmail(followUpModalJob, effectiveCandidate).body;
+                        const fullText = `Subject: ${emailSubject}\n\n${emailBody}`;
                         navigator.clipboard.writeText(fullText);
                         setFollowUpCopied(true);
                         setTimeout(() => setFollowUpCopied(false), 2000);
@@ -1627,9 +1700,9 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
 
                     <a
                       href={`mailto:?subject=${encodeURIComponent(
-                        generateFollowUpEmail(followUpModalJob, effectiveCandidate).subject
+                        activeTemplate?.subject || generateFollowUpEmail(followUpModalJob, effectiveCandidate).subject
                       )}&body=${encodeURIComponent(
-                        generateFollowUpEmail(followUpModalJob, effectiveCandidate).body
+                        activeTemplate?.body || generateFollowUpEmail(followUpModalJob, effectiveCandidate).body
                       )}`}
                       className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 font-medium text-foreground bg-surface hover:bg-surface-2 border border-border rounded-full text-xs transition-colors"
                       target="_blank"

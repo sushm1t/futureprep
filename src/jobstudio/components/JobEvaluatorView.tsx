@@ -68,6 +68,8 @@ import {
 } from '../data/defaultData';
 import { buildProfileTerms, scoreJobAgainstProfile, PROFILE_MATCH_THRESHOLD, quickFitTier } from '../utils/profileMatch';
 import { extractProfileSearchContext } from '../utils/profileSearchContext';
+import { MarketIntelligenceModal } from './MarketIntelligenceModal';
+import { resolveAtsFromUrl } from '../utils/atsUrlResolver';
 
 
 interface JobEvaluatorViewProps {
@@ -437,6 +439,12 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   // Freehire 55+ ATS & Multi-Filter States
   const [isAllFiltersOpen, setIsAllFiltersOpen] = useState<boolean>(false);
+  const [isMarketIntelOpen, setIsMarketIntelOpen] = useState<boolean>(false);
+
+  // Freehire ATS Auto-Resolver
+  const detectedAts = useMemo(() => {
+    return atsCustomInput.trim() ? resolveAtsFromUrl(atsCustomInput.trim()) : null;
+  }, [atsCustomInput]);
   const [advancedFilters, setAdvancedFilters] = useState<FilterState>({
     sources: [],
     sourceType: 'all',
@@ -499,7 +507,8 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       setAtsFeedback(null);
     }
 
-    const targetCompany = companyInputOverride !== undefined ? companyInputOverride : (atsCustomInput.trim() || selectedAtsCompany);
+    const resolvedCompany = detectedAts && detectedAts.ats !== 'custom' ? detectedAts.companySlug : (atsCustomInput.trim() || selectedAtsCompany);
+    const targetCompany = companyInputOverride !== undefined ? companyInputOverride : resolvedCompany;
     if (companyInputOverride !== undefined) {
       setSelectedAtsCompany(companyInputOverride);
     }
@@ -1705,6 +1714,13 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 placeholder="Company or URL (e.g. Figma, Stripe, Ashby link)"
                 className="w-full pl-9 pr-3 py-2.5 bg-surface border border-transparent focus:border-brand focus:bg-card rounded-xl text-xs text-foreground outline-none transition-all"
               />
+              {detectedAts && detectedAts.ats !== 'custom' && (
+                <div className="flex items-center gap-1.5 mt-1 px-2.5 py-1 bg-brand/10 border border-brand/20 rounded-lg text-[11px] text-brand">
+                  <Sparkles className="w-3 h-3 text-brand shrink-0" />
+                  <span>Detected <strong>{detectedAts.sourceLabel}</strong> for <strong>{detectedAts.companySlug}</strong></span>
+                  {detectedAts.jobId && <span className="text-muted-foreground font-mono">(Req: #{detectedAts.jobId})</span>}
+                </div>
+              )}
             </div>
 
             <div className="sm:col-span-4 relative">
@@ -1767,6 +1783,17 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   {activeFiltersBadgeCount}
                 </span>
               )}
+            </button>
+
+            {/* Freehire Market Intelligence & Salary Radar Trigger */}
+            <button
+              type="button"
+              onClick={() => setIsMarketIntelOpen(true)}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface hover:bg-surface-2 text-foreground border border-border/80 font-medium rounded-xl text-xs transition-all cursor-pointer shadow-2xs hover:border-brand/40"
+              title="Real-time salary percentiles, skill momentum, and hiring velocity radar"
+            >
+              <BarChart3 className="w-3.5 h-3.5 text-brand" />
+              <span className="font-semibold">Market Intel</span>
             </button>
 
             {/* Seniority */}
@@ -4039,6 +4066,14 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         onResetFilters={handleResetAllFilters}
         totalCatalogueJobs={totalInCatalogue}
         candidateProfileContext={profileSearchContext}
+      />
+
+      {/* Freehire Market Intelligence & Salary Radar Modal */}
+      <MarketIntelligenceModal
+        isOpen={isMarketIntelOpen}
+        onClose={() => setIsMarketIntelOpen(false)}
+        defaultRole={profileSearchContext.targetRole}
+        defaultLocation={selectedAtsLocation}
       />
     </div>
   );

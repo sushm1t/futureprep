@@ -1138,6 +1138,42 @@ function detectAtsFromUrlOrSlug(input: string): {
     }
   }
 
+  // Workday: {tenant}.myworkdayjobs.com/{board}/job/{id}
+  if (trimmed.includes('myworkdayjobs.com')) {
+    const tenantMatch = trimmed.match(/([a-z0-9_-]+)\.(?:wd\d+\.)?myworkdayjobs\.com/i);
+    const jobMatch = trimmed.match(/\/job\/([^/?#]+)/i);
+    if (tenantMatch) {
+      return { ats: 'greenhouse' as any, slug: tenantMatch[1], jobId: jobMatch ? jobMatch[1] : undefined };
+    }
+  }
+
+  // Teamtailor: {tenant}.teamtailor.com/jobs/{id}
+  if (trimmed.includes('teamtailor.com')) {
+    const tenantMatch = trimmed.match(/([a-z0-9_-]+)\.teamtailor\.com/i);
+    const jobMatch = trimmed.match(/\/jobs\/(\d+)/i);
+    if (tenantMatch) {
+      return { ats: 'greenhouse' as any, slug: tenantMatch[1], jobId: jobMatch ? jobMatch[1] : undefined };
+    }
+  }
+
+  // BambooHR: {tenant}.bamboohr.com/careers/{id}
+  if (trimmed.includes('bamboohr.com')) {
+    const tenantMatch = trimmed.match(/([a-z0-9_-]+)\.bamboohr\.com/i);
+    const jobMatch = trimmed.match(/\/careers\/(\d+)/i);
+    if (tenantMatch) {
+      return { ats: 'greenhouse' as any, slug: tenantMatch[1], jobId: jobMatch ? jobMatch[1] : undefined };
+    }
+  }
+
+  // Personio: {tenant}.personio.de or .com/job/{id}
+  if (trimmed.includes('personio.de') || trimmed.includes('personio.com')) {
+    const tenantMatch = trimmed.match(/([a-z0-9_-]+)\.personio\.(?:de|com)/i);
+    const jobMatch = trimmed.match(/\/job\/(\d+)/i);
+    if (tenantMatch) {
+      return { ats: 'greenhouse' as any, slug: tenantMatch[1], jobId: jobMatch ? jobMatch[1] : undefined };
+    }
+  }
+
   // Plain slug or company name lookup
   const cleanSlug = trimmed.toLowerCase().replace(/[^a-z0-9_-]/g, '');
   const found = CURATED_ATS_COMPANIES.find((c) => c.slug === cleanSlug || c.name.toLowerCase() === cleanSlug);
