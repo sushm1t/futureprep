@@ -1004,7 +1004,9 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
               {resume.education.map((edu, idx) => (
                 <div key={idx} className="education-item flex justify-between items-baseline break-inside-avoid" style={{ pageBreakInside: 'avoid' }}>
                   <div>
-                    <strong>{edu.degree}</strong> – <span>{edu.institution}</span>
+                    {edu.degree && <strong>{edu.degree}</strong>}
+                    {edu.degree && edu.institution && ' – '}
+                    {edu.institution && <span>{edu.institution}</span>}
                   </div>
                   <div className="text-[#6E6E73] font-mono tabular-nums text-[11px] sm:text-xs">
                     {edu.year}

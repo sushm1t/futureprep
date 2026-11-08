@@ -116,7 +116,7 @@ export const SKILL_ADJACENCY_GRAPH: SkillAdjacencyDefinition[] = [
     domain: '3D Plant Layout & Piping Modeling (EPC)',
     transferabilityScore: 0.96,
     bridgingTemplate: (cand, target) =>
-      `Senior EPC plant layout expertise utilizing ${cand.toUpperCase()} for equipment modeling and piping routing, with direct 1:1 workflow transferability to ${target.toUpperCase()}.`,
+      `Hands-on plant layout and modeling proficiency in ${cand.toUpperCase()}, with direct workflow transferability to ${target.toUpperCase()}.`,
   },
   {
     canonical: 'pdms',
@@ -124,7 +124,7 @@ export const SKILL_ADJACENCY_GRAPH: SkillAdjacencyDefinition[] = [
     domain: '3D Plant Layout & Piping Modeling (EPC)',
     transferabilityScore: 0.96,
     bridgingTemplate: (cand, target) =>
-      `Extensive 3D modeling and clash resolution track record in ${cand.toUpperCase()}, fully portable to ${target.toUpperCase()} environments.`,
+      `Hands-on 3D modeling proficiency in ${cand.toUpperCase()}, fully portable to ${target.toUpperCase()} environments.`,
   },
   {
     canonical: 'caesar ii',
@@ -132,7 +132,7 @@ export const SKILL_ADJACENCY_GRAPH: SkillAdjacencyDefinition[] = [
     domain: 'Piping Stress & Flexibility Analysis',
     transferabilityScore: 0.95,
     bridgingTemplate: (cand, target) =>
-      `Expert-level finite element stress calculation and thermal expansion analysis in ${cand}, directly applicable to ${target} per ASME B31.3.`,
+      `Stress calculation and thermal expansion analysis in ${cand}, directly applicable to ${target}.`,
   },
 
   // DevOps & Containers

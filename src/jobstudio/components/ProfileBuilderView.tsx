@@ -401,14 +401,11 @@ ${certText}
       ...selectedProfile,
       experiences: [
         {
-          title: 'Senior Specialist',
-          company: 'Company Name',
-          date_range: '2023 – Present',
-          location: 'Remote',
-          bullets: [
-            'Led strategic initiatives that improved core performance metrics by 25%.',
-            'Partnered with executive stakeholders to author SOPs and implement workflow automation.',
-          ],
+          title: '',
+          company: '',
+          date_range: '',
+          location: '',
+          bullets: [''],
         },
         ...selectedProfile.experiences,
       ],
@@ -431,7 +428,7 @@ ${certText}
   // Add Bullet Point to Experience
   const handleAddBullet = (expIndex: number) => {
     const list = [...selectedProfile.experiences];
-    list[expIndex].bullets.push('Delivered measurable operational enhancements and cross-functional project milestones.');
+    list[expIndex].bullets.push('');
     setSelectedProfile({
       ...selectedProfile,
       experiences: list,
@@ -468,11 +465,11 @@ ${certText}
       projects: [
         ...currentProjects,
         {
-          name: 'Featured Portfolio Project',
-          role: 'Lead Architect / Creator',
-          description: 'Architected a scalable solution delivering high throughput and verified reliability.',
-          bullets: ['Engineered key features utilizing modern tech stack.'],
-          url: 'https://github.com/example/project',
+          name: '',
+          role: '',
+          description: '',
+          bullets: [''],
+          url: '',
         },
       ],
       updatedAt: Date.now(),
@@ -507,9 +504,9 @@ ${certText}
       education: [
         ...selectedProfile.education,
         {
-          degree: 'Bachelor of Science',
-          institution: 'Accredited University',
-          year: '2018 – 2022',
+          degree: '',
+          institution: '',
+          year: '',
         },
       ],
       updatedAt: Date.now(),

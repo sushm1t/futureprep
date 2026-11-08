@@ -85,9 +85,7 @@ export function downloadResumeAsDocx(
     .map(
       (edu) => `
       <p style="font-size: 10pt; margin-bottom: 4pt;">
-        <strong>${escapeXml(edu.institution || 'University')}</strong> — ${escapeXml(
-        edu.degree || 'Bachelor Degree'
-      )}
+        <strong>${escapeXml(edu.institution || '')}</strong>${edu.degree ? ` — ${escapeXml(edu.degree)}` : ''}
         ${edu.year ? ` <span style="color: #64748b;">(${escapeXml(edu.year)})</span>` : ''}
       </p>
     `

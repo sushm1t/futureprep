@@ -155,7 +155,7 @@ export function createFreshUserProfile(email: string, name?: string): CandidateP
     id: `profile-${cleanEmail}-${Date.now()}`,
     isPreset: false,
     name: cleanName,
-    headline: 'Target Role / Professional Headline',
+    headline: '',
     email: cleanEmail,
     phone: '',
     location: '',
