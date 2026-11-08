@@ -103,6 +103,18 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
   // Page layout & density controls
   const [fitSinglePage, setFitSinglePage] = useState(true);
 
+  // Auto-detect optimal density based on content volume (1-2 roles default to comfortable full-page)
+  const defaultDensity = React.useMemo(() => {
+    const totalExp = (resume.experiences || []).length;
+    const totalBullets = (resume.experiences || []).reduce((acc, e) => acc + (e.bullets?.length || 0), 0) +
+                         (resume.projects || []).reduce((acc, p) => acc + (p.bullets?.length || 0), 0);
+    if (totalExp <= 2 && totalBullets <= 12) return 'comfortable';
+    if (totalExp >= 4 || totalBullets >= 18) return 'compact';
+    return 'balanced';
+  }, [resume.experiences, resume.projects]);
+
+  const [density, setDensity] = useState<'comfortable' | 'balanced' | 'compact'>(defaultDensity);
+
   // Freehire Superpowers: Recruiter Tracer Links & Experience Bank
   const [enableTracerLinks, setEnableTracerLinks] = useState(false);
   const [isRadarModalOpen, setIsRadarModalOpen] = useState(false);
@@ -171,7 +183,8 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
       'printable-resume-container',
       fileName,
       fitSinglePage,
-      displayedResume
+      displayedResume,
+      density
     );
     setIsDownloading(false);
     if (success) {
@@ -313,22 +326,59 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
     }));
   };
 
-  // Layout styles calibrated for 1-Page ATS Fit
-  const densityStyles = {
-    containerPadding: 'p-6 sm:px-10 sm:py-7',
-    headerMargin: 'pb-2 mb-3',
-    sectionMargin: 'mb-3',
-    sectionHeadingMargin: 'pb-1 mb-1.5',
-    summaryText: 'text-[12px] sm:text-[12.5px] leading-snug',
-    skillsText: 'text-[11.5px] sm:text-[12px] leading-snug',
-    expTitle: 'text-[12.5px] sm:text-[13px]',
-    expMeta: 'text-[11px] sm:text-[11.5px]',
-    expSpacing: 'space-y-2.5',
-    bulletSpacing: 'space-y-0.5',
-    bulletText: 'text-[11.5px] sm:text-[12px] leading-tight',
-    eduSpacing: 'space-y-1',
-    eduText: 'text-[11.5px] sm:text-[12px]',
+  // Layout styles calibrated for 1-Page ATS Fit across densities
+  const densityPresets = {
+    comfortable: {
+      containerPadding: 'p-7 sm:px-12 sm:py-10',
+      headerMargin: 'pb-3 mb-5',
+      sectionMargin: 'mb-5',
+      sectionHeadingMargin: 'pb-1.5 mb-3',
+      headingText: 'text-xs sm:text-[13.5px] font-bold uppercase tracking-wider',
+      summaryText: 'text-[13px] sm:text-[13.5px] leading-relaxed',
+      skillsText: 'text-[12px] sm:text-[12.5px] leading-relaxed',
+      expTitle: 'text-[13.5px] sm:text-[14px]',
+      expMeta: 'text-[12px] sm:text-[12.5px]',
+      expSpacing: 'space-y-4',
+      bulletSpacing: 'space-y-2',
+      bulletText: 'text-[12.5px] sm:text-[13px] leading-relaxed',
+      eduSpacing: 'space-y-2.5',
+      eduText: 'text-[12.5px] sm:text-[13px]',
+    },
+    balanced: {
+      containerPadding: 'p-6 sm:px-10 sm:py-8',
+      headerMargin: 'pb-2.5 mb-3.5',
+      sectionMargin: 'mb-3.5',
+      sectionHeadingMargin: 'pb-1 mb-2',
+      headingText: 'text-xs sm:text-[13px] font-bold uppercase tracking-wider',
+      summaryText: 'text-[12.5px] sm:text-[13px] leading-normal',
+      skillsText: 'text-[11.5px] sm:text-[12px] leading-normal',
+      expTitle: 'text-[13px] sm:text-[13.5px]',
+      expMeta: 'text-[11.5px] sm:text-[12px]',
+      expSpacing: 'space-y-3',
+      bulletSpacing: 'space-y-1',
+      bulletText: 'text-[12px] sm:text-[12.5px] leading-normal',
+      eduSpacing: 'space-y-1.5',
+      eduText: 'text-[12px] sm:text-[12.5px]',
+    },
+    compact: {
+      containerPadding: 'p-5 sm:px-8 sm:py-6',
+      headerMargin: 'pb-2 mb-2.5',
+      sectionMargin: 'mb-2.5',
+      sectionHeadingMargin: 'pb-0.5 mb-1.5',
+      headingText: 'text-[11.5px] sm:text-xs font-bold uppercase tracking-wider',
+      summaryText: 'text-[11.5px] sm:text-[12px] leading-snug',
+      skillsText: 'text-[11px] sm:text-[11.5px] leading-snug',
+      expTitle: 'text-[12.5px] sm:text-[13px]',
+      expMeta: 'text-[11px] sm:text-[11.5px]',
+      expSpacing: 'space-y-2.5',
+      bulletSpacing: 'space-y-0.5',
+      bulletText: 'text-[11.5px] sm:text-[12px] leading-tight',
+      eduSpacing: 'space-y-1',
+      eduText: 'text-[11.5px] sm:text-[12px]',
+    },
   };
+
+  const densityStyles = densityPresets[density];
 
   return (
     <div className="workspace-resume space-y-5 max-w-5xl mx-auto">
@@ -430,6 +480,47 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
             {isEditing ? <Eye className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
             <span>{isEditing ? 'Preview' : 'Edit Bullets'}</span>
           </button>
+
+          {/* Layout Density Segmented Control */}
+          <div className="inline-flex items-center p-0.5 rounded-full bg-surface border border-border text-xs">
+            <span className="pl-2.5 pr-1 text-[11px] text-muted-foreground font-medium hidden sm:inline">Spacing:</span>
+            <button
+              type="button"
+              onClick={() => setDensity('comfortable')}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
+                density === 'comfortable'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Full Page Comfort: Ideal for 1-2 roles. Uses 10pt font and relaxed line-height to fill a full single page elegantly."
+            >
+              Full Page
+            </button>
+            <button
+              type="button"
+              onClick={() => setDensity('balanced')}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
+                density === 'balanced'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Balanced: Standard executive spacing for 2-3 roles."
+            >
+              Balanced
+            </button>
+            <button
+              type="button"
+              onClick={() => setDensity('compact')}
+              className={`px-2.5 py-1 rounded-full text-[11px] font-medium transition-all cursor-pointer ${
+                density === 'compact'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Compact: High-density spacing to fit 4+ roles onto 1 page."
+            >
+              Compact
+            </button>
+          </div>
 
           {/* Recruiter Tracer Links Radar Toggle */}
           <button
@@ -554,11 +645,36 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
         </div>
       </div>
 
+      {/* 1-Page Expansion Recommendation for Single-Experience Candidates */}
+      {(resume.experiences?.length || 0) <= 1 && (!resume.projects || resume.projects.length === 0) && (
+        <div className="no-print p-4 rounded-2xl bg-brand/5 border border-brand/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs animate-fadeIn">
+          <div className="flex items-start gap-2.5">
+            <Sparkles className="w-4 h-4 text-brand shrink-0 mt-0.5" />
+            <div>
+              <div className="font-semibold text-foreground">
+                Recruiter Tip: Expand to a Commanding Full Page
+              </div>
+              <div className="text-muted-foreground text-[11.5px] leading-relaxed">
+                Your resume currently has 1 professional role. We’ve calibrated layout density to <strong className="text-foreground font-semibold">Full Page</strong> so it breathes with executive typography. To maximize recruiter impact and prove hands-on technical skills, add an Engineering Capstone or Academic Project.
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={toggleProductProjects}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-brand text-primary-foreground font-semibold text-xs hover:bg-brand/90 transition-all shrink-0 cursor-pointer shadow-xs"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>+ Add Capstone / Project</span>
+          </button>
+        </div>
+      )}
+
       {/* Printable / Renderable ATS Document Container */}
       <div className="flex justify-center">
         <div
           id="printable-resume-container"
-          className={`w-full max-w-[816px] bg-white border border-border shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-none sm:rounded-2xl text-[#1D1D1F] font-sans ${densityStyles.containerPadding}`}
+          className={`w-full max-w-[816px] min-h-[1056px] bg-white border border-border shadow-[0_4px_24px_rgba(0,0,0,0.06)] rounded-none sm:rounded-2xl text-[#1D1D1F] font-sans ${densityStyles.containerPadding} flex flex-col justify-start`}
           style={{
             boxSizing: 'border-box',
           }}
@@ -631,7 +747,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
 
           {/* Section: Professional Summary */}
           <section className={`resume-section break-inside-avoid ${densityStyles.sectionMargin}`}>
-            <h2 className={`resume-heading text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
+            <h2 className={`resume-heading ${densityStyles.headingText} text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
               Professional Summary
             </h2>
             {isEditing ? (
@@ -650,7 +766,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
 
           {/* Section: Core Competencies */}
           <section className={`resume-section break-inside-avoid ${densityStyles.sectionMargin}`}>
-            <h2 className={`resume-heading text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
+            <h2 className={`resume-heading ${densityStyles.headingText} text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
               Core Competencies & Key Technical Stack
             </h2>
             {isEditing ? (
@@ -659,7 +775,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                   {resume.skills.map((skill, index) => (
                     <span
                       key={index}
-                      className="inline-flex items-center gap-1 px-2 py-0.5 text-xs bg-[#F5F5F7] border border-border rounded-lg text-[#1D1D1F]"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs bg-[#F5F5F7] border border-border rounded-lg text-[#1D1D1F] font-medium"
                     >
                       <span>{skill}</span>
                       <button
@@ -689,15 +805,27 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                 </div>
               </div>
             ) : (
-              <p className={`text-[#1D1D1F] ${densityStyles.skillsText}`}>
-                {resume.skills.join('  •  ')}
-              </p>
+              <div className="space-y-1">
+                <div className="flex flex-wrap gap-1.5 py-0.5 print:hidden">
+                  {resume.skills.map((skill, index) => (
+                    <span
+                      key={index}
+                      className="inline-flex items-center px-2.5 py-1 rounded-md text-[11.5px] sm:text-[12px] bg-[#F5F5F7] border border-[#E5E5EA] text-[#1D1D1F] font-medium tracking-tight"
+                    >
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+                <p className={`text-[#1D1D1F] hidden print:block ${densityStyles.skillsText}`}>
+                  {resume.skills.join('  •  ')}
+                </p>
+              </div>
             )}
           </section>
 
           {/* Section: Work Experience */}
           <section className={`resume-section break-inside-avoid ${densityStyles.sectionMargin}`}>
-            <h2 className={`resume-heading text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
+            <h2 className={`resume-heading ${densityStyles.headingText} text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
               Professional Experience
             </h2>
             <div className={densityStyles.expSpacing}>
@@ -793,8 +921,8 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           {hasProjects ? (
             <section className={`resume-section break-inside-avoid ${densityStyles.sectionMargin}`} style={{ pageBreakInside: 'avoid' }}>
               <div className={`flex items-center justify-between border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
-                <h2 className="resume-heading text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1D1D1F]">
-                  Selected Proof of Work & AI/Product Projects
+                <h2 className={`resume-heading ${densityStyles.headingText} text-[#1D1D1F]`}>
+                  Selected Proof of Work & Technical Projects
                 </h2>
                 {isEditing && (
                   <button
@@ -876,7 +1004,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
 
           {/* Section: Education */}
           <section className={`resume-section education-section break-inside-avoid ${densityStyles.sectionMargin}`} style={{ pageBreakInside: 'avoid' }}>
-            <h2 className={`resume-heading text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
+            <h2 className={`resume-heading ${densityStyles.headingText} text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
               Education
             </h2>
             <div className={`${densityStyles.eduSpacing} ${densityStyles.eduText} text-[#1D1D1F]`}>
@@ -896,7 +1024,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           {/* Section: Certifications & Credentials (Cleanly separated) */}
           {(resume.certifications.length > 0 || isEditing) && (
             <section className={`resume-section certifications-section break-inside-avoid ${densityStyles.sectionMargin}`} style={{ pageBreakInside: 'avoid' }}>
-              <h2 className={`resume-heading text-xs sm:text-[13px] font-bold uppercase tracking-wider text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
+              <h2 className={`resume-heading ${densityStyles.headingText} text-[#1D1D1F] border-b border-[#D2D2D7] ${densityStyles.sectionHeadingMargin}`}>
                 Certifications & Credentials
               </h2>
               <div className={`${densityStyles.eduSpacing} ${densityStyles.eduText} text-[#1D1D1F]`}>

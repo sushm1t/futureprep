@@ -5,6 +5,7 @@ import { TailoredResumeData, CoverLetterData } from '../data/defaultData';
 export interface PdfExportOptions {
   fileName?: string;
   forceSinglePage?: boolean;
+  density?: 'comfortable' | 'balanced' | 'compact';
 }
 
 /**
@@ -86,10 +87,127 @@ export function generateVectorResumePdf(
   const pageWidth = doc.internal.pageSize.getWidth(); // 612 pt
   const pageHeight = doc.internal.pageSize.getHeight(); // 792 pt
 
-  // Margins (0.5 in = 36 pt)
-  const marginX = 36;
-  const marginTop = 36;
-  const marginBottom = 36;
+  // Analyze content density to scale typography gracefully and fill a 1-page document
+  const totalExp = (resume.experiences || []).length;
+  const totalExpBullets = (resume.experiences || []).reduce((acc, e) => acc + (e.bullets?.length || 0), 0);
+  const totalProjBullets = (resume.projects || []).reduce((acc, p) => acc + (p.bullets?.length || 0), 0);
+  const totalBullets = totalExpBullets + totalProjBullets;
+
+  const effectiveDensity: 'comfortable' | 'balanced' | 'compact' = options.density || (
+    totalExp <= 2 && totalBullets <= 12 ? 'comfortable' : totalExp >= 4 || totalBullets >= 18 ? 'compact' : 'balanced'
+  );
+
+  const m = effectiveDensity === 'comfortable'
+    ? {
+        nameSize: 21,
+        nameGap: 16,
+        contactSize: 9,
+        headerRuleGap: 11,
+        headerAfterGap: 14,
+        sectionHeaderSize: 10.5,
+        sectionHeaderUnderlineGap: 4,
+        sectionHeadingAfterGap: 11,
+        sectionBottomGap: 13,
+        summarySize: 9.5,
+        summaryLineHeight: 1.4,
+        skillsSize: 9,
+        skillsLineHeight: 1.36,
+        expTitleSize: 10.5,
+        expMetaSize: 9,
+        expCompanySize: 9.5,
+        expTitleGap: 12,
+        expCompanyGap: 11,
+        bulletSize: 9.2,
+        bulletLineHeight: 1.36,
+        bulletGap: 4.5,
+        expBottomGap: 10,
+        eduDegreeSize: 9.5,
+        eduInstSize: 9,
+        eduYearSize: 9,
+        eduGap: 12,
+        eduInstGap: 11,
+        eduItemBottom: 6,
+        certSize: 9,
+        certGap: 12,
+        marginX: 36,
+        marginTop: 40,
+        marginBottom: 40,
+      }
+    : effectiveDensity === 'compact'
+    ? {
+        nameSize: 18,
+        nameGap: 14,
+        contactSize: 8,
+        headerRuleGap: 9,
+        headerAfterGap: 10,
+        sectionHeaderSize: 9.2,
+        sectionHeaderUnderlineGap: 3,
+        sectionHeadingAfterGap: 7.5,
+        sectionBottomGap: 7,
+        summarySize: 8.2,
+        summaryLineHeight: 1.28,
+        skillsSize: 8.2,
+        skillsLineHeight: 1.28,
+        expTitleSize: 9.2,
+        expMetaSize: 8,
+        expCompanySize: 8.5,
+        expTitleGap: 10,
+        expCompanyGap: 9,
+        bulletSize: 8,
+        bulletLineHeight: 1.26,
+        bulletGap: 2,
+        expBottomGap: 4,
+        eduDegreeSize: 8.2,
+        eduInstSize: 8,
+        eduYearSize: 8,
+        eduGap: 9.5,
+        eduInstGap: 9.5,
+        eduItemBottom: 3,
+        certSize: 8,
+        certGap: 9.5,
+        marginX: 36,
+        marginTop: 32,
+        marginBottom: 32,
+      }
+    : {
+        nameSize: 19.5,
+        nameGap: 15,
+        contactSize: 8.5,
+        headerRuleGap: 10,
+        headerAfterGap: 12,
+        sectionHeaderSize: 9.8,
+        sectionHeaderUnderlineGap: 3.5,
+        sectionHeadingAfterGap: 9,
+        sectionBottomGap: 9.5,
+        summarySize: 8.8,
+        summaryLineHeight: 1.34,
+        skillsSize: 8.6,
+        skillsLineHeight: 1.32,
+        expTitleSize: 9.8,
+        expMetaSize: 8.5,
+        expCompanySize: 9,
+        expTitleGap: 11,
+        expCompanyGap: 10,
+        bulletSize: 8.5,
+        bulletLineHeight: 1.32,
+        bulletGap: 3,
+        expBottomGap: 6,
+        eduDegreeSize: 8.8,
+        eduInstSize: 8.5,
+        eduYearSize: 8.5,
+        eduGap: 10.5,
+        eduInstGap: 10.5,
+        eduItemBottom: 4.5,
+        certSize: 8.5,
+        certGap: 10.5,
+        marginX: 36,
+        marginTop: 36,
+        marginBottom: 36,
+      };
+
+  const marginX = m.marginX;
+  const marginTop = m.marginTop;
+  const marginBottom = m.marginBottom;
   const contentWidth = pageWidth - marginX * 2; // 540 pt
   const maxY = pageHeight - marginBottom;
 
@@ -107,14 +225,14 @@ export function generateVectorResumePdf(
 
   // 1. Candidate Full Name (Header)
   doc.setFont('helvetica', 'bold');
-  doc.setFontSize(forceSinglePage ? 18 : 20);
+  doc.setFontSize(m.nameSize);
   doc.setTextColor(29, 29, 31);
   doc.text(cleanPdfText((resume.full_name || 'CANDIDATE NAME').toUpperCase()), marginX, y);
-  y += forceSinglePage ? 16 : 18;
+  y += m.nameGap;
 
   // 2. Contact Information Line
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(8.5);
+  doc.setFontSize(m.contactSize);
   doc.setTextColor(70, 70, 75);
 
   const contactItems: Array<{ text: string; url?: string }> = [];
@@ -163,50 +281,50 @@ export function generateVectorResumePdf(
       curX += doc.getTextWidth(item.text) + 6;
     }
   });
-  y += 10;
+  y += m.headerRuleGap;
 
   // Top header rule
   doc.setDrawColor(29, 29, 31);
   doc.setLineWidth(1.25);
   doc.line(marginX, y, pageWidth - marginX, y);
-  y += forceSinglePage ? 12 : 14;
+  y += m.headerAfterGap;
 
   // Reusable Section Header Function
   function renderSectionHeader(title: string): void {
     checkPageBreak(28);
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(9.5);
+    doc.setFontSize(m.sectionHeaderSize);
     doc.setTextColor(29, 29, 31);
     doc.text(title.toUpperCase(), marginX, y);
-    y += 3.5;
+    y += m.sectionHeaderUnderlineGap;
     doc.setDrawColor(210, 210, 215);
     doc.setLineWidth(0.5);
     doc.line(marginX, y, pageWidth - marginX, y);
-    y += forceSinglePage ? 8 : 10;
+    y += m.sectionHeadingAfterGap;
   }
 
   // 3. Professional Summary
   if (resume.tailored_summary) {
     renderSectionHeader('Professional Summary');
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
+    doc.setFontSize(m.summarySize);
     doc.setTextColor(35, 35, 38);
     const sanitizedSummary = cleanPdfText(resume.tailored_summary);
     const summaryLines = doc.splitTextToSize(sanitizedSummary, contentWidth);
-    doc.text(summaryLines, marginX, y, { lineHeightFactor: 1.32 });
-    y += summaryLines.length * (8.5 * 1.32) + (forceSinglePage ? 6 : 8);
+    doc.text(summaryLines, marginX, y, { lineHeightFactor: m.summaryLineHeight });
+    y += summaryLines.length * (m.summarySize * m.summaryLineHeight) + m.sectionBottomGap;
   }
 
   // 4. Core Competencies & Skills
   if (resume.skills && resume.skills.length > 0) {
     renderSectionHeader('Core Competencies & Key Technical Stack');
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8.5);
+    doc.setFontSize(m.skillsSize);
     doc.setTextColor(35, 35, 38);
     const skillsText = resume.skills.map(cleanPdfText).join('  •  ');
     const skillLines = doc.splitTextToSize(skillsText, contentWidth);
-    doc.text(skillLines, marginX, y, { lineHeightFactor: 1.32 });
-    y += skillLines.length * (8.5 * 1.32) + (forceSinglePage ? 6 : 8);
+    doc.text(skillLines, marginX, y, { lineHeightFactor: m.skillsLineHeight });
+    y += skillLines.length * (m.skillsSize * m.skillsLineHeight) + m.sectionBottomGap;
   }
 
   // 5. Professional Experience
@@ -216,7 +334,7 @@ export function generateVectorResumePdf(
       checkPageBreak(35);
       // Title
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9.5);
+      doc.setFontSize(m.expTitleSize);
       doc.setTextColor(29, 29, 31);
       doc.text(cleanPdfText(exp.title), marginX, y);
 
@@ -230,16 +348,16 @@ export function generateVectorResumePdf(
       );
       if (cleanDate) {
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8.5);
+        doc.setFontSize(m.expMetaSize);
         doc.setTextColor(90, 90, 95);
         const dW = doc.getTextWidth(cleanDate);
         doc.text(cleanDate, pageWidth - marginX - dW, y);
       }
-      y += 10.5;
+      y += m.expTitleGap;
 
       // Company line
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
+      doc.setFontSize(m.expCompanySize);
       doc.setTextColor(0, 113, 227);
       doc.text(cleanPdfText(exp.company), marginX, y);
       if (exp.location) {
@@ -248,35 +366,35 @@ export function generateVectorResumePdf(
         doc.setTextColor(110, 110, 115);
         doc.text(' — ' + cleanPdfText(exp.location), marginX + cW, y);
       }
-      y += 9.5;
+      y += m.expCompanyGap;
 
       // Bullets
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
+      doc.setFontSize(m.bulletSize);
       doc.setTextColor(35, 35, 38);
       const bW = contentWidth - 14;
       exp.bullets.forEach((bullet) => {
         const sanitizedBullet = cleanPdfText(bullet);
         const bLines = doc.splitTextToSize(sanitizedBullet, bW);
-        checkPageBreak(bLines.length * 10.5);
+        checkPageBreak(bLines.length * (m.bulletSize * m.bulletLineHeight + 2));
         doc.text('•', marginX + 3, y);
-        doc.text(bLines, marginX + 12, y, { lineHeightFactor: 1.28 });
-        y += bLines.length * (8 * 1.28) + 2.5;
+        doc.text(bLines, marginX + 12, y, { lineHeightFactor: m.bulletLineHeight });
+        y += bLines.length * (m.bulletSize * m.bulletLineHeight) + m.bulletGap;
       });
-      y += forceSinglePage ? 3 : 5;
+      y += m.expBottomGap;
     });
   }
 
   // 6. Selected Projects (if any)
   if (resume.projects && resume.projects.length > 0) {
-    renderSectionHeader('Selected Proof of Work & AI/Product Projects');
+    renderSectionHeader('Selected Proof of Work & Technical Projects');
     resume.projects.forEach((proj) => {
       checkPageBreak(32);
 
       // Project Name on left
       const sanitizedName = cleanPdfText(proj.name);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(9.5);
+      doc.setFontSize(m.expTitleSize);
       doc.setTextColor(29, 29, 31);
       doc.text(sanitizedName, marginX, y);
       const nameW = doc.getTextWidth(sanitizedName);
@@ -284,39 +402,39 @@ export function generateVectorResumePdf(
       // Role next to project name
       if (proj.role) {
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(9);
+        doc.setFontSize(m.expMetaSize);
         doc.setTextColor(70, 70, 75);
         const maxRoleW = contentWidth - nameW - 12;
         const roleText = ` | ${cleanPdfText(proj.role)}`;
         const rLines = doc.splitTextToSize(roleText, Math.max(maxRoleW, 100));
         doc.text(rLines[0] || roleText, marginX + nameW, y);
       }
-      y += 10.5;
+      y += m.expTitleGap;
 
       // Project Italic Summary Description (flush with marginX, matching UI)
       if (proj.description) {
         doc.setFont('helvetica', 'italic');
-        doc.setFontSize(8);
+        doc.setFontSize(m.bulletSize);
         doc.setTextColor(110, 110, 115);
         const dLines = doc.splitTextToSize(cleanPdfText(proj.description), contentWidth);
-        doc.text(dLines, marginX, y, { lineHeightFactor: 1.28 });
-        y += dLines.length * (8 * 1.28) + 2.5;
+        doc.text(dLines, marginX, y, { lineHeightFactor: m.bulletLineHeight });
+        y += dLines.length * (m.bulletSize * m.bulletLineHeight) + m.bulletGap;
       }
 
       // Bullets (identical font, indentation, and spacing to Professional Experience)
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
+      doc.setFontSize(m.bulletSize);
       doc.setTextColor(35, 35, 38);
       const bW = contentWidth - 14;
       proj.bullets.forEach((b) => {
         const sanitizedB = cleanPdfText(b);
         const bLines = doc.splitTextToSize(sanitizedB, bW);
-        checkPageBreak(bLines.length * 10.5);
+        checkPageBreak(bLines.length * (m.bulletSize * m.bulletLineHeight + 2));
         doc.text('•', marginX + 3, y);
-        doc.text(bLines, marginX + 12, y, { lineHeightFactor: 1.28 });
-        y += bLines.length * (8 * 1.28) + 2.5;
+        doc.text(bLines, marginX + 12, y, { lineHeightFactor: m.bulletLineHeight });
+        y += bLines.length * (m.bulletSize * m.bulletLineHeight) + m.bulletGap;
       });
-      y += forceSinglePage ? 3.5 : 5.5;
+      y += m.expBottomGap;
     });
   }
 
@@ -326,24 +444,24 @@ export function generateVectorResumePdf(
     resume.education.forEach((edu) => {
       checkPageBreak(22);
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
+      doc.setFontSize(m.eduDegreeSize);
       doc.setTextColor(29, 29, 31);
       doc.text(cleanPdfText(edu.degree), marginX, y);
       if (edu.year) {
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8.5);
+        doc.setFontSize(m.eduYearSize);
         doc.setTextColor(90, 90, 95);
         const yW = doc.getTextWidth(cleanPdfText(edu.year));
         doc.text(cleanPdfText(edu.year), pageWidth - marginX - yW, y);
       }
-      y += 10;
+      y += m.eduGap;
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8.5);
+      doc.setFontSize(m.eduInstSize);
       doc.setTextColor(70, 70, 75);
       doc.text(cleanPdfText(edu.institution), marginX, y);
-      y += 12;
+      y += m.eduInstGap;
     });
-    y += forceSinglePage ? 2 : 4;
+    y += m.eduItemBottom;
   }
 
   // 8. Certifications & Credentials Section (Cleanly separated from Education)
@@ -357,7 +475,7 @@ export function generateVectorResumePdf(
       const issuer = parts.length > 1 ? parts.slice(1).join(' · ').trim() : '';
 
       doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
+      doc.setFontSize(m.certSize);
       doc.setTextColor(35, 35, 38);
       doc.text('•', marginX + 3, y);
 
@@ -370,7 +488,7 @@ export function generateVectorResumePdf(
         doc.setTextColor(100, 100, 105);
         doc.text(` — ${issuer}`, marginX + 12 + titleW, y);
       }
-      y += 11;
+      y += m.certGap;
     });
   }
 
@@ -385,7 +503,8 @@ export async function downloadResumeAsPdf(
   elementId: string = 'printable-resume-container',
   fileName: string = 'Tailored_ATS_Resume.pdf',
   forceSinglePage: boolean = true,
-  resumeData?: TailoredResumeData
+  resumeData?: TailoredResumeData,
+  density?: 'comfortable' | 'balanced' | 'compact'
 ): Promise<boolean> {
   try {
     // 1. Check if structured resumeData is supplied directly
@@ -426,6 +545,7 @@ export async function downloadResumeAsPdf(
       const doc = generateVectorResumePdf(targetResume, {
         fileName,
         forceSinglePage,
+        density,
       });
       doc.save(fileName);
       return true;
