@@ -122,8 +122,8 @@ describe('AtsReadinessDrawer Live Feedback & 1-Click Fixes', () => {
     const openCrafterBtn = screen.getByText(/Open Crafter/i);
     fireEvent.click(openCrafterBtn);
 
-    const textarea = screen.getByPlaceholderText(/e\.g\. created P&ID drawings/i);
-    fireEvent.change(textarea, { target: { value: 'created piping models and checked clashes' } });
+    const textarea = screen.getByPlaceholderText(/e\.g\. resolved customer escalations/i);
+    fireEvent.change(textarea, { target: { value: 'managed customer dispute escalations and resolved chat queries' } });
 
     const polishBtn = screen.getByText(/Polish with Action Verb & Metric/i);
     fireEvent.click(polishBtn);
@@ -136,3 +136,4 @@ describe('AtsReadinessDrawer Live Feedback & 1-Click Fixes', () => {
     expect(handleUpdate).toHaveBeenCalled();
   });
 });
+

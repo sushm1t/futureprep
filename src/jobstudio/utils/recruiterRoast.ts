@@ -135,8 +135,8 @@ export function generateRecruiterRoast(
 
   if (allText.includes('responsible for')) {
     actionableUpgrades.push({
-      fluffPhrase: 'Responsible for leading design and engineering tasks',
-      highSignalReplacement: 'Delivered 14 critical EPC piping design packages on SP3D with zero safety rework',
+      fluffPhrase: 'Responsible for managing day-to-day operations and team tasks',
+      highSignalReplacement: 'Spearheaded end-to-end delivery of core operational workflows, improving SLA adherence by 24%',
       rationale: '"Responsible for" describes a job description, not an accomplishment. Own the outcome.',
     });
   }
@@ -144,16 +144,16 @@ export function generateRecruiterRoast(
   if (allText.includes('team player') || allText.includes('results-oriented')) {
     actionableUpgrades.push({
       fluffPhrase: 'Results-oriented team player with strong communication',
-      highSignalReplacement: 'Coordinated multi-disciplinary engineering reviews across 8 vendors, cutting turnaround by 18%',
+      highSignalReplacement: 'Coordinated cross-functional stakeholder communication across 8 key partners, accelerating resolution cycles by 25%',
       rationale: 'Demonstrate communication through cross-functional speed and stakeholder coordination.',
     });
   }
 
   if (actionableUpgrades.length === 0) {
     actionableUpgrades.push({
-      fluffPhrase: 'General engineering & technical contributions',
-      highSignalReplacement: 'Engineered high-pressure routing specifications adhering to ASME B31.3 standards across $40M project',
-      rationale: 'Always lead with recognized engineering codes, software platforms, and capital expenditure scales.',
+      fluffPhrase: 'General duties and day-to-day contributions',
+      highSignalReplacement: 'Delivered measurable operational enhancements and high-impact resolutions, achieving 98%+ SLA performance',
+      rationale: 'Always lead with recognized power action verbs and quantified impact metrics.',
     });
   }
 

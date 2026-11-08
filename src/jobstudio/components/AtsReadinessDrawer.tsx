@@ -407,7 +407,7 @@ export const AtsReadinessDrawer: React.FC<AtsReadinessDrawerProps> = ({
                     rows={2}
                     value={customBulletInput}
                     onChange={(e) => setCustomBulletInput(e.target.value)}
-                    placeholder="e.g. created P&ID drawings and resolved clash errors in navisworks"
+                    placeholder="e.g. resolved customer escalations and improved dispute turnaround time"
                     className="w-full p-2.5 rounded-xl bg-card border border-border text-foreground text-xs focus:outline-hidden focus:border-brand"
                   />
                 </div>

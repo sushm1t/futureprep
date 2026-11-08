@@ -53,11 +53,14 @@ export const STRONG_ACTION_VERBS = new Set([
   'modeled', 'conducted', 'extracted', 'verified', 'coordinated', 'analyzed',
   'authored', 'administered', 'programmed', 'integrated', 'configured', 'supervised',
   'directed', 'synthesized', 'inspected', 'produced', 'facilitated', 'aligned',
-  'structured', 'monitored', 'maintained', 'trained'
+  'structured', 'monitored', 'maintained', 'trained', 'collaborated', 'co-led',
+  'served', 'acted', 'identified', 'partnered', 'mapped', 'tracked', 'supported',
+  'provided', 'achieved', 'initiated', 'oversaw', 'evaluated', 'investigated',
+  'expanded', 'guided', 'performed'
 ]);
 
-// Quantifiable metrics regex (%, $, x multipliers, numbers with units)
-const QUANTIFIABLE_REGEX = /(?:\d+(?:\.\d+)?\s?%|\$\s?\d+(?:,\d{3})*(?:\.\d+)?(?:k|m|b)?|\b\d+x\b|\b\d+\s?(?:k|m|ms|seconds|minutes|hours|days|weeks|fte|headcount|cases|transactions|users|customers|basis points)\b)/i;
+// Quantifiable metrics regex (%, $, x multipliers, numbers with units across Ops, Eng, Product, CX, Sales)
+const QUANTIFIABLE_REGEX = /(?:\d+(?:\.\d+)?\s?%|\$\s?\d+(?:,\d{3})*(?:\.\d+)?(?:k|m|b)?|\b\d+x\b|\b\d+\s?\+?\s?(?:k|m|ms|seconds|minutes|hours|days|weeks|fte|headcount|cases|transactions|users|customers|basis points|chats|queues|tickets|queries|calls|accounts|clients|agents|teams|specializations|deliverables|milestones|incidents|workflows|records|reports|vendors|partners)\b|\b(?:from|to|between)\s+\d+\s+(?:to|and)\s+\d+\b|\b\d{1,4}\+\b)/i;
 
 /**
  * Extracts plain text from a TailoredResumeData object to simulate what an ATS parser extracts.
@@ -144,7 +147,7 @@ export function scoreAtsReadiness(
   // Count strong action verbs at start of bullets
   let actionVerbCount = 0;
   for (const bullet of allBullets) {
-    const firstWord = bullet.trim().replace(/^[^a-zA-Z]+/, '').split(/\s+/)[0]?.toLowerCase() || '';
+    const firstWord = bullet.trim().replace(/^[^a-zA-Z]+/, '').split(/\s+/)[0]?.toLowerCase().replace(/[^a-z]/g, '') || '';
     if (STRONG_ACTION_VERBS.has(firstWord)) {
       actionVerbCount++;
     }
