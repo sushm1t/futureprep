@@ -8,8 +8,8 @@ describe('extractProfileSearchContext', () => {
       full_name: 'Amaya P',
       target_role: 'Medical Laboratory Technologist',
       contact_info: {
-        email: 'amayapavi21500@gmail.com',
-        phone: '+91 751 090 8291',
+        email: 'candidate.mlt@example.com',
+        phone: '+91 98765 43210',
         location: 'Vadakara, Calicut, Kerala, India',
         linkedin: '',
       },
@@ -95,13 +95,13 @@ describe('extractProfileSearchContext', () => {
 
   it('correctly extracts Payment Operations role, India location, and Fintech domain for Sushmit profile', () => {
     const sushmitResume: TailoredResumeData = {
-      full_name: 'Sushmit Surendran',
+      full_name: 'Sushmit S',
       target_role: 'Payment Operations',
       contact_info: {
-        email: 'sushmits07@gmail.com',
-        phone: '+91 89214 09100',
+        email: 'candidate.ops@example.com',
+        phone: '+91 98765 43211',
         location: 'Vadakara, Kerala, India (Open to Remote / Relocation)',
-        linkedin: 'linkedin.com/in/sushmit-surendran',
+        linkedin: 'linkedin.com/in/sample-profile',
       },
       tailored_summary: 'Fintech operations professional with 6 years of experience across payment disputes, chargebacks, and real-time operations at Revolut.',
       skills: ['Card payments', 'Visa and Mastercard disputes', 'chargebacks', 'transaction investigations', 'SQL', 'Looker', 'Metabase'],
@@ -131,11 +131,11 @@ describe('extractProfileSearchContext', () => {
 
   it('correctly extracts Mechanical Engineer role, India location, and Mechanical domain for Amarjith profile', () => {
     const amarjithResume: TailoredResumeData = {
-      full_name: 'Amarjith P K',
+      full_name: 'Amarjith P',
       target_role: 'Mechanical Engineer',
       contact_info: {
-        email: 'amarjithpk@gmail.com',
-        phone: '+91 9048657529',
+        email: 'candidate.mech@example.com',
+        phone: '+91 98765 43212',
         location: 'Vadakara, Calicut, Kerala, India (Pin: 673104)',
         linkedin: '',
       },

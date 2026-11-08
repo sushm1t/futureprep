@@ -1060,6 +1060,7 @@ export default function App() {
           score={evaluation.match_score}
           appliedCount={appliedJobs.length}
           isProUser={isProUser}
+          userPlan={userPlan}
           tailoredCount={tailoredCount}
           isLoggedIn={isLoggedIn}
           userName={userName}
@@ -1482,6 +1483,7 @@ export default function App() {
         jobTitle={evaluation.job_title || currentPreset?.title || 'Target Role'}
         companyName={evaluation.company_name || currentPreset?.company || 'Target Employer'}
         isProUser={isProUser}
+        userPlan={userPlan}
         onNavigateToPricing={() => setActiveTab('pricing')}
       />
 

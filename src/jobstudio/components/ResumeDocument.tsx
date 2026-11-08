@@ -1074,7 +1074,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                 </div>
                 <div className="p-3 rounded-xl bg-surface border border-border/80 text-center">
                   <span className="text-subtle text-[11px] block">Anti-Fabrication</span>
-                  <span className="font-semibold text-success mt-0.5 block">✓ Guaranteed</span>
+                  <span className="font-semibold text-success mt-0.5 block">✓ Profile-Backed</span>
                 </div>
               </div>
             )}

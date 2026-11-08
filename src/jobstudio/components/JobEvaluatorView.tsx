@@ -152,6 +152,7 @@ interface JobEvaluatorViewProps {
   onApplyClick?: (applyUrl: string) => void;
   isTracked?: boolean;
   isProUser?: boolean;
+  userPlan?: 'free' | 'plus' | 'pro';
   tailoredCount?: number;
   onNavigateToPricing?: () => void;
   onOpenRecruiterReview?: () => void;
@@ -187,6 +188,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
   onApplyClick,
   isTracked = false,
   isProUser = false,
+  userPlan = 'free',
   tailoredCount = 0,
   onNavigateToPricing,
   onOpenRecruiterReview,
@@ -1674,7 +1676,13 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
             <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium font-mono bg-surface/90 border border-border/80 text-foreground shadow-2xs">
               <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-              <span>{isProUser ? 'Pro plan · Unlimited tailoring' : `${2 - Math.min(tailoredCount, 2)} of 2 tailored resumes available`}</span>
+              <span>
+                {userPlan === 'pro' || isProUser
+                  ? 'Pro plan · Unlimited tailoring'
+                  : userPlan === 'plus'
+                  ? `Plus plan · ${50 - Math.min(tailoredCount, 50)} of 50 tailored resumes available`
+                  : `${2 - Math.min(tailoredCount, 2)} of 2 free tailored resumes available`}
+              </span>
             </span>
           </div>
         </div>
@@ -1739,9 +1747,13 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                   Role Discovery
                 </h2>
-                {isProUser ? (
+                {userPlan === 'pro' || isProUser ? (
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-success/15 text-success font-mono tracking-wider border border-success/30">
                     ★ PRO
+                  </span>
+                ) : userPlan === 'plus' ? (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-brand font-mono tracking-wider border border-primary/30">
+                    ★ PLUS
                   </span>
                 ) : (
                   <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-surface text-subtle font-mono border border-border/70">

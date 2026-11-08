@@ -23,6 +23,7 @@ interface HeaderProps {
   score?: number;
   appliedCount?: number;
   isProUser?: boolean;
+  userPlan?: 'free' | 'plus' | 'pro';
   tailoredCount?: number;
   isLoggedIn?: boolean;
   userName?: string;
@@ -38,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   downloadSuccess = false,
   appliedCount = 0,
   isProUser = false,
+  userPlan,
   tailoredCount = 0,
   isLoggedIn = true,
   userName = 'Candidate',
@@ -117,16 +119,26 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Action Button & Plan / Auth Status */}
         <div className="flex items-center gap-2 shrink-0">
           {isLoggedIn && (
-            isProUser ? (
+            userPlan === 'pro' || isProUser ? (
               <span className="hidden xl:inline-flex items-center gap-1 px-2.5 py-1 bg-brand/15 text-brand border border-brand/30 text-[11px] font-bold rounded-full font-mono">
                 <span>★ PRO</span>
               </span>
+            ) : userPlan === 'plus' ? (
+              <button
+                type="button"
+                onClick={() => setActiveTab('pricing')}
+                className="hidden xl:inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-foreground hover:text-brand bg-primary/10 hover:bg-primary/20 border border-primary/25 rounded-full transition-colors cursor-pointer"
+                title="Plus Plan: 50 tailored resumes per month"
+              >
+                <span className="font-bold text-brand font-mono">★ PLUS</span>
+                <span className="text-subtle font-semibold">({50 - Math.min(tailoredCount, 50)} left)</span>
+              </button>
             ) : (
               <button
                 type="button"
                 onClick={() => setActiveTab('pricing')}
                 className="hidden xl:inline-flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-foreground hover:text-brand bg-surface hover:bg-brand/10 rounded-full transition-colors cursor-pointer"
-                title="View pricing & upgrade to Pro"
+                title="View pricing & upgrade"
               >
                 <span>Free</span>
                 <span className="text-brand font-semibold">({2 - Math.min(tailoredCount, 2)} left)</span>

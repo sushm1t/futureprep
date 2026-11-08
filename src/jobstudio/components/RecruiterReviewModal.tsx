@@ -61,6 +61,7 @@ interface RecruiterReviewModalProps {
   jobTitle: string;
   companyName: string;
   isProUser: boolean;
+  userPlan?: 'free' | 'plus' | 'pro';
   onNavigateToPricing: () => void;
 }
 
@@ -73,8 +74,10 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
   jobTitle,
   companyName,
   isProUser,
+  userPlan,
   onNavigateToPricing,
 }) => {
+  const hasFullAccess = isProUser || userPlan === 'plus' || userPlan === 'pro';
   const [activePersona, setActivePersona] = useState<'recruiter' | 'hiring_manager' | 'technical_lead'>(
     'recruiter'
   );
@@ -258,13 +261,13 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                 </div>
               </div>
 
-              {/* Free vs Pro Badge / Banner if Free user */}
-              {!isProUser && (
+              {/* Free vs Plus/Pro Badge / Banner if Free user */}
+              {!hasFullAccess && (
                 <div className="p-3.5 rounded-xl bg-info/10 border border-info/20 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2.5">
                     <Sparkles className="w-4 h-4 text-info shrink-0" />
                     <p className="text-xs text-info font-medium leading-relaxed">
-                      <strong>Free Plan:</strong> Viewing overall score and top panel findings. Unlock the full 3-persona line-by-line feedback with Pro.
+                      <strong>Free Plan:</strong> Viewing overall score and top panel findings. Unlock the full 3-persona line-by-line feedback with Plus or Pro.
                     </p>
                   </div>
                   <button
@@ -274,7 +277,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                     }}
                     className="px-3 py-1.5 rounded-lg bg-info hover:bg-info/90 text-primary-foreground text-xs font-semibold shrink-0 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
                   >
-                    Upgrade ($9.99/mo)
+                    Upgrade to Plus ($9.99/mo)
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -313,7 +316,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                     <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-surface text-foreground font-bold">
                       {reviewData.panel.hiring_manager.score}
                     </span>
-                    {!isProUser && <Lock className="w-3 h-3 text-warning ml-0.5" />}
+                    {!hasFullAccess && <Lock className="w-3 h-3 text-warning ml-0.5" />}
                   </button>
 
                   <button
@@ -330,7 +333,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                     <span className="text-[11px] font-mono px-1.5 py-0.5 rounded bg-surface text-foreground font-bold">
                       {reviewData.panel.technical_lead.score}
                     </span>
-                    {!isProUser && <Lock className="w-3 h-3 text-warning ml-0.5" />}
+                    {!hasFullAccess && <Lock className="w-3 h-3 text-warning ml-0.5" />}
                   </button>
                 </div>
 
@@ -379,7 +382,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
 
                 {activePersona === 'hiring_manager' && (
                   <div className="relative">
-                    {!isProUser ? (
+                    {!hasFullAccess ? (
                       <div className="p-6 rounded-2xl border border-dashed border-info/25 bg-info/5 text-center space-y-3">
                         <div className="w-10 h-10 rounded-full bg-info/10 text-info flex items-center justify-center mx-auto">
                           <Lock className="w-5 h-5" />
@@ -388,7 +391,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                           Hiring Manager Evaluation Locked
                         </h5>
                         <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-                          Upgrade to Pro to review the Department Director's business ROI score, leadership assessment, and exact questions they will probe during the interview.
+                          Upgrade to Plus or Pro to review the Department Director's business ROI score, leadership assessment, and exact questions they will probe during the interview.
                         </p>
                         <button
                           onClick={() => {
@@ -397,7 +400,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                           }}
                           className="px-4 py-2 rounded-xl bg-info text-primary-foreground text-xs font-semibold hover:bg-info/90 transition-colors cursor-pointer"
                         >
-                          Unlock on Pro ($9.99/mo)
+                          Unlock with Plus ($9.99/mo)
                         </button>
                       </div>
                     ) : (
@@ -446,14 +449,14 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
 
                 {activePersona === 'technical_lead' && (
                   <div className="relative">
-                    {!isProUser ? (
+                    {!hasFullAccess ? (
                       <div className="p-6 rounded-2xl border border-dashed border-info/25 bg-info/5 text-center space-y-3">
                         <div className="w-10 h-10 rounded-full bg-info/10 text-info flex items-center justify-center mx-auto">
                           <Lock className="w-5 h-5" />
                         </div>
                         <h5 className="text-sm font-bold text-foreground">Technical Peer Evaluation Locked</h5>
                         <p className="text-xs text-muted-foreground max-w-md mx-auto leading-relaxed">
-                          Upgrade to Pro to review the Technical Lead's evaluation of tooling depth, architecture rigor, and execution confidence.
+                          Upgrade to Plus or Pro to review the Technical Lead's evaluation of tooling depth, architecture rigor, and execution confidence.
                         </p>
                         <button
                           onClick={() => {
@@ -462,7 +465,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                           }}
                           className="px-4 py-2 rounded-xl bg-info text-primary-foreground text-xs font-semibold hover:bg-info/90 transition-colors cursor-pointer"
                         >
-                          Unlock on Pro ($9.99/mo)
+                          Unlock with Plus ($9.99/mo)
                         </button>
                       </div>
                     ) : (
@@ -518,7 +521,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                     Consensus Strengths
                   </h5>
                   <ul className="space-y-2.5">
-                    {reviewData.top_strengths.slice(0, isProUser ? 3 : 2).map((s, i) => (
+                    {reviewData.top_strengths.slice(0, hasFullAccess ? 3 : 2).map((s, i) => (
                       <li key={i} className="text-[12.5px] text-foreground flex items-start gap-2.5 leading-relaxed">
                         <CheckCircle2 className="w-4 h-4 text-success mt-0.5 shrink-0" />
                         <span>{s}</span>
@@ -533,7 +536,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                     Actionable Polish Fixes
                   </h5>
                   <ul className="space-y-2.5">
-                    {reviewData.top_fixes.slice(0, isProUser ? 3 : 2).map((f, i) => (
+                    {reviewData.top_fixes.slice(0, hasFullAccess ? 3 : 2).map((f, i) => (
                       <li key={i} className="text-[12.5px] text-foreground flex items-start gap-2.5 leading-relaxed">
                         <AlertTriangle className="w-4 h-4 text-warning mt-0.5 shrink-0" />
                         <span>{f}</span>

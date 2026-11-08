@@ -11,8 +11,8 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
     full_name: 'Amaya P',
     target_role: 'Medical Laboratory Technologist',
     contact_info: {
-      email: 'amayapavi21500@gmail.com',
-      phone: '+91 751 090 8291',
+      email: 'candidate.mlt@example.com',
+      phone: '+91 98765 43210',
       location: 'Vadakara, Calicut, Kerala, India',
       linkedin: '',
     },
