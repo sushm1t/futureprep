@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlayCircle, ArrowLeft, Briefcase, Bug, Compass, FileText, HelpCircle, Layers, LogOut, Menu, Milestone, Sparkles, User, X } from 'lucide-react';
+import { PlayCircle, ArrowLeft, Briefcase, Bug, ChevronRight, Compass, FileText, HelpCircle, Layers, LogOut, Menu, Milestone, Sparkles, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const sections = [
@@ -102,34 +102,98 @@ export function WorkspaceNavigation(props: Props) {
         </div>)}
       </nav>
       <div className="workspace-sidebar-bottom">
-        {props.onStartTour && <Button variant="ghost" size="sm" className="w-full justify-start" onClick={props.onStartTour}><PlayCircle />Take the tour</Button>}
-        <div className="workspace-plan">
-          <span>{plan === 'pro' ? 'Pro plan' : plan === 'plus' ? 'Plus plan' : 'Free plan'}</span>
-          <span className="text-muted-foreground">
+        {/* Sleek Plan & Entitlement Card (Linear/Apple/Stripe Style) */}
+        <div className="workspace-plan-card">
+          <div className="flex items-center justify-between mb-1.5">
+            <span className={`workspace-plan-badge ${plan === 'pro' ? 'is-pro' : plan === 'plus' ? 'is-plus' : 'is-free'}`}>
+              {plan === 'pro' && <Sparkles className="w-3 h-3" />}
+              {plan === 'pro' ? 'Pro Plan' : plan === 'plus' ? 'Plus Plan' : 'Free Plan'}
+            </span>
+            <button
+              type="button"
+              onClick={() => props.setActiveTab('pricing')}
+              className="workspace-plan-manage-btn"
+              title="Manage subscription and quotas"
+              aria-label={plan !== 'free' ? 'Manage plan' : 'View plans'}
+            >
+              <span>{plan !== 'free' ? 'Manage' : 'Upgrade'}</span>
+              <ChevronRight className="w-3 h-3 text-muted-foreground/70" />
+            </button>
+          </div>
+          <p className="workspace-plan-desc">
             {plan === 'pro'
-              ? 'Unlimited tailoring'
+              ? 'Unlimited AI tailoring active'
               : plan === 'plus'
               ? `${Math.max(0, 50 - props.tailoredCount)} of 50 resumes left`
               : `${Math.max(0, 2 - props.tailoredCount)} of 2 resumes left`}
-          </span>
+          </p>
+          {plan !== 'pro' && (
+            <div className="workspace-quota-track">
+              <div
+                className="workspace-quota-fill"
+                style={{
+                  width: `${Math.min(100, Math.max(5, (props.tailoredCount / (plan === 'plus' ? 50 : 2)) * 100))}%`
+                }}
+              />
+            </div>
+          )}
         </div>
-        <Button variant="outline" className="w-full" onClick={() => props.setActiveTab('pricing')}>
-          {plan !== 'free' ? 'Manage plan' : 'View plans'}
-          <Sparkles />
-        </Button>
-        {props.onReportBug && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-muted-foreground hover:text-amber-400 cursor-pointer"
-            onClick={props.onReportBug}
-            title="Report bugs or feedback"
-          >
-            <Bug className="w-4 h-4 mr-2 text-amber-400" />
-            Report a bug
-          </Button>
-        )}
-        <div className="flex justify-between pt-2"><Button variant="ghost" size="sm" onClick={() => props.setActiveTab('home')} title="Open the public landing page"><ArrowLeft />View website</Button><Button variant="ghost" size="icon" title="Sign out" aria-label="Sign out" onClick={props.onLogout}><LogOut /></Button></div>
+
+        {/* Quiet Minimalist Utilities (Tour, Bug/Feedback, Website, Logout) */}
+        <div className="workspace-sidebar-actions">
+          {props.onStartTour && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="workspace-action-row-btn"
+              onClick={props.onStartTour}
+              title="Take interactive tour"
+            >
+              <PlayCircle className="w-3.5 h-3.5 text-muted-foreground" />
+              <span>Take the tour</span>
+            </Button>
+          )}
+
+          {props.onReportBug && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="workspace-action-row-btn group"
+              onClick={props.onReportBug}
+              title="Send feedback or report an issue"
+              aria-label="Report a bug"
+            >
+              <Bug className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground transition-colors" />
+              <span>Report a bug</span>
+            </Button>
+          )}
+
+          <div className="workspace-sidebar-footer-row">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="workspace-website-btn"
+              onClick={() => {
+                props.setActiveTab('home');
+                window.scrollTo(0, 0);
+              }}
+              title="Open the public landing page"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>View website</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="workspace-logout-btn"
+              title="Sign out"
+              aria-label="Sign out"
+              onClick={props.onLogout}
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </Button>
+          </div>
+        </div>
       </div>
     </aside>
 
@@ -380,7 +444,7 @@ export function WorkspaceNavigation(props: Props) {
               </button>
             )}
 
-            {/* Report a Bug */}
+            {/* Report a Bug / Feedback */}
             {props.onReportBug && (
               <button
                 type="button"
@@ -388,13 +452,14 @@ export function WorkspaceNavigation(props: Props) {
                   props.onReportBug?.();
                   setIsMobileMenuOpen(false);
                 }}
-                className="w-full flex items-center gap-3.5 p-3 rounded-2xl text-left text-sm font-medium text-muted-foreground hover:text-amber-400 hover:bg-surface transition-all cursor-pointer"
+                className="w-full flex items-center gap-3.5 p-3 rounded-2xl text-left text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-surface transition-all cursor-pointer group"
+                aria-label="Report a bug"
               >
                 <div className="w-9 h-9 rounded-xl bg-surface flex items-center justify-center shrink-0">
-                  <Bug className="w-4 h-4 text-amber-400" />
+                  <Bug className="w-4 h-4 text-brand" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <span className="block font-semibold">Report a Bug</span>
+                  <span className="block font-semibold text-foreground">Report a Bug</span>
                   <span className="text-xs text-subtle">Send feedback or report an issue</span>
                 </div>
               </button>
