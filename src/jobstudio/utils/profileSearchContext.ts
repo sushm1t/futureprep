@@ -167,7 +167,17 @@ export function extractProfileSearchContext(
     searchQueries.push(targetRole);
 
     // Add common variants for specialized roles
-    if (/payment|fintech|dispute|chargeback|card operation|reconciliation/i.test(targetRole)) {
+    if (/pipe|pipeline|piping/i.test(targetRole)) {
+      searchQueries.push(
+        'Piping Designer',
+        'Pipeline Engineer',
+        'Piping Design Engineer',
+        'Piping Engineer',
+        'Senior Piping Designer',
+        'Mechanical Piping Designer',
+        'Plant Layout Designer'
+      );
+    } else if (/payment|fintech|dispute|chargeback|card operation|reconciliation/i.test(targetRole)) {
       searchQueries.push(
         'Payment Operations',
         'Fintech Operations',

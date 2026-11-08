@@ -1,6 +1,7 @@
 // @ts-nocheck -- imported compatibility handlers
 import { buildInterviewPrompt, normalizePracticeQuestion } from '../jobstudio/utils/interviewPrompt';
 import { sortExperiencesReverseChronological } from '../jobstudio/utils/chronology';
+import { getRoleKeywordExpansions, normalizeRoleTitle } from '../jobstudio/utils/roleExpansion';
 import * as guard from './api-guard';
 
 // Polyfill dummy WebSocket in Node.js environments (such as Node 20) where native WebSocket
@@ -2088,10 +2089,20 @@ app.post('/api/ats/crawl', async (req, res) => {
         availableCatalogueTotal = 7135839;
       }
 
-      // 2. Candidate targeted queries so "Best Matches" has 20-25+ top matching positions
+      // 2. Candidate targeted queries with Seniority Normalization & Domain Expansion
       let targetedQueries: string[] = [];
       if (cleanKeyword) {
         targetedQueries.push(cleanKeyword);
+
+        // Intelligent Role Expansion (strips "Sr." / "Senior" and auto-expands related role variants)
+        const roleExp = getRoleKeywordExpansions(cleanKeyword);
+        if (roleExp.baseTitle && roleExp.baseTitle.toLowerCase() !== cleanKeyword.toLowerCase()) {
+          targetedQueries.push(roleExp.baseTitle);
+        }
+        for (const exp of roleExp.searchQueries) {
+          if (!targetedQueries.includes(exp)) targetedQueries.push(exp);
+        }
+
         const simplified = cleanKeyword.replace(/[–—/|•\-]/g, ' ').replace(/\s+/g, ' ').trim();
         if (simplified && simplified !== cleanKeyword) {
           targetedQueries.push(simplified);
@@ -2106,6 +2117,11 @@ app.post('/api/ats/crawl', async (req, res) => {
               targetedQueries.push(q);
             }
           }
+        }
+        if (/pipe|pipeline|piping/i.test(cleanKeyword)) {
+          ['Piping Designer', 'Pipeline Engineer', 'Piping Design Engineer', 'Piping Engineer', 'Senior Piping Designer'].forEach((v) => {
+            if (!targetedQueries.includes(v)) targetedQueries.push(v);
+          });
         }
         if (/payment|fintech|dispute|chargeback|card operation|reconciliation/i.test(cleanKeyword)) {
           ['Payment Operations', 'Fintech Operations', 'Disputes Specialist', 'Card Operations', 'Real-Time Operations', 'Incident Coordinator', 'Operations Analyst'].forEach((v) => {
@@ -2124,6 +2140,9 @@ app.post('/api/ats/crawl', async (req, res) => {
         }
         if (normalizedLoc && normalizedLoc !== 'Remote') {
           targetedQueries.push(`${cleanKeyword} ${normalizedLoc}`);
+          if (roleExp.baseTitle && roleExp.baseTitle.toLowerCase() !== cleanKeyword.toLowerCase()) {
+            targetedQueries.push(`${roleExp.baseTitle} ${normalizedLoc}`);
+          }
         }
       }
 

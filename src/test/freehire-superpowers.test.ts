@@ -5,6 +5,7 @@ import { classifyRecruiterEmail } from '../jobstudio/utils/recruiterEmailClassif
 import { generateAtsApplicationDossier } from '../jobstudio/utils/screeningAnswerBank';
 import { generateTracerToken } from '../jobstudio/utils/tracerLinks';
 import { scoreAtsReadiness } from '../jobstudio/utils/atsReadinessScorer';
+import { normalizeRoleTitle, getRoleKeywordExpansions } from '../jobstudio/utils/roleExpansion';
 import { TailoredResumeData } from '../jobstudio/data/defaultData';
 
 describe('10x Freehire Superpowers Integration Suite', () => {
@@ -309,6 +310,42 @@ Please select a convenient time slot on my Calendly: https://calendly.com/recrui
       expect(report.potential).toBeGreaterThanOrEqual(report.overall);
       expect(report.potential).toBeLessThanOrEqual(100);
       expect(report.topFixes.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Role Normalization & Intelligent Keyword Expansion', () => {
+    it('strips seniority prefixes to extract core functional title and detect seniority', () => {
+      const srPiping = normalizeRoleTitle('Sr. Piping Designer');
+      expect(srPiping.baseTitle).toBe('Piping Designer');
+      expect(srPiping.hasSeniorityPrefix).toBe(true);
+      expect(srPiping.seniorityPrefix).toMatch(/sr\.?/i);
+
+      const seniorPipeline = normalizeRoleTitle('Senior Pipeline Engineer');
+      expect(seniorPipeline.baseTitle).toBe('Pipeline Engineer');
+      expect(seniorPipeline.hasSeniorityPrefix).toBe(true);
+
+      const leadProduct = normalizeRoleTitle('Lead Product Designer');
+      expect(leadProduct.baseTitle).toBe('Product Designer');
+      expect(leadProduct.hasSeniorityPrefix).toBe(true);
+
+      const baseDeveloper = normalizeRoleTitle('Software Engineer');
+      expect(baseDeveloper.baseTitle).toBe('Software Engineer');
+      expect(baseDeveloper.hasSeniorityPrefix).toBe(false);
+    });
+
+    it('generates multi-query expansions and suggestion chips for piping and pipeline roles', () => {
+      const pipingExp = getRoleKeywordExpansions('Sr. Piping Designer');
+      expect(pipingExp.baseTitle).toBe('Piping Designer');
+      expect(pipingExp.isExpanded).toBe(true);
+      expect(pipingExp.searchQueries).toContain('Sr. Piping Designer');
+      expect(pipingExp.searchQueries).toContain('Piping Designer');
+      expect(pipingExp.suggestionChips.length).toBeGreaterThan(0);
+      expect(pipingExp.suggestionChips.some((c) => /pipeline|piping/i.test(c))).toBe(true);
+
+      const pipelineExp = getRoleKeywordExpansions('Pipeline Engineer');
+      expect(pipelineExp.baseTitle).toBe('Pipeline Engineer');
+      expect(pipelineExp.suggestionChips.length).toBeGreaterThan(0);
+      expect(pipingExp.suggestionChips.some((c) => /piping|pipeline/i.test(c))).toBe(true);
     });
   });
 });

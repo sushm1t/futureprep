@@ -70,6 +70,7 @@ import { buildProfileTerms, scoreJobAgainstProfile, PROFILE_MATCH_THRESHOLD, qui
 import { extractProfileSearchContext } from '../utils/profileSearchContext';
 import { MarketIntelligenceModal } from './MarketIntelligenceModal';
 import { resolveAtsFromUrl } from '../utils/atsUrlResolver';
+import { getRoleKeywordExpansions, normalizeRoleTitle } from '../utils/roleExpansion';
 
 export const ALL_DISCIPLINE_DEFINITIONS = [
   { id: 'Engineering', label: '💻 Engineering' },
@@ -409,6 +410,11 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         ? `${evaluation.job_title} roles`
         : 'roles';
   const searchSummaryText = `Searching ${searchRoleLabel}`;
+
+  const roleExpansions = useMemo(() => {
+    const raw = (atsKeyword || profileSearchContext.targetRole || '').trim();
+    return getRoleKeywordExpansions(raw, profileSearchContext.domain);
+  }, [atsKeyword, profileSearchContext.targetRole, profileSearchContext.domain]);
 
   const roleInterviewQuestions = useMemo<InterviewPrepQuestion[]>(() => {
     if (activeInterviewQuestions && activeInterviewQuestions.length > 0) {
@@ -1132,9 +1138,11 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           const cleanQ = q.replace(/[–—/|•\-]/g, ' ').replace(/\s+/g, ' ').trim();
           const text = `${job.title} ${job.company} ${job.department || ''} ${job.descriptionSnippet || ''}`.toLowerCase();
           const tokens = cleanQ.split(/\s+/).filter((t) => t.length > 2);
+          const baseTitleLow = (roleExpansions.baseTitle || '').toLowerCase();
           const matches =
             text.includes(q) ||
             (cleanQ && text.includes(cleanQ)) ||
+            (baseTitleLow && baseTitleLow !== q && text.includes(baseTitleLow)) ||
             (tokens.length > 0 && tokens.some((t) => text.includes(t)));
           if (!matches) return false;
         }
@@ -1848,6 +1856,43 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Smart Keyword Expansion & Related Role Suggestions */}
+          {(roleExpansions.suggestionChips.length > 0 || (roleExpansions.hasSeniorityPrefix && atsKeyword.trim())) && (
+            <div className="pt-2 border-t border-border/60 space-y-2">
+              {roleExpansions.hasSeniorityPrefix && atsKeyword.trim() && (
+                <div className="flex items-center gap-1.5 text-[11px] text-brand/90 bg-brand/10 border border-brand/20 px-2.5 py-1.5 rounded-xl">
+                  <Zap className="w-3.5 h-3.5 text-brand shrink-0" />
+                  <span>
+                    Auto-expanded search to include <strong>"{roleExpansions.baseTitle}"</strong> &amp; senior titles to maximize open positions.
+                  </span>
+                </div>
+              )}
+
+              {roleExpansions.suggestionChips.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-[11px] text-subtle font-medium flex items-center gap-1 shrink-0">
+                    <Sparkles className="w-3 h-3 text-brand" />
+                    <span>Suggested keywords:</span>
+                  </span>
+                  {roleExpansions.suggestionChips.map((chip) => (
+                    <button
+                      key={chip}
+                      type="button"
+                      onClick={() => {
+                        setAtsKeyword(chip);
+                        handleCrawlAts(undefined, undefined, undefined, undefined, chip);
+                      }}
+                      className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface text-subtle hover:text-foreground hover:bg-surface-2 hover:border-brand/40 border border-border/60 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                      title={`Search live openings for "${chip}"`}
+                    >
+                      <span>{chip}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Refinement Filters Bar */}
           <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border text-xs">
