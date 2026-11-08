@@ -18,6 +18,16 @@ export async function getAuthHeader(fallbackEmail?: string): Promise<string | nu
     return `Bearer user-${cleanId}`;
   }
 
+  // Persistent visitor session token for guest, unconfirmed, or onboarding workflows
+  if (typeof window !== 'undefined') {
+    let localId = localStorage.getItem('jobstudio_local_id');
+    if (!localId) {
+      localId = `local-${typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 15)}`;
+      localStorage.setItem('jobstudio_local_id', localId);
+    }
+    return `Bearer ${localId}`;
+  }
+
   return null;
 }
 

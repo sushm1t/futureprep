@@ -744,13 +744,22 @@ ${certText}
 
       setIsEditingProfile(false);
       setActiveStudioTab('builder');
-      setSaveSuccessMessage(
-        `🎉 Successfully parsed ${uploadedPdf?.name ? `PDF "${uploadedPdf.name}"` : 'resume'} for "${parsedRecord.name}"! Loaded contact details, ${parsedRecord.experiences.length} positions, and ${parsedRecord.skills.length} skills into your Master Profile.`
-      );
+      if (data.fallbackNotice) {
+        setSaveSuccessMessage(`ℹ️ ${data.fallbackNotice}`);
+      } else {
+        setSaveSuccessMessage(
+          `🎉 Successfully parsed ${uploadedPdf?.name ? `PDF "${uploadedPdf.name}"` : 'resume'} for "${parsedRecord.name}"! Loaded contact details, ${parsedRecord.experiences.length} positions, and ${parsedRecord.skills.length} skills into your Master Profile.`
+        );
+      }
       setTimeout(() => setSaveSuccessMessage(null), 7000);
     } catch (err: any) {
       console.error('Resume parsing error:', err);
-      setParseError(err.message || 'Failed to parse resume. Check the file/text and try again.');
+      const raw = err?.message || '';
+      const isFetchFailed = raw === 'fetch failed' || /network|failed to fetch|ENOTFOUND/i.test(raw);
+      const cleanError = isFetchFailed
+        ? 'Unable to connect to AI parsing service. Please check your connection or switch to "Paste Text" mode.'
+        : (raw || 'Failed to parse resume. Check the file/text and try again.');
+      setParseError(cleanError);
     } finally {
       setIsParsingWithAi(false);
     }
