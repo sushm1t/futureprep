@@ -42,9 +42,17 @@ import {
   Copy,
   Check,
   SlidersHorizontal,
+  ShieldCheck,
+  AlertTriangle,
+  AlertOctagon,
+  ClipboardCheck,
+  XCircle,
 } from 'lucide-react';
 import { AllFiltersModal, FilterState } from './AllFiltersModal';
 import { ALL_JOB_SOURCES } from '../data/jobFiltersData';
+import { evaluateHardConstraints, HardConstraintReport } from '../utils/hardConstraints';
+import { detectGhostJobSignal, GhostSignal } from '../utils/ghostJobDetector';
+import { generateAtsApplicationDossier, getSavedScreeningAnswers } from '../utils/screeningAnswerBank';
 import {
   JobEvaluationData,
   JobOpportunity,
@@ -426,6 +434,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
   const [isLinkCopied, setIsLinkCopied] = useState<boolean>(false);
   const [isDirectCopied, setIsDirectCopied] = useState<boolean>(false);
   const [isListCopied, setIsListCopied] = useState<boolean>(false);
+  const [isDossierCopied, setIsDossierCopied] = useState<boolean>(false);
 
   // Freehire 55+ ATS & Multi-Filter States
   const [isAllFiltersOpen, setIsAllFiltersOpen] = useState<boolean>(false);
@@ -766,6 +775,34 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       }
     } else {
       handleCopyShareUrl();
+    }
+  };
+
+  const hardConstraintReport = useMemo(() => {
+    if (!masterProfileText) return null;
+    const jdText =
+      (activeOpportunity as any)?.rawDescription ||
+      (activeOpportunity as any)?.description ||
+      evaluation.job_description ||
+      customJobText ||
+      '';
+    if (!jdText || jdText.length < 20) return null;
+    return evaluateHardConstraints(masterProfileText, jdText, profileSearchContext);
+  }, [masterProfileText, activeOpportunity, evaluation.job_description, customJobText, profileSearchContext]);
+
+  const handleCopyAtsDossier = () => {
+    const answers = getSavedScreeningAnswers();
+    const dossierText = generateAtsApplicationDossier(answers, {
+      candidateName: (candidateProfileContext as any)?.fullName || profileSearchContext?.targetRole ? undefined : undefined,
+      email: (candidateProfileContext as any)?.email,
+      phone: (candidateProfileContext as any)?.phone,
+      linkedin: (candidateProfileContext as any)?.linkedin,
+    });
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(dossierText).then(() => {
+        setIsDossierCopied(true);
+        setTimeout(() => setIsDossierCopied(false), 2500);
+      }).catch(() => {});
     }
   };
 
@@ -2172,12 +2209,38 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                                   {job.workplaceType}
                                 </span>
                               )}
-                              {job.verifiedLive && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success/15 text-success border border-success/30 flex items-center gap-1 shadow-2xs font-mono">
-                                  <CheckCircle2 className="w-2.5 h-2.5" />
-                                  <span>Verified Open</span>
-                                </span>
-                              )}
+                              {(() => {
+                                const gs: GhostSignal = (job as any).ghostSignal || detectGhostJobSignal({
+                                  title: job.title,
+                                  company: job.company,
+                                  platform: job.platform,
+                                  verifiedLive: job.verifiedLive,
+                                  applyUrl: (job as any).applyUrl || (job as any).url,
+                                  rawDescription: (job as any).rawDescription || job.description,
+                                });
+                                if (gs.level === 'likely') {
+                                  return (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1 shadow-2xs font-mono" title={gs.evidenceSummary || 'Evergreen requisition with high phantom risk (>180d)'}>
+                                      <AlertOctagon className="w-2.5 h-2.5 text-rose-400" />
+                                      <span>Likely Ghost (&gt;180d)</span>
+                                    </span>
+                                  );
+                                }
+                                if (gs.level === 'possible') {
+                                  return (
+                                    <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1 shadow-2xs font-mono" title={gs.evidenceSummary || 'Slow-moving requisition (90d+)'}>
+                                      <AlertTriangle className="w-2.5 h-2.5 text-amber-400" />
+                                      <span>Slow Requisition (90d+)</span>
+                                    </span>
+                                  );
+                                }
+                                return (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-2xs font-mono" title="Verified direct requisition on company ATS">
+                                    <ShieldCheck className="w-2.5 h-2.5 text-emerald-400" />
+                                    <span>Direct ATS Verified</span>
+                                  </span>
+                                );
+                              })()}
                             </div>
                             <h4 className="font-display font-bold text-sm sm:text-base text-foreground group-hover:text-brand transition-colors line-clamp-1" title={job.title}>
                               {job.title}
@@ -2454,6 +2517,30 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                             <span className="text-[11px] px-2 py-0.5 rounded-md font-medium bg-[rgba(120,120,128,0.12)] text-muted-foreground">
                               {job.platform}
                             </span>
+                            {(() => {
+                              const gs: GhostSignal = (job as any).ghostSignal || detectGhostJobSignal({
+                                title: job.title,
+                                company: job.company,
+                                platform: job.platform,
+                                verifiedLive: (job as any).verifiedLive,
+                                applyUrl: job.applyUrl,
+                                rawDescription: (job as any).rawDescription || job.description,
+                              });
+                              if (gs.level === 'likely') {
+                                return (
+                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1 font-mono" title={gs.evidenceSummary}>
+                                    <AlertOctagon className="w-2.5 h-2.5" />
+                                    <span>Ghost Risk</span>
+                                  </span>
+                                );
+                              }
+                              return (
+                                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 font-mono" title="Verified ATS requisition">
+                                  <ShieldCheck className="w-2.5 h-2.5" />
+                                  <span>Verified Direct</span>
+                                </span>
+                              );
+                            })()}
                           </div>
 
                           <div className="flex items-center gap-2">
@@ -2637,6 +2724,68 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             </div>
           )}
 
+          {/* Deterministic Hard-Constraint Eligibility Panel */}
+          {hardConstraintReport && (
+            <div className="p-4 sm:p-5 rounded-2xl bg-card border border-border/80 shadow-elevated space-y-3">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className={`w-4 h-4 ${hardConstraintReport.overallEligible ? 'text-emerald-400' : 'text-amber-400'}`} />
+                  <h4 className="font-display text-xs sm:text-sm font-semibold text-foreground">
+                    Deterministic Hard-Constraint Eligibility
+                  </h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={`text-[11px] font-mono px-2.5 py-0.5 rounded-full font-semibold ${
+                    hardConstraintReport.overallEligible
+                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                      : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                  }`}>
+                    {hardConstraintReport.overallEligible
+                      ? '100% Score Ceiling'
+                      : `Score Capped at max ${hardConstraintReport.scoreCeiling}%`}
+                  </span>
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                {hardConstraintReport.overallEligible
+                  ? 'All 6 deterministic criteria (Work Authorization, Experience Floor, Degree, Certifications, Language, and Workplace Mode) are satisfied by your Master Profile.'
+                  : `Identified ${hardConstraintReport.unmetCount} unmet mandatory criteria in the job requisition. Match score ceiling strictly enforced at ${hardConstraintReport.scoreCeiling}%.`}
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {hardConstraintReport.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className={`p-2.5 rounded-xl border text-xs flex flex-col justify-between gap-1.5 ${
+                      item.isMet
+                        ? 'bg-surface/50 border-border/60 text-muted-foreground'
+                        : 'bg-rose-500/5 border-rose-500/20 text-rose-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-medium text-[11px] text-foreground flex items-center gap-1.5">
+                        {item.isMet ? (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        ) : (
+                          <XCircle className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+                        )}
+                        <span>{item.title}</span>
+                      </span>
+                      <span className={`text-[10px] font-mono px-1.5 py-0.2 rounded ${
+                        item.isMet ? 'bg-surface-2 text-muted-foreground' : 'bg-rose-500/20 text-rose-300 font-semibold'
+                      }`}>
+                        {item.isMet ? 'PASS' : `CAP ${item.scoreCap}%`}
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground line-clamp-1" title={item.explanation}>
+                      {item.explanation}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Evaluation Summary Card */}
           <div id="evaluation-summary" className="relative overflow-hidden p-6 sm:p-8 space-y-6 bg-gradient-to-b from-card via-card/95 to-surface/90 border border-border/80 rounded-3xl shadow-elevated">
             <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
@@ -2793,6 +2942,25 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                       <span>{isTracked ? 'Tracked as Applied' : 'Mark as Applied'}</span>
                     </button>
                   )}
+
+                  <button
+                    type="button"
+                    onClick={handleCopyAtsDossier}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2.5 text-[13px] font-semibold rounded-full bg-surface hover:bg-surface-2 border border-border text-foreground transition-all cursor-pointer shadow-xs whitespace-nowrap"
+                    title="Copy standard ATS application answers (notice period, work auth, salary, STAR stories) to clipboard"
+                  >
+                    {isDossierCopied ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                        <span className="text-emerald-400 font-medium">Dossier Copied!</span>
+                      </>
+                    ) : (
+                      <>
+                        <ClipboardCheck className="w-3.5 h-3.5 text-brand" />
+                        <span>Copy ATS Dossier</span>
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 {/* Overflow ··· Menu for secondary options */}

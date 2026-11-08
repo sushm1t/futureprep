@@ -16,11 +16,21 @@ import {
   FileText,
   Sparkles,
   ExternalLink,
+  Radio,
+  ShieldCheck,
 } from 'lucide-react';
 import { TailoredResumeData, WorkExperience } from '../data/defaultData';
 import { getUserMasterProfile } from '../data/candidateProfiles';
 import { downloadResumeAsPdf, printResumeVector, generatePlainTextResume } from '../utils/pdfExport';
 import { downloadResumeAsDocx, downloadResumeAsPlainText } from '../utils/docxExport';
+import { transformUrlToTracer } from '../utils/tracerLinks';
+import {
+  getSavedExperienceBank,
+  saveExperienceBank,
+  extractEvidenceAtoms,
+  verifyBulletAgainstBank,
+  EvidenceAtom,
+} from '../utils/experienceBank';
 
 interface ResumeDocumentProps {
   resume: TailoredResumeData;
@@ -83,6 +93,45 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
 
   // Page layout & density controls
   const [fitSinglePage, setFitSinglePage] = useState(true);
+
+  // Freehire Superpowers: Recruiter Tracer Links & Experience Bank
+  const [enableTracerLinks, setEnableTracerLinks] = useState(false);
+  const [experienceBank, setExperienceBank] = useState<EvidenceAtom[]>(() => {
+    const saved = getSavedExperienceBank();
+    if (saved.length > 0) return saved;
+    try {
+      const master = getUserMasterProfile();
+      if (master) {
+        const seeded = extractEvidenceAtoms(master);
+        if (seeded.length > 0) {
+          saveExperienceBank(seeded);
+          return seeded;
+        }
+      }
+    } catch {}
+    return [];
+  });
+
+  const handlePinToExperienceBank = (bulletText: string, roleTitle?: string, company?: string) => {
+    const newAtom: EvidenceAtom = {
+      id: `atom_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      category: 'achievement',
+      roleTitle,
+      companyName: company,
+      claimText: bulletText,
+      keywords: bulletText
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, '')
+        .split(/\s+/)
+        .filter((w) => w.length > 3),
+      provenance: 'user_asserted',
+      verified: true,
+      createdAt: new Date().toISOString(),
+    };
+    const updated = [newAtom, ...experienceBank];
+    setExperienceBank(updated);
+    saveExperienceBank(updated);
+  };
 
   const handleDownloadPdf = async () => {
     setIsDownloading(true);
@@ -338,6 +387,21 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
             <span>{isEditing ? 'Preview' : 'Edit Bullets'}</span>
           </button>
 
+          {/* Recruiter Tracer Links Radar Toggle */}
+          <button
+            type="button"
+            onClick={() => setEnableTracerLinks(!enableTracerLinks)}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${
+              enableTracerLinks
+                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 font-semibold'
+                : 'bg-surface border-border text-muted-foreground hover:bg-surface-2'
+            }`}
+            title="When active, transforms LinkedIn into a secure recruiter click radar in your exported PDF"
+          >
+            <Radio className={`w-3.5 h-3.5 ${enableTracerLinks ? 'text-emerald-400 animate-pulse' : 'text-subtle'}`} />
+            <span>{enableTracerLinks ? 'Radar Links: ON' : 'Radar Links: OFF'}</span>
+          </button>
+
           {/* Copy Plaintext */}
           <button
             onClick={handleCopyPlainText}
@@ -427,9 +491,17 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
         >
           {/* Header Contact Block */}
           {(() => {
-            const normalizedLinkedIn = resume.linkedin.startsWith('http')
+            const rawLinkedIn = resume.linkedin.startsWith('http')
               ? resume.linkedin
               : `https://${resume.linkedin}`;
+            const normalizedLinkedIn = enableTracerLinks
+              ? transformUrlToTracer({
+                  url: rawLinkedIn,
+                  label: 'linkedin',
+                  companyName: companyName || 'Target Employer',
+                  jobTitle: jobTitle || 'Target Role',
+                })
+              : rawLinkedIn;
             const displayLinkedIn = resume.linkedin
               .replace(/^https?:\/\/(www\.)?/, '')
               .replace(/\/$/, '');
@@ -576,20 +648,50 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                     {exp.bullets.map((bullet, bulletIdx) => (
                       <li key={bulletIdx} className="resume-bullet group break-inside-avoid" style={{ pageBreakInside: 'avoid' }}>
                         {isEditing ? (
-                          <div className="flex items-start gap-1 py-0.5">
-                            <textarea
-                              value={bullet}
-                              onChange={(e) => updateBullet(expIdx, bulletIdx, e.target.value)}
-                              rows={2}
-                              className="w-full text-xs p-1.5 border border-[#D2D2D7] rounded-xl focus:ring-1 focus:ring-[#0071E3] focus:border-[#0071E3] outline-none transition-all duration-200"
-                            />
-                            <button
-                              onClick={() => removeBullet(expIdx, bulletIdx)}
-                              className="text-[#86868B] hover:text-red-500 p-1 shrink-0 cursor-pointer transition-colors duration-200"
-                              title="Delete bullet"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
+                          <div className="flex flex-col gap-1 py-0.5">
+                            <div className="flex items-start gap-1">
+                              <textarea
+                                value={bullet}
+                                onChange={(e) => updateBullet(expIdx, bulletIdx, e.target.value)}
+                                rows={2}
+                                className="w-full text-xs p-1.5 border border-[#D2D2D7] rounded-xl focus:ring-1 focus:ring-[#0071E3] focus:border-[#0071E3] outline-none transition-all duration-200"
+                              />
+                              <button
+                                onClick={() => removeBullet(expIdx, bulletIdx)}
+                                className="text-[#86868B] hover:text-red-500 p-1 shrink-0 cursor-pointer transition-colors duration-200"
+                                title="Delete bullet"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            {(() => {
+                              const v = verifyBulletAgainstBank(bullet, experienceBank);
+                              return (
+                                <div className="flex items-center justify-between text-[10px] px-1 text-muted-foreground">
+                                  {v.isBackedByBank ? (
+                                    <span className="text-emerald-700 font-semibold flex items-center gap-1 font-mono">
+                                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                      <span>✓ Backed by Experience Bank</span>
+                                    </span>
+                                  ) : (
+                                    <span className="text-amber-700 font-semibold flex items-center gap-1 font-mono">
+                                      <Sparkles className="w-3 h-3 text-amber-500" />
+                                      <span>✨ Model Inferred</span>
+                                    </span>
+                                  )}
+                                  {!v.isBackedByBank && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handlePinToExperienceBank(bullet, exp.title, exp.company)}
+                                      className="text-[#0071E3] hover:underline cursor-pointer font-medium"
+                                      title="Save this accomplishment into candidate Experience Bank as verified career fact"
+                                    >
+                                      + Pin to Experience Bank
+                                    </button>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </div>
                         ) : (
                           <span>{bullet}</span>

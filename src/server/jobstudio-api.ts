@@ -1601,6 +1601,29 @@ async function fetchLiveAtsCatalogueJobs(
         ? item.enrichment.skills.slice(0, 5)
         : [];
 
+      // Compute Freehire Ghost Job Signal
+      let ageDays = 0;
+      const pubAt = item.posted_at || item.created_at;
+      if (pubAt) {
+        try {
+          const diff = Date.now() - new Date(pubAt).getTime();
+          if (!isNaN(diff)) ageDays = Math.max(0, Math.round(diff / (1000 * 60 * 60 * 24)));
+        } catch {}
+      }
+
+      let ghostLevel = 'none';
+      let ghostLabel = 'Verified Direct ATS';
+      let ghostBadge = 'emerald';
+      if (ageDays >= 180) {
+        ghostLevel = 'likely';
+        ghostLabel = 'Likely Ghost / Stale (>180d)';
+        ghostBadge = 'rose';
+      } else if (ageDays >= 90) {
+        ghostLevel = 'possible';
+        ghostLabel = 'Slow-Moving Opening (90d+)';
+        ghostBadge = 'amber';
+      }
+
       return {
         id: `fh-${item.public_slug || item.external_id || Math.random().toString(36).substring(2, 9)}`,
         originalId: item.public_slug || item.external_id || '',
@@ -1631,6 +1654,13 @@ async function fetchLiveAtsCatalogueJobs(
         matchScore: score,
         matchHighlight: highlight,
         verifiedLive: true,
+        ghostSignal: {
+          level: ghostLevel,
+          label: ghostLabel,
+          badge: ghostBadge,
+          ageDays,
+          isVerifiedDirect: true,
+        },
       };
     });
 
@@ -3906,18 +3936,68 @@ app.get('/api/bug-reports', async (req, res) => {
   });
 });
 
+// Recruiter Tracer Links In-Memory Registry
+const tracerStore = new Map<string, any>();
+
+app.post('/api/tracer/mint', async (req, res) => {
+  const { targetUrl, linkLabel, companyName, jobTitle } = req.body;
+  if (!targetUrl) return res.status(400).json({ success: false, error: 'targetUrl is required' });
+  const token = `tr_${Math.random().toString(36).substring(2, 8)}_${Date.now().toString(36)}`;
+  const record = {
+    id: `tl_${Date.now()}`,
+    token,
+    targetUrl,
+    linkLabel: linkLabel || 'portfolio',
+    companyName: companyName || 'Company',
+    jobTitle: jobTitle || 'Role',
+    clickCount: 0,
+    createdAt: new Date().toISOString(),
+  };
+  tracerStore.set(token, record);
+  return res.json({ success: true, record, token, redirectUrl: `/api/tracer/redirect?token=${token}` });
+});
+
+app.get('/api/tracer/stats', async (req, res) => {
+  const allRecords = Array.from(tracerStore.values());
+  return res.json({
+    success: true,
+    links: allRecords,
+    totalClicks: allRecords.reduce((sum, r) => sum + (r.clickCount || 0), 0),
+  });
+});
+
 export async function handleApi(request: Request): Promise<Response> {
   console.log('>>> [handleApi] incoming request:', request.method, request.url);
   console.log('>>> [handleApi] auth header:', request.headers.get('authorization'));
   try {
     const url = new URL(request.url);
+
+    // Handle Tracer Link Redirection
+    if (url.pathname === '/api/tracer/redirect' || url.pathname.startsWith('/r/')) {
+      const token = url.searchParams.get('token') || url.pathname.replace('/r/', '').trim();
+      const record = tracerStore.get(token);
+      if (record) {
+        record.clickCount = (record.clickCount || 0) + 1;
+        record.lastClickedAt = new Date().toISOString();
+        record.lastReferrer = request.headers.get('referer') || 'Direct PDF Document';
+        return Response.redirect(record.targetUrl, 302);
+      }
+      return Response.redirect('/', 302);
+    }
+
     const route = routes.find((r) => r.method === request.method && r.path === url.pathname);
     if (!route) return Response.json({ error: 'Not found' }, { status: 404 });
     let userId: string | null = null;
-    if (route.path !== '/api/health' && route.path !== '/api/report-bug' && route.path !== '/api/bug-reports') {
+    if (
+      route.path !== '/api/health' &&
+      route.path !== '/api/report-bug' &&
+      route.path !== '/api/bug-reports' &&
+      route.path !== '/api/tracer/stats' &&
+      route.path !== '/api/tracer/mint'
+    ) {
       userId = await guard.verifyCaller(request);
       if (!userId) return Response.json({ success: false, error: 'Please sign in to use this feature.' }, { status: 401 });
-    } else if (route.path === '/api/report-bug' || route.path === '/api/bug-reports') {
+    } else {
       userId = await guard.verifyCaller(request).catch(() => null);
     }
     let body: any = {};

@@ -1,5 +1,5 @@
 // @ts-nocheck -- ported verbatim from the original project
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   Briefcase,
   Search,
@@ -28,11 +28,17 @@ import {
   Layers,
   Mail,
   Copy,
+  Radio,
+  Zap,
+  Send,
+  Check,
 } from 'lucide-react';
 import { AppliedJobRecord, ApplicationStatus, TailoredResumeData } from '../data/defaultData';
 import { downloadResumeAsPdf } from '../utils/pdfExport';
 import { useWebMCP } from 'use-webmcp-tool';
 import { runWebMCPTool } from '@/lib/webmcp-telemetry';
+import { classifyRecruiterEmail, EmailClassificationResult } from '../utils/recruiterEmailClassifier';
+import { getSavedTracerLinks, TracerLinkRecord } from '../utils/tracerLinks';
 
 interface AppliedJobsViewProps {
   appliedJobs: AppliedJobRecord[];
@@ -223,6 +229,72 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
   const [formStatus, setFormStatus] = useState<ApplicationStatus>('Applied');
   const [formSalary, setFormSalary] = useState('');
   const [formNotes, setFormNotes] = useState('');
+
+  // Freehire Superpowers: Recruiter Email Parser & Radar
+  const [isEmailParserOpen, setIsEmailParserOpen] = useState(false);
+  const [emailSubjectInput, setEmailSubjectInput] = useState('');
+  const [emailBodyInput, setEmailBodyInput] = useState('');
+  const [selectedMatchJobId, setSelectedMatchJobId] = useState<string>('');
+  const [parsedEmailResult, setParsedEmailResult] = useState<EmailClassificationResult | null>(null);
+  const [isRadarModalOpen, setIsRadarModalOpen] = useState(false);
+  const [tracerLinks, setTracerLinks] = useState<TracerLinkRecord[]>([]);
+
+  useEffect(() => {
+    setTracerLinks(getSavedTracerLinks());
+  }, [isRadarModalOpen]);
+
+  const handleAnalyzeEmail = () => {
+    if (!emailBodyInput.trim()) return;
+    const result = classifyRecruiterEmail(emailBodyInput, emailSubjectInput);
+    setParsedEmailResult(result);
+
+    if (appliedJobs.length > 0) {
+      const lower = `${emailSubjectInput} ${emailBodyInput}`.toLowerCase();
+      const matched = appliedJobs.find((j) =>
+        lower.includes(j.company_name.toLowerCase()) ||
+        lower.includes(j.job_title.toLowerCase())
+      );
+      if (matched) {
+        setSelectedMatchJobId(matched.id);
+      } else {
+        setSelectedMatchJobId(appliedJobs[0].id);
+      }
+    }
+  };
+
+  const handleApplyEmailStageAdvance = () => {
+    if (!parsedEmailResult || !selectedMatchJobId) return;
+    const targetJob = appliedJobs.find((j) => j.id === selectedMatchJobId);
+    if (!targetJob) return;
+
+    let newStatus: ApplicationStatus = 'Under Review';
+    if (parsedEmailResult.signal === 'offer') {
+      newStatus = 'Offer Received';
+    } else if (
+      parsedEmailResult.signal === 'interview_invitation' ||
+      parsedEmailResult.signal === 'assessment'
+    ) {
+      newStatus = 'Interviewing';
+    } else if (parsedEmailResult.signal === 'rejection') {
+      newStatus = 'Rejected';
+    } else if (parsedEmailResult.signal === 'screening') {
+      newStatus = 'Under Review';
+    }
+
+    const noteAddition = `[Recruiter Email: ${parsedEmailResult.label}] ${parsedEmailResult.actionableSummary}${
+      parsedEmailResult.schedulingLink ? ` | Booking link: ${parsedEmailResult.schedulingLink}` : ''
+    }`;
+
+    onUpdateJob(selectedMatchJobId, {
+      status: newStatus,
+      notes: targetJob.notes ? `${targetJob.notes}\n\n${noteAddition}` : noteAddition,
+    });
+
+    setIsEmailParserOpen(false);
+    setEmailSubjectInput('');
+    setEmailBodyInput('');
+    setParsedEmailResult(null);
+  };
 
   const openAddModal = () => {
     setEditingJob(null);
@@ -659,6 +731,39 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
               <Download className="w-4 h-4" />
             </button>
           )}
+
+          <button
+            type="button"
+            onClick={() => {
+              setTracerLinks(getSavedTracerLinks());
+              setIsRadarModalOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-surface hover:bg-surface-2 border border-border text-foreground rounded-full transition-all cursor-pointer shadow-xs whitespace-nowrap"
+            title="View Recruiter Radar - live CV link click notifications"
+          >
+            <Radio className="w-3.5 h-3.5 text-brand animate-pulse" />
+            <span>Recruiter Radar</span>
+            {tracerLinks.reduce((sum, l) => sum + (l.clickCount || 0), 0) > 0 && (
+              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-brand/20 text-brand font-bold">
+                {tracerLinks.reduce((sum, l) => sum + (l.clickCount || 0), 0)}
+              </span>
+            )}
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setParsedEmailResult(null);
+              setEmailSubjectInput('');
+              setEmailBodyInput('');
+              setIsEmailParserOpen(true);
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold bg-surface hover:bg-surface-2 border border-border text-foreground rounded-full transition-all cursor-pointer shadow-xs whitespace-nowrap"
+            title="Paste recruiter email to automatically classify status, extract interview links, and advance application"
+          >
+            <Mail className="w-3.5 h-3.5 text-purple-400" />
+            <span>Parse Recruiter Email</span>
+          </button>
 
           <button
             onClick={openAddModal}
@@ -1546,6 +1651,241 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Recruiter Email Parser & Pipeline Auto-Advance Modal */}
+      {isEmailParserOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-7 max-w-xl w-full shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-purple-500/10 border border-purple-500/25 flex items-center justify-center text-purple-400 shrink-0">
+                  <Mail className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-base sm:text-lg text-foreground">
+                    Recruiter Email Classifier & Auto-Advance
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Deterministic inbound correspondence triage & pipeline automation
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsEmailParserOpen(false)}
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Email Subject Line (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Invitation to Interview: Stripe Operations Specialist"
+                  value={emailSubjectInput}
+                  onChange={(e) => setEmailSubjectInput(e.target.value)}
+                  className="w-full px-3.5 py-2 text-xs bg-surface border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-brand"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-foreground mb-1">
+                  Email Content / Recruiter Message
+                </label>
+                <textarea
+                  rows={5}
+                  placeholder="Paste the recruiter's email message here (e.g. 'We loved your profile and would like to invite you for a 30-min interview with the hiring manager...')"
+                  value={emailBodyInput}
+                  onChange={(e) => setEmailBodyInput(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-xs bg-surface border border-border rounded-xl text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-brand"
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAnalyzeEmail}
+                disabled={!emailBodyInput.trim()}
+                className="w-full py-2.5 px-4 text-xs font-semibold rounded-xl bg-purple-600 hover:bg-purple-500 text-white transition-all cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2 shadow-xs"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Classify Recruiter Signal</span>
+              </button>
+            </div>
+
+            {/* Analysis Result Card */}
+            {parsedEmailResult && (
+              <div className="p-4 rounded-2xl bg-surface/70 border border-border/80 space-y-3.5 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase tracking-wider bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                      {parsedEmailResult.label}
+                    </span>
+                    <span className="text-[11px] font-mono text-muted-foreground">
+                      {parsedEmailResult.confidence}% confidence
+                    </span>
+                  </div>
+                  <span className="text-xs font-semibold text-foreground">
+                    Next Stage: <strong className="text-brand">{parsedEmailResult.recommendedStage}</strong>
+                  </span>
+                </div>
+
+                <p className="text-xs text-foreground/90 leading-relaxed">
+                  {parsedEmailResult.actionableSummary}
+                </p>
+
+                {parsedEmailResult.schedulingLink && (
+                  <div className="p-2.5 rounded-xl bg-card border border-border/70 flex items-center justify-between gap-2 text-xs">
+                    <span className="text-muted-foreground truncate">
+                      Booking Link: <strong className="text-foreground">{parsedEmailResult.schedulingLink}</strong>
+                    </span>
+                    <a
+                      href={parsedEmailResult.schedulingLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-brand hover:underline font-semibold shrink-0"
+                    >
+                      <span>Open Link</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
+                )}
+
+                <div className="space-y-1.5 pt-1">
+                  <label className="block text-[11px] font-semibold text-muted-foreground">
+                    Assign and advance which application?
+                  </label>
+                  <select
+                    value={selectedMatchJobId}
+                    onChange={(e) => setSelectedMatchJobId(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-surface border border-border rounded-xl text-foreground focus:outline-none focus:border-brand"
+                  >
+                    {appliedJobs.map((j) => (
+                      <option key={j.id} value={j.id}>
+                        {j.company_name} — {j.job_title} (Current: {j.status})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleApplyEmailStageAdvance}
+                  className="w-full py-2.5 px-4 text-xs font-semibold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition-all cursor-pointer flex items-center justify-center gap-2 shadow-xs"
+                >
+                  <Zap className="w-3.5 h-3.5" />
+                  <span>Advance Pipeline Stage to "{parsedEmailResult.recommendedStage}"</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Recruiter Radar Live Click Logs Modal */}
+      {isRadarModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-card border border-border rounded-3xl p-6 sm:p-7 max-w-xl w-full shadow-2xl space-y-5 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-emerald-500/10 border border-emerald-500/25 flex items-center justify-center text-emerald-400 shrink-0">
+                  <Radio className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-base sm:text-lg text-foreground">
+                    Recruiter Radar: Live CV Link Tracking
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Real-time engagement signals when recruiters open links in your PDF resume
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsRadarModalOpen(false)}
+                className="p-1.5 text-muted-foreground hover:text-foreground rounded-full hover:bg-surface transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Metrics Row */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-3.5 rounded-2xl bg-surface border border-border flex flex-col justify-between">
+                <span className="text-[10px] font-mono uppercase text-muted-foreground">Total Recruiter Clicks</span>
+                <span className="text-2xl font-bold font-display text-emerald-400 mt-1">
+                  {tracerLinks.reduce((sum, l) => sum + (l.clickCount || 0), 0)}
+                </span>
+                <span className="text-[10px] text-muted-foreground mt-0.5">Across active CV tracer links</span>
+              </div>
+              <div className="p-3.5 rounded-2xl bg-surface border border-border flex flex-col justify-between">
+                <span className="text-[10px] font-mono uppercase text-muted-foreground">Active Tracer Links</span>
+                <span className="text-2xl font-bold font-display text-foreground mt-1">
+                  {tracerLinks.length}
+                </span>
+                <span className="text-[10px] text-muted-foreground mt-0.5">Portfolio, LinkedIn & GitHub</span>
+              </div>
+            </div>
+
+            {/* List of Click Logs */}
+            <div className="space-y-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase font-mono tracking-wider">
+                Recent Link Engagements
+              </span>
+              {tracerLinks.length === 0 ? (
+                <div className="p-8 text-center bg-surface/40 rounded-2xl border border-border space-y-2">
+                  <Radio className="w-8 h-8 text-subtle mx-auto opacity-30" />
+                  <p className="text-xs text-muted-foreground font-medium">
+                    No active recruiter clicks recorded yet.
+                  </p>
+                  <p className="text-[11px] text-subtle max-w-sm mx-auto">
+                    Export your resume with "Recruiter Radar Links" enabled to automatically generate secure click-tracking tokens for your portfolio and LinkedIn.
+                  </p>
+                </div>
+              ) : (
+                tracerLinks.map((tl) => (
+                  <div
+                    key={tl.id || tl.token}
+                    className="p-3 rounded-2xl bg-surface border border-border/70 flex items-center justify-between gap-3 text-xs"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-foreground capitalize">
+                          {tl.linkLabel || 'CV Link'}
+                        </span>
+                        {tl.companyName && (
+                          <span className="text-[10px] font-mono px-2 py-0.2 rounded bg-surface-2 text-muted-foreground">
+                            {tl.companyName}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-subtle truncate mt-0.5" title={tl.targetUrl}>
+                        {tl.targetUrl}
+                      </p>
+                      {tl.lastClickedAt && (
+                        <p className="text-[10px] text-emerald-400 font-mono mt-0.5">
+                          Last opened: {new Date(tl.lastClickedAt).toLocaleDateString()} {new Date(tl.lastClickedAt).toLocaleTimeString()} ({tl.lastReferrer || 'Direct PDF'})
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="text-right shrink-0">
+                      <span className="text-base font-bold font-display text-emerald-400 tabular-nums">
+                        {tl.clickCount}
+                      </span>
+                      <span className="block text-[10px] text-muted-foreground">clicks</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
