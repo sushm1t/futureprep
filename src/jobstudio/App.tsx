@@ -1088,7 +1088,17 @@ export default function App() {
       {/* Main Content Area */}
       <main className={`flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8 ${activeTab !== 'home' && activeTab !== 'auth' ? 'workspace-main' : ''}`}>
         {isLoggedIn && activeTab === 'onboarding' && (
-          <WelcomeScreen userName={userName} onStartTour={startTour} onSkip={skipWelcome} />
+          <WelcomeScreen
+            userName={userName}
+            onStartTour={startTour}
+            onSkip={skipWelcome}
+            onNavigateToTab={(tab) => {
+              onboardingPendingRef.current = false;
+              updateOnboarding({ welcomed: true });
+              setActiveTab(tab);
+              window.scrollTo(0, 0);
+            }}
+          />
         )}
         {isLoggedIn && tourStep !== null && activeTab !== 'onboarding' && (
           <ProductTour step={tourStep} onStep={goToTourStep} onClose={closeTour} />

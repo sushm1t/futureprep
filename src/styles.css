@@ -723,7 +723,7 @@ html.lenis, html.lenis body { height: auto; }
 }
 
 /* Onboarding: welcome screen, tour card, getting-started checklist */
-.onboarding-welcome { max-width: 56rem; margin: 3rem auto; padding: 2.5rem; border: 1px solid var(--border); border-radius: 1rem; background: var(--card); }
+.onboarding-welcome { max-width: 72rem; margin: 2rem auto; padding: 2.5rem; border: 1px solid var(--border); border-radius: 1.5rem; background: var(--card); }
 .onboarding-eyebrow { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-foreground); }
 .onboarding-welcome h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 600; margin: .5rem 0 .75rem; color: var(--foreground); }
 .onboarding-lead { color: var(--muted-foreground); max-width: 36rem; }

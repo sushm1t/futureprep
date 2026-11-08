@@ -139,8 +139,22 @@ export function WorkspaceNavigation(props: Props) {
           )}
         </div>
 
-        {/* Quiet Minimalist Utilities (Tour, Bug/Feedback, Website, Logout) */}
+        {/* Quiet Minimalist Utilities (Onboarding Flight Map, Tour, Bug/Feedback, Website, Logout) */}
         <div className="workspace-sidebar-actions">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="workspace-action-row-btn"
+            onClick={() => {
+              props.setActiveTab('onboarding');
+              window.scrollTo(0, 0);
+            }}
+            title="View complete onboarding journey and flight map"
+          >
+            <Compass className="w-3.5 h-3.5 text-brand" />
+            <span>Onboarding Guide</span>
+          </Button>
+
           {props.onStartTour && (
             <Button
               variant="ghost"
@@ -421,6 +435,25 @@ export function WorkspaceNavigation(props: Props) {
               <div className="flex-1 min-w-0">
                 <span className="block font-semibold">Pricing & Plans</span>
                 <span className="text-xs text-subtle">Subscription tiers and entitlements</span>
+              </div>
+            </button>
+
+            {/* Onboarding Guide & Flight Map */}
+            <button
+              type="button"
+              onClick={() => {
+                props.setActiveTab('onboarding');
+                setIsMobileMenuOpen(false);
+                window.scrollTo(0, 0);
+              }}
+              className="w-full flex items-center gap-3.5 p-3 rounded-2xl text-left text-sm font-medium text-foreground hover:bg-surface transition-all cursor-pointer"
+            >
+              <div className="w-9 h-9 rounded-xl bg-surface flex items-center justify-center shrink-0">
+                <Compass className="w-4 h-4 text-brand" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <span className="block font-semibold">Onboarding Guide &amp; Flight Map</span>
+                <span className="text-xs text-subtle">Visual system walkthrough</span>
               </div>
             </button>
 
