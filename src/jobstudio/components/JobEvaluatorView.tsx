@@ -3312,83 +3312,29 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             </p>
           </div>
 
-          {/* Quick Guided Paths */}
-          <div className="relative z-10 grid grid-cols-1 gap-3 max-w-md mx-auto text-left pt-1">
-            <button
-              type="button"
-              onClick={() => {
-                setSearchExpanded(true);
-                setIsCustomJdOpen(true);
-                setTimeout(() => {
-                  const el = document.getElementById('custom-jd-accordion');
-                  if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    const input = el.querySelector<HTMLInputElement | HTMLTextAreaElement>('input, textarea');
-                    if (input) input.focus();
-                  }
-                }, 50);
-              }}
-              className="p-3.5 rounded-xl border border-border hover:border-primary/50 bg-surface/40 hover:bg-surface flex items-start gap-3 transition-all cursor-pointer group"
-            >
-              <div className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                <FileText className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors">
-                  Paste a Job Description or Link
-                </h4>
-                <p className="text-[11px] text-subtle mt-0.5 leading-relaxed">
-                  Have a job posting from LinkedIn, Indeed, or email? Paste it here to inspect your match score and bridge gaps.
-                </p>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleCrawlAts()}
-              disabled={isCrawlingAts}
-              className="p-3.5 rounded-xl border border-border hover:border-brand/50 bg-surface/40 hover:bg-surface flex items-start gap-3 transition-all cursor-pointer group"
-            >
-              <div className="w-8 h-8 rounded-lg bg-brand/10 text-brand flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                <Sparkles className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-xs font-semibold text-foreground group-hover:text-brand transition-colors">
-                  Explore Roles for Your Profile
-                </h4>
-                <p className="text-[11px] text-subtle mt-0.5 leading-relaxed">
-                  Browse live positions matching your target career specialization in {selectedAtsLocation !== 'All' ? selectedAtsLocation : (profileSearchContext.location || 'your area')}.
-                </p>
-              </div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setSearchExpanded(true);
-                const el = document.getElementById('curated-boards-accordion');
-                if (el) {
-                  el.setAttribute('open', 'true');
-                  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-              }}
-              className="p-3.5 rounded-xl border border-border hover:border-primary/50 bg-surface/40 hover:bg-surface flex items-start gap-3 transition-all cursor-pointer group"
-            >
-              <div className="w-8 h-8 rounded-lg bg-surface-2 text-subtle flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform mt-0.5">
-                <Building2 className="w-4 h-4" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="text-xs font-semibold text-foreground">
-                  Browse 40+ Direct Company Boards
-                </h4>
-                <p className="text-[11px] text-subtle mt-0.5 leading-relaxed">
-                  Live positions directly from official boards at Figma, Stripe, OpenAI, Datadog & more.
-                </p>
-              </div>
-            </button>
+          {/* What You'll Unlock Preview Card (Calm, non-interactive visual explanation) */}
+          <div className="relative z-10 max-w-sm mx-auto p-4 rounded-2xl bg-surface/30 border border-border/60 text-left space-y-2.5">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle flex items-center gap-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-brand" />
+              <span>What you'll see upon selecting a role</span>
+            </div>
+            <ul className="text-xs text-muted-foreground space-y-2">
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
+                <span><strong className="text-foreground">100-point fit score</strong> with ATS keyword match</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
+                <span><strong className="text-foreground">Missing competencies</strong> & critical requirements</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
+                <span><strong className="text-foreground">1-click tailored resume</strong> & behavioral STAR questions</span>
+              </li>
+            </ul>
           </div>
 
-          <div className="pt-2">
+          <div className="pt-1">
             <Button
               variant="ghost"
               size="sm"
@@ -3405,7 +3351,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   }
                 }, 50);
               }}
-              className="gap-2 text-brand text-xs font-semibold cursor-pointer"
+              className="gap-2 text-brand text-xs font-semibold cursor-pointer hover:bg-brand/10"
             >
               Import a job description <ArrowRight className="w-3.5 h-3.5" />
             </Button>
