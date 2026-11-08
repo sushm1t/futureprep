@@ -475,7 +475,7 @@ export const PricingView: React.FC<PricingViewProps> = ({
         >
           {/* Badge */}
           <div className="absolute -top-3.5 left-6 flex items-center gap-1.5">
-            <span className="px-3.5 py-1 bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-md flex items-center gap-1">
+            <span className="px-3.5 py-1 bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-500 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow-md flex items-center gap-1">
               <Sparkles className="w-3 h-3 text-white" />
               BEST VALUE · RECOMMENDED
             </span>
@@ -585,7 +585,7 @@ export const PricingView: React.FC<PricingViewProps> = ({
               <button
                 type="button"
                 onClick={() => handleStartCheckout('pro')}
-                className="w-full py-3.5 px-4 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white text-xs font-semibold transition-all cursor-pointer shadow-elevated flex items-center justify-center gap-2 group"
+                className="w-full py-3.5 px-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold transition-all cursor-pointer shadow-elevated flex items-center justify-center gap-2 group"
               >
                 <span>Upgrade to Pro (${billingCycle === 'monthly' ? '19.99' : '15.99'}/mo)</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -611,16 +611,16 @@ export const PricingView: React.FC<PricingViewProps> = ({
             <thead>
               <tr className="border-b border-border text-subtle uppercase tracking-wider text-[10px]">
                 <th className="py-3 pr-4 font-semibold">Capability</th>
-                <th className="py-3 px-3 font-semibold w-28 sm:w-36 text-center">Free ($0)</th>
-                <th className="py-3 px-3 font-semibold w-28 sm:w-36 text-center text-brand">
+                <th className="py-3 px-3 font-semibold w-28 sm:w-36 text-center text-subtle">Free ($0)</th>
+                <th className="py-3 px-3 font-semibold w-28 sm:w-36 text-center text-muted-foreground">
                   Plus ($9.99/mo)
                 </th>
-                <th className="py-3 pl-3 font-semibold w-28 sm:w-36 text-center text-emerald-500 font-bold">
+                <th className="py-3 pl-3 font-bold w-28 sm:w-36 text-center text-brand">
                   Pro ($19.99/mo)
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[rgba(0,0,0,0.04)] text-foreground">
+            <tbody className="divide-y divide-[rgba(255,255,255,0.03)] text-foreground">
               {/* Category 1: BUILD & APPLY */}
               <tr className="bg-surface/50 font-semibold text-[11px] text-muted-foreground">
                 <td colSpan={4} className="py-2.5 px-2">
@@ -628,42 +628,42 @@ export const PricingView: React.FC<PricingViewProps> = ({
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">Tailored Resumes with ATS Match Score</td>
+                <td className="py-3 pr-4 text-muted-foreground">Tailored Resumes with ATS Match Score</td>
                 <td className="py-3 px-3 text-center font-medium text-subtle">2 per month</td>
-                <td className="py-3 px-3 text-center font-bold text-brand">50 per month</td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">Unlimited</td>
+                <td className="py-3 px-3 text-center font-medium text-foreground">50 per month</td>
+                <td className="py-3 pl-3 text-center font-bold text-brand">Unlimited</td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">Clean (Unwatermarked) PDF + DOCX Export</td>
+                <td className="py-3 pr-4 text-muted-foreground">Clean (Unwatermarked) PDF + DOCX Export</td>
                 <td className="py-3 px-3 text-center text-subtle">PDF Vector</td>
-                <td className="py-3 px-3 text-center font-bold text-brand">
+                <td className="py-3 px-3 text-center font-medium text-foreground">
                   ✓ PDF + DOCX + Plaintext
                 </td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   ✓ PDF + DOCX + Plaintext + Themes
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">Recruiter-Panel Multi-Persona Reviews</td>
+                <td className="py-3 pr-4 text-muted-foreground">Recruiter-Panel Multi-Persona Reviews</td>
                 <td className="py-3 px-3 text-center text-subtle">Score + Top findings</td>
-                <td className="py-3 px-3 text-center font-bold text-brand">
+                <td className="py-3 px-3 text-center font-medium text-foreground">
                   ✓ Full 3-Persona Committee
                 </td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   ✓ Full Committee + Defense Scripts
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">Custom Role-Specific Cover Letters</td>
+                <td className="py-3 pr-4 text-muted-foreground">Custom Role-Specific Cover Letters</td>
                 <td className="py-3 px-3 text-center font-medium text-subtle">1 draft</td>
-                <td className="py-3 px-3 text-center font-bold text-brand">25 per month</td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">Unlimited + InMails</td>
+                <td className="py-3 px-3 text-center font-medium text-foreground">25 per month</td>
+                <td className="py-3 pl-3 text-center font-bold text-brand">Unlimited + InMails</td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">Match Gap Breakdown &amp; Action Plan</td>
-                <td className="py-3 px-3 text-center text-success">✓ Included</td>
-                <td className="py-3 px-3 text-center text-success">✓ Included</td>
-                <td className="py-3 pl-3 text-center text-success">✓ Included</td>
+                <td className="py-3 pr-4 text-muted-foreground">Match Gap Breakdown &amp; Action Plan</td>
+                <td className="py-3 px-3 text-center text-subtle">✓ Included</td>
+                <td className="py-3 px-3 text-center text-foreground font-medium">✓ Included</td>
+                <td className="py-3 pl-3 text-center text-brand font-bold">✓ Included</td>
               </tr>
 
               {/* Category 2: COPILOT & INTERVIEWS */}
@@ -673,44 +673,44 @@ export const PricingView: React.FC<PricingViewProps> = ({
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">100+ Global Company Focus Guidance</td>
+                <td className="py-3 pr-4 text-muted-foreground">100+ Global Company Focus Guidance</td>
                 <td className="py-3 px-3 text-center text-subtle">8 Featured</td>
-                <td className="py-3 px-3 text-center font-bold text-brand">
+                <td className="py-3 px-3 text-center font-medium text-foreground">
                   ✓ Full 100+ Library
                 </td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   ✓ Full 100+ Library + Live Intel
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">ATS Application Question Answerer (STAR Stories)</td>
+                <td className="py-3 pr-4 text-muted-foreground">ATS Application Question Answerer (STAR Stories)</td>
                 <td className="py-3 px-3 text-center text-subtle">Preview (1 question)</td>
-                <td className="py-3 px-3 text-center font-bold text-brand">20 questions / mo</td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 px-3 text-center font-medium text-foreground">20 questions / mo</td>
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   ✓ Unlimited questions
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">Behavioral Interview Practice &amp; STAR Coach</td>
+                <td className="py-3 pr-4 text-muted-foreground">Behavioral Interview Practice &amp; STAR Coach</td>
                 <td className="py-3 px-3 text-center text-subtle">—</td>
                 <td className="py-3 px-3 text-center text-subtle">Common questions</td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   ✓ AI Bar Raiser + Model Rewrites
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">Offer &amp; Salary Negotiation Copilot</td>
+                <td className="py-3 pr-4 text-muted-foreground">Offer &amp; Salary Negotiation Copilot</td>
                 <td className="py-3 px-3 text-center text-subtle">—</td>
                 <td className="py-3 px-3 text-center text-subtle">—</td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   ✓ Email, Phone Scripts &amp; Objections
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">1-Click Applicant Dossier Autofill</td>
+                <td className="py-3 pr-4 text-muted-foreground">1-Click Applicant Dossier Autofill</td>
                 <td className="py-3 px-3 text-center text-subtle">Standard</td>
-                <td className="py-3 px-3 text-center text-brand">✓ Included</td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 px-3 text-center font-medium text-foreground">✓ Included</td>
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   ✓ Priority Autofill Copilot
                 </td>
               </tr>
@@ -722,38 +722,38 @@ export const PricingView: React.FC<PricingViewProps> = ({
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">17 Career Roadmaps Access</td>
+                <td className="py-3 pr-4 text-muted-foreground">17 Career Roadmaps Access</td>
                 <td className="py-3 px-3 text-center font-medium text-subtle">
                   Stages 1 &amp; 2 (Foundations)
                 </td>
-                <td className="py-3 px-3 text-center font-bold text-brand">
+                <td className="py-3 px-3 text-center font-medium text-foreground">
                   All Stages (Complete 17 Paths)
                 </td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   All Stages + Custom Projects
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">Roadmap Readiness Assessments</td>
+                <td className="py-3 pr-4 text-muted-foreground">Roadmap Readiness Assessments</td>
                 <td className="py-3 px-3 text-center text-subtle">—</td>
-                <td className="py-3 px-3 text-center font-bold text-brand">
+                <td className="py-3 px-3 text-center font-medium text-foreground">
                   ✓ 1-Click Profile Diagnostic
                 </td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   ✓ 1-Click Diagnostic + Gap Bridging
                 </td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">Live ATS Job Explorer (Greenhouse, Lever, Ashby, and SmartRecruiters)</td>
-                <td className="py-3 px-3 text-center text-success">✓ Full Search</td>
-                <td className="py-3 px-3 text-center text-success">✓ Full Search</td>
-                <td className="py-3 pl-3 text-center text-success">✓ Full Search + Priority Crawler</td>
+                <td className="py-3 pr-4 text-muted-foreground">Live ATS Job Explorer (Greenhouse, Lever, Ashby, and SmartRecruiters)</td>
+                <td className="py-3 px-3 text-center text-subtle">✓ Full Search</td>
+                <td className="py-3 px-3 text-center font-medium text-foreground">✓ Full Search</td>
+                <td className="py-3 pl-3 text-center font-bold text-brand">✓ Full Search + Priority Crawler</td>
               </tr>
               <tr>
-                <td className="py-3 pr-4">AI Processing Speed</td>
+                <td className="py-3 pr-4 text-muted-foreground">AI Processing Speed</td>
                 <td className="py-3 px-3 text-center text-subtle">Standard</td>
-                <td className="py-3 px-3 text-center text-brand">Priority</td>
-                <td className="py-3 pl-3 text-center font-bold text-emerald-500">
+                <td className="py-3 px-3 text-center font-medium text-foreground">Priority</td>
+                <td className="py-3 pl-3 text-center font-bold text-brand">
                   ✓ Dedicated Instant Pipeline
                 </td>
               </tr>
