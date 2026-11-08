@@ -26,6 +26,8 @@ import { downloadResumeAsPdf, printResumeVector, generatePlainTextResume } from 
 import { downloadResumeAsDocx, downloadResumeAsPlainText } from '../utils/docxExport';
 import { transformUrlToTracer } from '../utils/tracerLinks';
 import { maskResumePii } from '../utils/piiRedactor';
+import { scoreAtsReadiness } from '../utils/atsReadinessScorer';
+import { AtsReadinessDrawer } from './AtsReadinessDrawer';
 import {
   getSavedExperienceBank,
   saveExperienceBank,
@@ -99,6 +101,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
   // Freehire Superpowers: Recruiter Tracer Links & Experience Bank
   const [enableTracerLinks, setEnableTracerLinks] = useState(false);
   const [isPrivacyMasked, setIsPrivacyMasked] = useState(false);
+  const [isAtsDrawerOpen, setIsAtsDrawerOpen] = useState(false);
   const [experienceBank, setExperienceBank] = useState<EvidenceAtom[]>(() => {
     const saved = getSavedExperienceBank();
     if (saved.length > 0) return saved;
@@ -139,6 +142,13 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
   const displayedResume = React.useMemo(() => {
     return isPrivacyMasked ? maskResumePii(resume) : resume;
   }, [resume, isPrivacyMasked]);
+
+  const atsReport = React.useMemo(() => {
+    const targetKeywords = jobTitle
+      ? jobTitle.split(/[\s/–—,-]+/).filter((t) => t.length > 2)
+      : [];
+    return scoreAtsReadiness(displayedResume, targetKeywords);
+  }, [displayedResume, jobTitle]);
 
   const handleDownloadPdf = async () => {
     setIsDownloading(true);
@@ -380,6 +390,22 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
               <span>{isTracked ? 'Tracked as Applied' : 'Mark as Applied'}</span>
             </button>
           )}
+
+          {/* Freehire ATS Screening Intelligence Trigger */}
+          <button
+            type="button"
+            onClick={() => setIsAtsDrawerOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-brand/40 bg-brand/10 hover:bg-brand/20 text-brand font-semibold transition-all duration-200 cursor-pointer shadow-xs"
+            title="Open live ATS Screening Intelligence & Keyword Diagnostic"
+          >
+            <ShieldCheck className="w-3.5 h-3.5 text-brand" />
+            <span className="font-mono text-xs">ATS: {atsReport.overall}/100</span>
+            {atsReport.potential > atsReport.overall && (
+              <span className="text-[10px] text-muted-foreground font-mono hidden sm:inline">
+                (Potential: {atsReport.potential})
+              </span>
+            )}
+          </button>
 
           {/* Edit Toggle */}
           <button
@@ -1128,6 +1154,14 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           </div>
         )}
       </div>
+
+      {/* Freehire ATS Screening Readiness Drawer */}
+      <AtsReadinessDrawer
+        isOpen={isAtsDrawerOpen}
+        onClose={() => setIsAtsDrawerOpen(false)}
+        report={atsReport}
+        targetRole={jobTitle || 'Target Role'}
+      />
     </div>
   );
 };

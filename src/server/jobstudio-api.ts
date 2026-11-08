@@ -1449,7 +1449,17 @@ async function fetchLiveAtsCatalogueJobs(
 ): Promise<any[]> {
   try {
     const rawQueries = Array.isArray(query) ? query.filter(Boolean) : [query || ''];
-    const queries = rawQueries.length > 0 ? rawQueries : [''];
+    // Decompose compound query titles (e.g. "Real-Time Analyst / SME – Operations" -> ["Real-Time Analyst", "Operations"])
+    const decomposedQueries: string[] = [];
+    for (const q of rawQueries) {
+      if (!q) continue;
+      decomposedQueries.push(q);
+      if (/[/–—|•]/.test(q)) {
+        const parts = q.split(/[/–—|•]/).map((p) => p.trim()).filter((p) => p.length >= 3);
+        decomposedQueries.push(...parts);
+      }
+    }
+    const queries = [...new Set(decomposedQueries.length > 0 ? decomposedQueries : [''])];
     const pageSize = 100;
     const locationParams = mapLocationToFreehireParams(targetLocation);
 
@@ -1503,7 +1513,7 @@ async function fetchLiveAtsCatalogueJobs(
                   'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
                   Accept: 'application/json',
                 },
-                signal: AbortSignal.timeout(6000),
+                signal: AbortSignal.timeout(5000),
               });
               if (!res.ok) return { items: [], total: 0 };
               const data = await res.json();
@@ -1540,6 +1550,36 @@ async function fetchLiveAtsCatalogueJobs(
       if (key && !seenIds.has(key)) {
         seenIds.add(key);
         deduplicatedRaw.push(item);
+      }
+    }
+
+    // Graceful Filter Degradation (Freehire search_filter_degrade pattern):
+    // If strict query + narrow location returned fewer than 15 positions,
+    // widen to global remote & broader matching titles so candidates are never stranded with an empty list.
+    if (deduplicatedRaw.length < 15 && locationParams) {
+      const fallbackTasks = queries.slice(0, 3).map((q) => {
+        const trimmed = q.trim();
+        const fallbackUrl = trimmed
+          ? `https://freehire.me/api/v1/jobs/search?q=${encodeURIComponent(trimmed)}&limit=60&offset=0&work_mode=remote${filterParams}`
+          : `https://freehire.me/api/v1/jobs/search?limit=60&offset=0&work_mode=remote${filterParams}`;
+        return fetch(fallbackUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', Accept: 'application/json' },
+          signal: AbortSignal.timeout(4000),
+        })
+          .then((res) => (res.ok ? res.json() : null))
+          .catch(() => null);
+      });
+      const fallbackSettled = await Promise.allSettled(fallbackTasks);
+      for (const res of fallbackSettled) {
+        if (res.status === 'fulfilled' && res.value?.data && Array.isArray(res.value.data)) {
+          for (const item of res.value.data) {
+            const key = item.public_slug || item.external_id || `${item.company}_${item.title}`;
+            if (key && !seenIds.has(key)) {
+              seenIds.add(key);
+              deduplicatedRaw.push(item);
+            }
+          }
+        }
       }
     }
 

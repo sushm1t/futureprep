@@ -4,6 +4,8 @@ import { extractEvidenceAtoms, verifyBulletAgainstBank } from '../jobstudio/util
 import { classifyRecruiterEmail } from '../jobstudio/utils/recruiterEmailClassifier';
 import { generateAtsApplicationDossier } from '../jobstudio/utils/screeningAnswerBank';
 import { generateTracerToken } from '../jobstudio/utils/tracerLinks';
+import { scoreAtsReadiness } from '../jobstudio/utils/atsReadinessScorer';
+import { TailoredResumeData } from '../jobstudio/data/defaultData';
 
 describe('10x Freehire Superpowers Integration Suite', () => {
   describe('Ghost Job Detector', () => {
@@ -203,6 +205,110 @@ Please select a convenient time slot on my Calendly: https://calendly.com/recrui
       const visaSponsorJobs = sampleJobs.filter((j) => checkEligibility(j, 'English', true));
       expect(visaSponsorJobs.length).toBe(1);
       expect(visaSponsorJobs[0].company).toBe('Stripe');
+    });
+  });
+
+  describe('Freehire-Style ATS Readiness Scorer (atscheck)', () => {
+    const sampleResume: TailoredResumeData = {
+      full_name: 'Alex Rivera',
+      email: 'alex.rivera@example.com',
+      phone: '+1 (555) 234-5678',
+      location: 'San Francisco, CA',
+      linkedin: 'https://linkedin.com/in/alexrivera-ops',
+      tailored_summary: 'Senior Fintech Operations Specialist with 7 years of experience scaling dispute pipelines, cross-border payments, and risk workflows across high-velocity platforms.',
+      skills: ['Payment Operations', 'Dispute Resolution', 'SQL', 'Python', 'Chargebacks', 'Fraud Prevention', 'Cross-Border Settlements'],
+      experiences: [
+        {
+          role: 'Senior Operations Lead',
+          company: 'Revolut',
+          period: '2023 – Present',
+          location: 'London / Remote',
+          bullets: [
+            'Built automated payment disputes triage system processing 1,400 daily cases with 99.4% accuracy.',
+            'Scaled international settlement reconciliation scripts in Python reducing month-end variance by 45%.',
+            'Led cross-functional team of 6 analysts resolving chargebacks under 24-hour SLA.',
+          ],
+        },
+        {
+          role: 'Operations Analyst',
+          company: 'Stripe',
+          period: '2020 – 2023',
+          location: 'San Francisco, CA',
+          bullets: [
+            'Optimized card processing fraud alert pipelines saving $2.4M annually in illegitimate refunds.',
+            'Architected internal reporting dashboards in SQL tracking settlement throughput across 14 currencies.',
+            'Delivered quarterly compliance audits with zero regulatory exceptions.',
+          ],
+        },
+      ],
+      education: [
+        {
+          degree: 'B.S. in Economics',
+          institution: 'UC Berkeley',
+          year: '2020',
+        },
+      ],
+      certifications: ['Certified Payments Professional (CPP)'],
+    };
+
+    it('evaluates five categories with maximum points summing to 100', () => {
+      const targetKeywords = ['Payment Operations', 'Dispute Resolution', 'SQL', 'Python', 'Reconciliation', 'Kafka', 'Go'];
+      const report = scoreAtsReadiness(sampleResume, targetKeywords);
+
+      expect(report.categories.length).toBe(5);
+      const totalMax = report.categories.reduce((acc, c) => acc + c.max, 0);
+      expect(totalMax).toBe(100);
+
+      const [keyword, format, sections, content, length] = report.categories;
+      expect(keyword.max).toBe(40);
+      expect(format.max).toBe(20);
+      expect(sections.max).toBe(15);
+      expect(content.max).toBe(15);
+      expect(length.max).toBe(10);
+    });
+
+    it('identifies strong vs missing keywords and awards proportional score', () => {
+      const targetKeywords = ['Payment Operations', 'Dispute Resolution', 'SQL', 'Kubernetes', 'Go'];
+      const report = scoreAtsReadiness(sampleResume, targetKeywords);
+
+      expect(report.strongKeywords).toContain('Payment Operations');
+      expect(report.strongKeywords).toContain('Dispute Resolution');
+      expect(report.strongKeywords).toContain('SQL');
+      expect(report.recommendedKeywords).toContain('Kubernetes');
+      expect(report.recommendedKeywords).toContain('Go');
+
+      // 3 of 5 matched = 60% of 40 = 24 points
+      const keywordCategory = report.categories.find((c) => c.id === 'keyword_strength');
+      expect(keywordCategory?.score).toBe(24);
+    });
+
+    it('verifies format compliance checks (machine-readable, contact info, reverse-chronological)', () => {
+      const report = scoreAtsReadiness(sampleResume);
+      const formatCategory = report.categories.find((c) => c.id === 'format_compliance');
+
+      expect(formatCategory?.score).toBe(20); // Passes all format checks
+      expect(formatCategory?.items.every((it) => it.status === 'pass')).toBe(true);
+    });
+
+    it('detects strong action verbs and quantified metrics in bullet points', () => {
+      const report = scoreAtsReadiness(sampleResume);
+
+      expect(report.actionVerbCount).toBeGreaterThanOrEqual(4); // Built, Scaled, Led, Optimized, Architected, Delivered
+      expect(report.quantifiedMetricsCount).toBeGreaterThanOrEqual(3); // 99.4%, 45%, $2.4M
+
+      const contentCategory = report.categories.find((c) => c.id === 'content_quality');
+      expect(contentCategory?.score).toBe(15); // Max points
+    });
+
+    it('computes overall and potential recoverable points correctly', () => {
+      // Resume missing a few target keywords
+      const targetKeywords = ['Payment Operations', 'Dispute Resolution', 'Kubernetes', 'Go', 'Rust', 'Kafka'];
+      const report = scoreAtsReadiness(sampleResume, targetKeywords);
+
+      expect(report.overall).toBeGreaterThanOrEqual(70);
+      expect(report.potential).toBeGreaterThanOrEqual(report.overall);
+      expect(report.potential).toBeLessThanOrEqual(100);
+      expect(report.topFixes.length).toBeGreaterThan(0);
     });
   });
 });
