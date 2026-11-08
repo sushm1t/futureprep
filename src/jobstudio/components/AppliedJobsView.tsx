@@ -84,7 +84,7 @@ const STATUS_CONFIG: Record<
   Archived: {
     label: 'Archived',
     bg: 'bg-subtle/10',
-    text: 'text-[#787880]',
+    text: 'text-subtle',
     dot: 'bg-subtle',
   },
 };
@@ -480,7 +480,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
           </div>
         ) : isFollowUpDue(job) ? (
           <div className="mt-2 pl-[22px] flex items-center justify-between gap-1 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-500 text-[10px] font-medium border border-amber-500/20">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-warning/10 text-warning text-[10px] font-medium border border-warning/20">
               <span>⏰ Follow up due (Applied {getDaysSinceApplied(job)} days ago)</span>
             </span>
             <button
@@ -489,7 +489,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                 e.stopPropagation();
                 openFollowUpModal(job);
               }}
-              className="inline-flex items-center gap-1 text-[10px] font-semibold text-amber-500 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer border border-amber-500/20"
+              className="inline-flex items-center gap-1 text-[10px] font-semibold text-warning bg-warning/10 hover:bg-warning/20 px-2 py-0.5 rounded-full transition-colors cursor-pointer border border-warning/20"
               title="Generate Follow-Up Email"
             >
               <Mail className="w-2.5 h-2.5" />
@@ -894,7 +894,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                         <span>Followed up on {job.followed_up_at}</span>
                       </span>
                     ) : isFollowUpDue(job) ? (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-medium text-warning bg-warning/10 px-2 py-0.5 rounded-full border border-warning/20">
                         <span>⏰ Follow up due (Applied {getDaysSinceApplied(job)} days ago)</span>
                       </span>
                     ) : null}
@@ -906,7 +906,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                       <button
                         type="button"
                         onClick={() => openFollowUpModal(job)}
-                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-full transition-colors cursor-pointer border border-amber-500/20"
+                        className="inline-flex items-center gap-1 text-[11px] font-semibold text-warning bg-warning/10 hover:bg-warning/20 px-2.5 py-1 rounded-full transition-colors cursor-pointer border border-warning/20"
                         title="Generate tailored follow-up email"
                       >
                         <Mail className="w-3 h-3" />
@@ -1024,7 +1024,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                     <span>Followed up on {detailJob.followed_up_at}</span>
                   </span>
                 ) : isFollowUpDue(detailJob) ? (
-                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                  <span className="inline-flex items-center gap-1 text-[11px] font-medium text-warning bg-warning/10 px-2 py-0.5 rounded-full border border-warning/20">
                     <span>⏰ Follow up due (Applied {getDaysSinceApplied(detailJob)} days ago)</span>
                   </span>
                 ) : <div />}
@@ -1033,7 +1033,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => openFollowUpModal(detailJob)}
-                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/10 hover:bg-amber-500/20 px-2.5 py-1 rounded-full transition-colors cursor-pointer border border-amber-500/20"
+                    className="inline-flex items-center gap-1 text-[11px] font-semibold text-warning bg-warning/10 hover:bg-warning/20 px-2.5 py-1 rounded-full transition-colors cursor-pointer border border-warning/20"
                   >
                     <Mail className="w-3 h-3" />
                     <span>Generate Follow-Up Email</span>
@@ -1538,7 +1538,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => handleMarkAsFollowedUp(followUpModalJob)}
-                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-full text-xs transition-colors shadow-sm cursor-pointer"
+                    className="inline-flex items-center justify-center gap-1.5 px-4 py-2 font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-full text-xs transition-colors shadow-sm cursor-pointer"
                   >
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Mark as Followed Up</span>

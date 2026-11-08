@@ -776,7 +776,7 @@ export const PricingView: React.FC<PricingViewProps> = ({
           </div>
         </div>
 
-        <div className="divide-y divide-[rgba(0,0,0,0.06)]">
+        <div className="divide-y divide-border">
           {faqs.map((faq, idx) => {
             const isOpen = !!openFaq[idx];
             return (

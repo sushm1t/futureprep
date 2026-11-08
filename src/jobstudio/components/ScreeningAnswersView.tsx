@@ -445,7 +445,7 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
           <div className="space-y-6 pt-1">
           {/* Quick-Copy Applicant Details Grid */}
           <div className="relative overflow-hidden bg-gradient-to-b from-card via-card/95 to-surface/90 rounded-3xl border border-border/80 p-6 sm:p-7 space-y-5 shadow-elevated">
-            <div className="absolute -top-16 -right-16 w-60 h-60 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+            <div className="absolute -top-16 -right-16 w-60 h-60 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
             <div className="relative z-10 flex items-center justify-between border-b border-border pb-3">
               <div className="flex items-center gap-2">
                 <span className="bg-brand/10 text-brand text-[11px] font-bold rounded-md px-2.5 py-0.5 uppercase tracking-wider font-mono border border-brand/20">

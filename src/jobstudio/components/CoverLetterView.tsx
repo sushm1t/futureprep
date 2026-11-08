@@ -128,7 +128,7 @@ export const CoverLetterView: React.FC<CoverLetterViewProps> = ({
               </>
             ) : pdfSuccess ? (
               <>
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                <CheckCircle2 className="w-3.5 h-3.5 text-success" />
                 <span>PDF Downloaded</span>
               </>
             ) : (

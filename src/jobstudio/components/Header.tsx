@@ -118,7 +118,7 @@ export const Header: React.FC<HeaderProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           {isLoggedIn && (
             isProUser ? (
-              <span className="hidden xl:inline-flex items-center gap-1 px-2.5 py-1 bg-success/15 text-success text-[11px] font-bold rounded-full font-mono">
+              <span className="hidden xl:inline-flex items-center gap-1 px-2.5 py-1 bg-brand/15 text-brand border border-brand/30 text-[11px] font-bold rounded-full font-mono">
                 <span>★ PRO</span>
               </span>
             ) : (

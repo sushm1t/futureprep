@@ -84,8 +84,8 @@ export const CloudSyncIndicator: React.FC<CloudSyncIndicatorProps> = ({ status, 
     >
       {status === 'saving' && (
         <>
-          <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-400 shrink-0" />
-          <span className="text-xs font-medium text-amber-400">Saving changes...</span>
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-warning shrink-0" />
+          <span className="text-xs font-medium text-warning">Saving changes...</span>
         </>
       )}
 
@@ -98,8 +98,8 @@ export const CloudSyncIndicator: React.FC<CloudSyncIndicatorProps> = ({ status, 
 
       {status === 'unsaved' && (
         <>
-          <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse shrink-0" />
-          <span className="text-xs text-amber-400">Unsaved draft</span>
+          <span className="w-2 h-2 rounded-full bg-warning animate-pulse shrink-0" />
+          <span className="text-xs text-warning">Unsaved draft</span>
         </>
       )}
     </div>

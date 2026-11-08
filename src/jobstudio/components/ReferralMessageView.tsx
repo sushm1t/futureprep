@@ -522,11 +522,11 @@ ${forwardableBlurb}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-testid="linkedin-search-alumni"
-                className="inline-flex items-center justify-between w-full text-[11px] font-semibold text-amber-500 hover:text-amber-400 transition-colors group cursor-pointer"
+                className="inline-flex items-center justify-between w-full text-[11px] font-semibold text-brand hover:text-[#0077B5] transition-colors group cursor-pointer"
                 title={`Find alumni at ${activeComp} on LinkedIn`}
               >
                 <span className="truncate">School Alumni at {activeComp}</span>
-                <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-[#0077B5] group-hover:translate-x-0.5 transition-all shrink-0" />
               </a>
             </div>
           </div>
@@ -583,11 +583,11 @@ ${forwardableBlurb}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-testid="linkedin-search-recruiters"
-                className="inline-flex items-center justify-between w-full text-[10px] font-semibold text-purple-400 hover:text-purple-300 transition-colors group cursor-pointer"
+                className="inline-flex items-center justify-between w-full text-[10px] font-semibold text-brand hover:text-[#0077B5] transition-colors group cursor-pointer"
                 title={`Find recruiters and talent partners at ${activeComp} on LinkedIn`}
               >
                 <span className="truncate">Recruiters &amp; Talent Partners</span>
-                <ExternalLink className="w-3 h-3 text-subtle group-hover:text-purple-300 group-hover:translate-x-0.5 transition-all shrink-0" />
+                <ExternalLink className="w-3 h-3 text-subtle group-hover:text-[#0077B5] group-hover:translate-x-0.5 transition-all shrink-0" />
               </a>
             </div>
           </div>
@@ -749,7 +749,7 @@ ${forwardableBlurb}
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+            <Lightbulb className="w-3.5 h-3.5 text-warning shrink-0" />
             Tip: Send this via LinkedIn Message, InMail, or direct corporate email.
           </span>
           <div className="flex items-center gap-2 self-start sm:self-auto">

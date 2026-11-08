@@ -297,7 +297,7 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
                     ROADMAP · {activeRoadmap.category.toUpperCase()}
                   </span>
                   {activeRoadmap.badge && (
-                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 uppercase tracking-wider shadow-[0_0_12px_rgba(16,185,129,0.2)]">
+                    <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-success/15 text-success border border-success/30 uppercase tracking-wider shadow-2xs">
                       {activeRoadmap.badge}
                     </span>
                   )}
@@ -495,8 +495,8 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
                         key={skill.id}
                         className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
                           isCompleted
-                            ? 'bg-[#F0FDF4] border-success/30'
-                            : 'bg-surface border-border hover:border-[rgba(0,0,0,0.12)]'
+                            ? 'bg-success/10 border-success/30'
+                            : 'bg-surface border-border hover:border-border/80'
                         }`}
                       >
                         {/* Skill Row Header */}
@@ -620,7 +620,7 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
           <div className="relative overflow-hidden bg-gradient-to-b from-card via-card/95 to-surface/90 rounded-3xl border border-border/80 p-6 sm:p-9 shadow-elevated space-y-6">
             {/* Ambient Cosmic Radial Glows */}
             <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-cyan-500/10 blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-brand/5 blur-3xl pointer-events-none" />
 
             <div className="relative z-10 space-y-3 max-w-3xl">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand/10 text-brand text-xs font-semibold tracking-widest uppercase font-mono border border-brand/20 shadow-2xs">
@@ -641,11 +641,11 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
                   31 Production Blueprints
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono text-muted-foreground bg-surface/80 border border-border/70">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-info" />
                   Curated Free Resources
                 </span>
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono text-muted-foreground bg-surface/80 border border-border/70">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-success" />
                   Direct Resume &amp; ATS Bridge
                 </span>
               </div>
@@ -828,11 +828,11 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
                           <span
                             className={`text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
                               isStartHere
-                                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-[0_0_12px_rgba(16,185,129,0.2)]'
+                                ? 'bg-success/15 text-success border border-success/30 shadow-2xs'
                                 : isHighDemand
-                                ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30 shadow-[0_0_12px_rgba(245,158,11,0.2)]'
+                                ? 'bg-warning/15 text-warning border border-warning/30 shadow-2xs'
                                 : isPopular
-                                ? 'bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 shadow-[0_0_12px_rgba(6,182,212,0.2)]'
+                                ? 'bg-brand/15 text-brand border border-brand/30 shadow-2xs'
                                 : 'bg-brand/10 text-brand border border-brand/20'
                             }`}
                           >

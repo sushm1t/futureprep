@@ -2005,7 +2005,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                                 </span>
                               )}
                               {job.verifiedLive && (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 shadow-2xs font-mono">
+                                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-success/15 text-success border border-success/30 flex items-center gap-1 shadow-2xs font-mono">
                                   <CheckCircle2 className="w-2.5 h-2.5" />
                                   <span>Verified Open</span>
                                 </span>
@@ -2021,11 +2021,11 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                             <span
                               className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full shrink-0 shadow-2xs ${
                                 fitInfo.tone === 'strong'
-                                  ? 'bg-emerald-600 text-white shadow-[0_0_12px_rgba(16,185,129,0.35)]'
+                                  ? 'bg-success text-white'
                                   : fitInfo.tone === 'good'
-                                  ? 'bg-blue-600 text-white shadow-[0_0_12px_rgba(37,99,235,0.35)]'
+                                  ? 'bg-brand text-white'
                                   : fitInfo.tone === 'possible'
-                                  ? 'bg-amber-600 text-white shadow-[0_0_12px_rgba(217,119,6,0.35)]'
+                                  ? 'bg-warning text-white'
                                   : 'bg-muted text-muted-foreground border border-border'
                               }`}
                               title="Match estimate based on your Master Profile"
@@ -2041,7 +2041,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                             <span className="truncate">{job.location}</span>
                           </span>
                           {job.salarySnippet && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-md font-mono">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-success bg-success/10 border border-success/20 px-2 py-0.5 rounded-md font-mono">
                               <span>💰</span>
                               <span>{job.salarySnippet}</span>
                             </span>
@@ -2056,10 +2056,10 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                             href={job.applyUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[11px] text-emerald-400 hover:text-emerald-300 hover:underline flex items-center gap-1.5 font-medium transition-colors"
+                            className="text-[11px] text-brand hover:text-brand/80 hover:underline flex items-center gap-1.5 font-medium transition-colors"
                             title="Direct requisition link to this specific opening"
                           >
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block shrink-0 shadow-xs" />
+                            <span className="w-1.5 h-1.5 rounded-full bg-brand inline-block shrink-0 shadow-xs" />
                             <span>Direct Requisition</span>
                             <ExternalLink className="w-3 h-3" />
                           </a>
@@ -2205,8 +2205,8 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                         {displayScore !== undefined && (
                           <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
                             isCurrentActive && isEvaluationComplete
-                              ? evaluation.match_score >= 80 ? 'bg-emerald-600 text-white' : evaluation.match_score >= 60 ? 'bg-amber-600 text-white' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                              : fitInfo.tone === 'strong' ? 'bg-emerald-600 text-white' : 'bg-muted text-muted-foreground'
+                              ? evaluation.match_score >= 80 ? 'bg-success text-white' : evaluation.match_score >= 60 ? 'bg-warning text-white' : 'bg-danger/20 text-danger border border-danger/30'
+                              : fitInfo.tone === 'strong' ? 'bg-success text-white' : 'bg-muted text-muted-foreground'
                           }`}>
                             {displayScore > 0 ? `${displayScore}%` : fitInfo.label}
                           </span>

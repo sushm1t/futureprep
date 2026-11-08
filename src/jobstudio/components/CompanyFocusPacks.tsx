@@ -521,7 +521,7 @@ export function CompanyFocusPacks({
 
             {company.interviewStrategy && (
               <div className="p-4 rounded-2xl bg-surface/80 border border-border/80 space-y-1.5 text-xs shadow-2xs">
-                <span className="font-semibold text-cyan-400 flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-mono">
+                <span className="font-semibold text-brand flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-mono">
                   <Target className="w-3.5 h-3.5" /> Company Interview Strategy
                 </span>
                 <p className="text-muted-foreground leading-relaxed text-xs">
