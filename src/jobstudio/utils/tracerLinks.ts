@@ -53,7 +53,11 @@ export function saveTracerLink(link: TracerLinkRecord, userId: string = 'default
   }
 }
 
-export function recordTracerClick(token: string, metadata?: { referrer?: string; network?: string }, userId: string = 'default'): void {
+export function recordTracerClick(
+  token: string,
+  metadata?: { referrer?: string; network?: string },
+  userId: string = 'default'
+): void {
   if (typeof window === 'undefined') return;
   try {
     const existing = getSavedTracerLinks(userId);
@@ -61,9 +65,9 @@ export function recordTracerClick(token: string, metadata?: { referrer?: string;
       if (item.token === token) {
         return {
           ...item,
-          clickCount: item.clickCount + 1,
+          clickCount: (item.clickCount || 0) + 1,
           lastClickedAt: new Date().toISOString(),
-          lastReferrer: metadata?.referrer || item.lastReferrer || 'Direct PDF Viewer',
+          lastReferrer: metadata?.referrer || item.lastReferrer || 'Direct PDF Document',
           lastVisitorNetwork: metadata?.network || item.lastVisitorNetwork || 'Recruiter Corporate Network',
         };
       }
@@ -75,28 +79,56 @@ export function recordTracerClick(token: string, metadata?: { referrer?: string;
   }
 }
 
+export interface TransformUrlOptions {
+  url: string;
+  label: string;
+  companyName?: string;
+  jobTitle?: string;
+  userId?: string;
+}
+
 // Transform resume URLs into traceable URLs if enabled
+// Polymorphic: accepts either an options object or positional arguments
 export function transformUrlToTracer(
-  originalUrl: string,
-  label: string,
-  meta?: { companyName?: string; jobTitle?: string },
-  userId: string = 'default'
+  urlOrOptions: string | TransformUrlOptions,
+  labelArg?: string,
+  metaArg?: { companyName?: string; jobTitle?: string },
+  userIdArg: string = 'default'
 ): string {
-  if (!originalUrl || originalUrl.startsWith('#') || originalUrl.includes('/r/tr_')) return originalUrl;
+  if (!urlOrOptions) return '';
 
-  const token = generateTracerToken(originalUrl, label);
-  const record: TracerLinkRecord = {
-    id: `tl_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-    token,
-    targetUrl: originalUrl,
-    linkLabel: label,
-    companyName: meta?.companyName,
-    jobTitle: meta?.jobTitle,
-    clickCount: 0,
-    createdAt: new Date().toISOString(),
-  };
+  const isObject = typeof urlOrOptions === 'object' && urlOrOptions !== null;
+  const targetUrl = isObject ? urlOrOptions.url : urlOrOptions;
+  const label = isObject ? urlOrOptions.label : (labelArg || 'link');
+  const companyName = isObject ? urlOrOptions.companyName : metaArg?.companyName;
+  const jobTitle = isObject ? urlOrOptions.jobTitle : metaArg?.jobTitle;
+  const userId = isObject ? (urlOrOptions.userId || 'default') : userIdArg;
 
-  saveTracerLink(record, userId);
+  if (typeof targetUrl !== 'string' || targetUrl.startsWith('#') || targetUrl.includes('/r/tr_')) {
+    return typeof targetUrl === 'string' ? targetUrl : '';
+  }
+
+  // Check if we already have an active token for this exact URL + employer combination
+  const existingLinks = getSavedTracerLinks(userId);
+  const match = existingLinks.find(
+    (l) => l.targetUrl === targetUrl && l.linkLabel === label && l.companyName === companyName
+  );
+
+  const token = match ? match.token : generateTracerToken(targetUrl, label);
+
+  if (!match) {
+    const record: TracerLinkRecord = {
+      id: `tl_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      token,
+      targetUrl,
+      linkLabel: label,
+      companyName,
+      jobTitle,
+      clickCount: 0,
+      createdAt: new Date().toISOString(),
+    };
+    saveTracerLink(record, userId);
+  }
 
   // Return local / edge redirect route
   const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';

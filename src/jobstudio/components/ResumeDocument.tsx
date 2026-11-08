@@ -28,6 +28,7 @@ import { transformUrlToTracer } from '../utils/tracerLinks';
 import { maskResumePii } from '../utils/piiRedactor';
 import { scoreAtsReadiness } from '../utils/atsReadinessScorer';
 import { AtsReadinessDrawer } from './AtsReadinessDrawer';
+import { RecruiterRadarModal } from './RecruiterRadarModal';
 import {
   getSavedExperienceBank,
   saveExperienceBank,
@@ -100,6 +101,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
 
   // Freehire Superpowers: Recruiter Tracer Links & Experience Bank
   const [enableTracerLinks, setEnableTracerLinks] = useState(false);
+  const [isRadarModalOpen, setIsRadarModalOpen] = useState(false);
   const [isPrivacyMasked, setIsPrivacyMasked] = useState(false);
   const [isAtsDrawerOpen, setIsAtsDrawerOpen] = useState(false);
   const [experienceBank, setExperienceBank] = useState<EvidenceAtom[]>(() => {
@@ -423,13 +425,17 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           {/* Recruiter Tracer Links Radar Toggle */}
           <button
             type="button"
-            onClick={() => setEnableTracerLinks(!enableTracerLinks)}
+            onClick={() => {
+              const nextState = !enableTracerLinks;
+              setEnableTracerLinks(nextState);
+              setIsRadarModalOpen(true);
+            }}
             className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${
               enableTracerLinks
                 ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 font-semibold'
                 : 'bg-surface border-border text-muted-foreground hover:bg-surface-2'
             }`}
-            title="When active, transforms LinkedIn into a secure recruiter click radar in your exported PDF"
+            title="When active, transforms LinkedIn into a secure recruiter click radar in your exported PDF. Click to view Radar Dashboard."
           >
             <Radio className={`w-3.5 h-3.5 ${enableTracerLinks ? 'text-emerald-400 animate-pulse' : 'text-subtle'}`} />
             <span>{enableTracerLinks ? 'Radar Links: ON' : 'Radar Links: OFF'}</span>
@@ -1161,6 +1167,18 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
         onClose={() => setIsAtsDrawerOpen(false)}
         report={atsReport}
         targetRole={jobTitle || 'Target Role'}
+      />
+
+      {/* Recruiter Radar Live Click Logs Modal */}
+      <RecruiterRadarModal
+        isOpen={isRadarModalOpen}
+        onClose={() => setIsRadarModalOpen(false)}
+        isEnabled={enableTracerLinks}
+        onToggleEnabled={(val) => setEnableTracerLinks(val)}
+        companyName={companyName}
+        jobTitle={jobTitle}
+        targetLinkedInUrl={resume.linkedin}
+        targetPortfolioUrl={resume.portfolio}
       />
     </div>
   );
