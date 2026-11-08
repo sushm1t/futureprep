@@ -133,7 +133,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           return seeded;
         }
       }
-    } catch {}
+    } catch { }
     return [];
   });
 
@@ -390,11 +390,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
               {jobTitle ? 'Tailored ATS Resume' : 'Master Career Resume'}
             </h2>
             <span
-              className={`text-[11px] font-semibold rounded-md px-2 py-0.5 ${
-                jobTitle
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-[rgba(120,120,128,0.12)] text-muted-foreground'
-              }`}
+              className={`text-[11px] font-semibold rounded-md px-2 py-0.5 ${jobTitle
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-[rgba(120,120,128,0.12)] text-muted-foreground'
+                }`}
             >
               {jobTitle ? 'Single-Column ATS' : 'Master Baseline'}
             </span>
@@ -412,7 +411,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
         </div>
 
         {/* Controls Toolbar */}
-        <div className="workspace-document-actions flex flex-wrap items-center gap-2 self-stretch md:self-auto justify-start md:justify-end text-xs">
+        <div className="flex flex-wrap items-center gap-2 self-stretch md:self-auto justify-start md:justify-end text-xs">
           {/* Direct Apply Portal Link */}
           {applyUrl && (
             <a
@@ -423,7 +422,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                 if (typeof window !== 'undefined' && typeof window.open === 'function') {
                   try {
                     window.open(applyUrl, '_blank');
-                  } catch (_) {}
+                  } catch (_) { }
                 }
                 onApplyClick?.(applyUrl);
               }}
@@ -440,11 +439,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
             <button
               type="button"
               onClick={onTrackApplication}
-              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition-all duration-200 cursor-pointer border ${
-                isTracked
-                  ? 'bg-success/10 text-success hover:bg-success/20 border-success/30'
-                  : 'bg-surface border-border text-foreground hover:bg-surface-2'
-              }`}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition-all duration-200 cursor-pointer border ${isTracked
+                ? 'bg-success/10 text-success hover:bg-success/20 border-success/30'
+                : 'bg-surface border-border text-foreground hover:bg-surface-2'
+                }`}
               title={isTracked ? 'Click to untrack and remove from applied jobs' : 'Mark as applied and track application'}
             >
               <CheckCircle2 className={`w-3.5 h-3.5 ${isTracked ? 'text-success' : 'text-subtle'}`} />
@@ -471,11 +469,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           {/* Edit Toggle */}
           <button
             onClick={() => setIsEditing(!isEditing)}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${
-              isEditing
-                ? 'bg-primary border-brand text-primary-foreground font-semibold'
-                : 'bg-surface border-border text-foreground hover:bg-surface-2'
-            }`}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${isEditing
+              ? 'bg-primary border-brand text-primary-foreground font-semibold'
+              : 'bg-surface border-border text-foreground hover:bg-surface-2'
+              }`}
           >
             {isEditing ? <Eye className="w-3.5 h-3.5" /> : <Edit3 className="w-3.5 h-3.5" />}
             <span>{isEditing ? 'Preview' : 'Edit Bullets'}</span>
@@ -530,11 +527,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
               setEnableTracerLinks(nextState);
               setIsRadarModalOpen(true);
             }}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${
-              enableTracerLinks
-                ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 font-semibold'
-                : 'bg-surface border-border text-muted-foreground hover:bg-surface-2'
-            }`}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${enableTracerLinks
+              ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400 font-semibold'
+              : 'bg-surface border-border text-muted-foreground hover:bg-surface-2'
+              }`}
             title="When active, transforms LinkedIn into a secure recruiter click radar in your exported PDF. Click to view Radar Dashboard."
           >
             <Radio className={`w-3.5 h-3.5 ${enableTracerLinks ? 'text-emerald-400 animate-pulse' : 'text-subtle'}`} />
@@ -545,11 +541,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           <button
             type="button"
             onClick={() => setIsPrivacyMasked(!isPrivacyMasked)}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${
-              isPrivacyMasked
-                ? 'bg-primary/20 border-primary/40 text-brand font-semibold'
-                : 'bg-surface border-border text-muted-foreground hover:bg-surface-2'
-            }`}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border transition-all duration-200 cursor-pointer ${isPrivacyMasked
+              ? 'bg-primary/20 border-primary/40 text-brand font-semibold'
+              : 'bg-surface border-border text-muted-foreground hover:bg-surface-2'
+              }`}
             title="Masks personal phone and full street address with privacy tokens for public sharing on LinkedIn or Discord"
           >
             <Shield className={`w-3.5 h-3.5 ${isPrivacyMasked ? 'text-brand' : 'text-subtle'}`} />
@@ -589,11 +584,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           <button
             onClick={handleDownloadDocx}
             disabled={isDocxDownloading}
-            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition-all duration-200 cursor-pointer border ${
-              docxSuccess
-                ? 'bg-success text-primary-foreground border-success'
-                : 'bg-card hover:bg-brand/10/60 text-brand border-brand/25 shadow-xs'
-            }`}
+            className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-semibold transition-all duration-200 cursor-pointer border ${docxSuccess
+              ? 'bg-success text-primary-foreground border-success'
+              : 'bg-card hover:bg-brand/10/60 text-brand border-brand/25 shadow-xs'
+              }`}
             title="Download clean ATS-compliant Word document (.docx)"
           >
             {docxSuccess ? (
@@ -623,11 +617,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           <button
             onClick={handleDownloadPdf}
             disabled={isDownloading}
-            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50 ${
-              downloadSuccess
-                ? 'bg-success text-primary-foreground'
-                : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs'
-            }`}
+            className={`inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-semibold transition-all duration-200 cursor-pointer disabled:opacity-50 ${downloadSuccess
+              ? 'bg-success text-primary-foreground'
+              : 'bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs'
+              }`}
             title="Download ATS-compliant PDF with 100% selectable vector text"
           >
             {downloadSuccess ? (
@@ -686,11 +679,11 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
               : `https://${resume.linkedin}`;
             const normalizedLinkedIn = enableTracerLinks
               ? transformUrlToTracer({
-                  url: rawLinkedIn,
-                  label: 'linkedin',
-                  companyName: companyName || 'Target Employer',
-                  jobTitle: jobTitle || 'Target Role',
-                })
+                url: rawLinkedIn,
+                label: 'linkedin',
+                companyName: companyName || 'Target Employer',
+                jobTitle: jobTitle || 'Target Role',
+              })
               : rawLinkedIn;
             const displayLinkedIn = resume.linkedin
               .replace(/^https?:\/\/(www\.)?/, '')
@@ -720,14 +713,14 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                     {displayedResume.phone}
                   </a>
                   {displayedResume.location &&
-                   displayedResume.location.trim().length > 0 &&
-                   !displayedResume.location.toLowerCase().includes('kochi') &&
-                   !displayedResume.location.toLowerCase().includes('hyderabad') && (
-                    <>
-                      <span className="text-[#D2D2D7]">|</span>
-                      <span>{displayedResume.location}</span>
-                    </>
-                  )}
+                    displayedResume.location.trim().length > 0 &&
+                    !displayedResume.location.toLowerCase().includes('kochi') &&
+                    !displayedResume.location.toLowerCase().includes('hyderabad') && (
+                      <>
+                        <span className="text-[#D2D2D7]">|</span>
+                        <span>{displayedResume.location}</span>
+                      </>
+                    )}
                   <span className="text-[#D2D2D7]">|</span>
                   <a
                     id="resume-linkedin-link"
@@ -845,75 +838,75 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                       </div>
                     </div>
 
-                  {/* Bullet points */}
-                  <ul className={`list-disc pl-4 sm:pl-5 text-[#1D1D1F] text-justify ${densityStyles.bulletSpacing} ${densityStyles.bulletText}`}>
-                    {exp.bullets.map((bullet, bulletIdx) => (
-                      <li key={bulletIdx} className="resume-bullet group break-inside-avoid" style={{ pageBreakInside: 'avoid' }}>
-                        {isEditing ? (
-                          <div className="flex flex-col gap-1 py-0.5">
-                            <div className="flex items-start gap-1">
-                              <textarea
-                                value={bullet}
-                                onChange={(e) => updateBullet(expIdx, bulletIdx, e.target.value)}
-                                rows={2}
-                                className="w-full text-xs p-1.5 border border-[#D2D2D7] rounded-xl focus:ring-1 focus:ring-[#0071E3] focus:border-[#0071E3] outline-none transition-all duration-200"
-                              />
-                              <button
-                                onClick={() => removeBullet(expIdx, bulletIdx)}
-                                className="text-[#86868B] hover:text-red-500 p-1 shrink-0 cursor-pointer transition-colors duration-200"
-                                title="Delete bullet"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
+                    {/* Bullet points */}
+                    <ul className={`list-disc pl-4 sm:pl-5 text-[#1D1D1F] text-justify ${densityStyles.bulletSpacing} ${densityStyles.bulletText}`}>
+                      {exp.bullets.map((bullet, bulletIdx) => (
+                        <li key={bulletIdx} className="resume-bullet group break-inside-avoid" style={{ pageBreakInside: 'avoid' }}>
+                          {isEditing ? (
+                            <div className="flex flex-col gap-1 py-0.5">
+                              <div className="flex items-start gap-1">
+                                <textarea
+                                  value={bullet}
+                                  onChange={(e) => updateBullet(expIdx, bulletIdx, e.target.value)}
+                                  rows={2}
+                                  className="w-full text-xs p-1.5 border border-[#D2D2D7] rounded-xl focus:ring-1 focus:ring-[#0071E3] focus:border-[#0071E3] outline-none transition-all duration-200"
+                                />
+                                <button
+                                  onClick={() => removeBullet(expIdx, bulletIdx)}
+                                  className="text-[#86868B] hover:text-red-500 p-1 shrink-0 cursor-pointer transition-colors duration-200"
+                                  title="Delete bullet"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              {(() => {
+                                const v = verifyBulletAgainstBank(bullet, experienceBank);
+                                return (
+                                  <div className="flex items-center justify-between text-[10px] px-1 text-muted-foreground">
+                                    {v.isBackedByBank ? (
+                                      <span className="text-emerald-700 font-semibold flex items-center gap-1 font-mono">
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                                        <span>✓ Backed by Experience Bank</span>
+                                      </span>
+                                    ) : (
+                                      <span className="text-amber-700 font-semibold flex items-center gap-1 font-mono">
+                                        <Sparkles className="w-3 h-3 text-amber-500" />
+                                        <span>✨ Model Inferred</span>
+                                      </span>
+                                    )}
+                                    {!v.isBackedByBank && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handlePinToExperienceBank(bullet, exp.title, exp.company)}
+                                        className="text-[#0071E3] hover:underline cursor-pointer font-medium"
+                                        title="Save this accomplishment into candidate Experience Bank as verified career fact"
+                                      >
+                                        + Pin to Experience Bank
+                                      </button>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
-                            {(() => {
-                              const v = verifyBulletAgainstBank(bullet, experienceBank);
-                              return (
-                                <div className="flex items-center justify-between text-[10px] px-1 text-muted-foreground">
-                                  {v.isBackedByBank ? (
-                                    <span className="text-emerald-700 font-semibold flex items-center gap-1 font-mono">
-                                      <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                                      <span>✓ Backed by Experience Bank</span>
-                                    </span>
-                                  ) : (
-                                    <span className="text-amber-700 font-semibold flex items-center gap-1 font-mono">
-                                      <Sparkles className="w-3 h-3 text-amber-500" />
-                                      <span>✨ Model Inferred</span>
-                                    </span>
-                                  )}
-                                  {!v.isBackedByBank && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handlePinToExperienceBank(bullet, exp.title, exp.company)}
-                                      className="text-[#0071E3] hover:underline cursor-pointer font-medium"
-                                      title="Save this accomplishment into candidate Experience Bank as verified career fact"
-                                    >
-                                      + Pin to Experience Bank
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </div>
-                        ) : (
-                          <span>{bullet}</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                          ) : (
+                            <span>{bullet}</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
 
-                  {isEditing && (
-                    <button
-                      onClick={() => addBullet(expIdx)}
-                      className="mt-1 inline-flex items-center gap-1 text-xs text-[#0071E3] hover:text-[#0077ED] font-medium cursor-pointer transition-colors duration-200"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Add Bullet Point</span>
-                    </button>
-                  )}
-                </div>
-              );
-            })}
+                    {isEditing && (
+                      <button
+                        onClick={() => addBullet(expIdx)}
+                        className="mt-1 inline-flex items-center gap-1 text-xs text-[#0071E3] hover:text-[#0077ED] font-medium cursor-pointer transition-colors duration-200"
+                      >
+                        <Plus className="w-3 h-3" />
+                        <span>Add Bullet Point</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
 
@@ -1051,11 +1044,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                             key={cIdx}
                             type="button"
                             onClick={() => toggleCertification(cred.fullBadge)}
-                            className={`text-left p-2.5 rounded-xl border transition-all duration-200 flex items-start justify-between gap-2 cursor-pointer ${
-                              isSelected
-                                ? 'bg-[#0071E3]/5 border-[#0071E3]/30 text-[#1D1D1F] font-medium'
-                                : 'bg-white border-border text-[#6E6E73] hover:border-[#D2D2D7]'
-                            }`}
+                            className={`text-left p-2.5 rounded-xl border transition-all duration-200 flex items-start justify-between gap-2 cursor-pointer ${isSelected
+                              ? 'bg-[#0071E3]/5 border-[#0071E3]/30 text-[#1D1D1F] font-medium'
+                              : 'bg-white border-border text-[#6E6E73] hover:border-[#D2D2D7]'
+                              }`}
                           >
                             <div>
                               <div className="text-xs font-semibold flex items-center gap-1.5">
@@ -1069,11 +1061,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                               </div>
                             </div>
                             <span
-                              className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold ${
-                                isSelected
-                                  ? 'bg-[#0071E3] text-white'
-                                  : 'bg-[#F5F5F7] text-[#86868B]'
-                              }`}
+                              className={`text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-semibold ${isSelected
+                                ? 'bg-[#0071E3] text-white'
+                                : 'bg-[#F5F5F7] text-[#86868B]'
+                                }`}
                             >
                               {isSelected ? 'Active' : 'Off'}
                             </span>
@@ -1315,6 +1306,17 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
         onClose={() => setIsAtsDrawerOpen(false)}
         report={atsReport}
         targetRole={jobTitle || 'Target Role'}
+        resume={resume}
+        onUpdateResume={(updated) => setResume(updated)}
+        onInsertKeyword={(kw) => {
+          if (!resume.skills?.includes(kw)) {
+            setResume((prev) => ({
+              ...prev,
+              skills: [...(prev.skills || []), kw],
+              core_competencies: [...(prev.core_competencies || []), kw],
+            }));
+          }
+        }}
       />
 
       {/* Recruiter Radar Live Click Logs Modal */}

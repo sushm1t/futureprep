@@ -49,7 +49,11 @@ export const STRONG_ACTION_VERBS = new Set([
   'automated', 'established', 'spearheaded', 'managed', 'mentored', 'introduced',
   'rebuilt', 'streamlined', 'accelerated', 'orchestrated', 'engineered', 'formulated',
   'executed', 'negotiated', 'resolved', 'standardized', 'transformed', 'pioneered',
-  'championed', 'deployed', 'overhauled', 'boosted', 'generated', 'minimized'
+  'championed', 'deployed', 'overhauled', 'boosted', 'generated', 'minimized',
+  'modeled', 'conducted', 'extracted', 'verified', 'coordinated', 'analyzed',
+  'authored', 'administered', 'programmed', 'integrated', 'configured', 'supervised',
+  'directed', 'synthesized', 'inspected', 'produced', 'facilitated', 'aligned',
+  'structured', 'monitored', 'maintained', 'trained'
 ]);
 
 // Quantifiable metrics regex (%, $, x multipliers, numbers with units)
@@ -77,7 +81,7 @@ export function extractPlainTextFromResume(resume: TailoredResumeData): string {
   if (resume.experiences && resume.experiences.length > 0) {
     parts.push('WORK EXPERIENCE');
     for (const exp of resume.experiences) {
-      parts.push(`${exp.role || ''} at ${exp.company || ''} (${exp.period || ''})`);
+      parts.push(`${exp.role || (exp as any).title || ''} at ${exp.company || ''} (${exp.period || (exp as any).date_range || ''})`);
       if (exp.bullets && exp.bullets.length > 0) {
         for (const b of exp.bullets) {
           parts.push(`• ${b}`);
@@ -245,7 +249,10 @@ export function scoreAtsReadiness(
 
   // Dated work history (2 pts)
   const hasDatedHistory = Boolean(
-    resume.experiences && resume.experiences.some((exp) => exp.period && /\d{4}/.test(exp.period))
+    resume.experiences && resume.experiences.some((exp) => {
+      const p = exp.period || (exp as any).date_range;
+      return Boolean(p && /\d{4}/.test(p));
+    })
   );
   formatItems.push({
     id: 'dated_history',
@@ -274,7 +281,7 @@ export function scoreAtsReadiness(
   if (resume.experiences && resume.experiences.length >= 2) {
     const years: number[] = [];
     for (const exp of resume.experiences) {
-      const match = (exp.period || '').match(/(?:19|20)\d{2}/);
+      const match = (exp.period || (exp as any).date_range || '').match(/(?:19|20)\d{2}/);
       if (match) years.push(parseInt(match[0], 10));
     }
     for (let i = 1; i < years.length; i++) {
