@@ -308,8 +308,8 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
             </a>
           )}
 
-          {/* Mark as Applied Toggle Button */}
-          {onTrackApplication && (
+          {/* Mark as Applied Toggle Button (only when tailored to an active job role) */}
+          {Boolean(jobTitle && onTrackApplication) && (
             <button
               type="button"
               onClick={onTrackApplication}

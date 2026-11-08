@@ -3,7 +3,8 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { JobEvaluatorView } from '@/jobstudio/components/JobEvaluatorView';
 import { ScreeningAnswersView } from '@/jobstudio/components/ScreeningAnswersView';
-import { EMPTY_EVALUATION, type AppliedJobRecord, type CandidateInfo } from '@/jobstudio/data/defaultData';
+import { ResumeDocument } from '@/jobstudio/components/ResumeDocument';
+import { EMPTY_EVALUATION, type AppliedJobRecord, type CandidateInfo, type TailoredResumeData } from '@/jobstudio/data/defaultData';
 import { applyJobUpdate, withCreatedEvent } from '@/jobstudio/data/applicationHistory';
 
 afterEach(cleanup);
@@ -190,5 +191,49 @@ describe('Two-Way Application Tracking Toggle & Direct "Apply now" Link', () => 
     handleTrackToggle('Linear', 'Product Support Specialist', 'https://jobs.ashbyhq.com/linear/product-support-specialist');
     expect(appliedJobs).toHaveLength(1);
     expect(appliedJobs[0]?.company_name).toBe('Linear');
+  });
+
+  it('does NOT render "Mark as Applied" in ResumeDocument when no role is selected (Master Career Resume)', () => {
+    const sampleResume: TailoredResumeData = {
+      full_name: 'Alex Rivera',
+      email: 'alex@example.com',
+      phone: '',
+      location: '',
+      linkedin: '',
+      tailored_summary: 'Master baseline summary',
+      skills: ['Figma'],
+      experiences: [],
+      education: [],
+      certifications: [],
+    };
+
+    // 1. Untailored baseline (no role selected)
+    const { rerender } = render(
+      <ResumeDocument
+        resume={sampleResume}
+        setResume={vi.fn()}
+        jobTitle=""
+        companyName=""
+        isTracked={false}
+        onTrackApplication={vi.fn()}
+      />
+    );
+
+    expect(screen.queryByRole('button', { name: /mark as applied|tracked as applied/i })).toBeNull();
+    expect(screen.getByText(/Master Career Resume/i)).toBeInTheDocument();
+
+    // 2. Tailored to an active role: button appears
+    rerender(
+      <ResumeDocument
+        resume={sampleResume}
+        setResume={vi.fn()}
+        jobTitle="Senior Product Designer"
+        companyName="Figma"
+        isTracked={false}
+        onTrackApplication={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: /mark as applied/i })).toBeInTheDocument();
   });
 });

@@ -379,7 +379,7 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
             </a>
           )}
 
-          {onTrackApplication && (
+          {Boolean(jobTitle && onTrackApplication) && (
             <button
               onClick={onTrackApplication}
               className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold rounded-full transition-all cursor-pointer whitespace-nowrap justify-center ${
