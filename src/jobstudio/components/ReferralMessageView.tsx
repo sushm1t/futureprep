@@ -336,12 +336,12 @@ ${forwardableBlurb}
 
   return (
     <div className="workspace-referral space-y-6 max-w-4xl mx-auto">
-      {/* Landing-Inspired Action Header Card */}
+      {/* Landing-Inspired Action Header Card (Clean Context Banner) */}
       <div
         className="relative overflow-hidden bg-gradient-to-b from-card via-card/95 to-surface/90 rounded-3xl border border-border/80 p-6 sm:p-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-elevated"
       >
         <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 space-y-1.5 max-w-xl">
+        <div className="relative z-10 space-y-1.5 max-w-2xl">
           <div className="flex items-center gap-2">
             <span className="bg-brand/10 text-brand text-[11px] font-bold rounded-full px-3 py-0.5 uppercase tracking-widest flex items-center gap-1.5 font-mono border border-brand/20 shadow-2xs">
               <MessageSquareQuote className="w-3.5 h-3.5" />
@@ -355,37 +355,6 @@ ${forwardableBlurb}
             Targeting <strong className="text-foreground">{activeRole}</strong> at{' '}
             <strong className="text-foreground">{activeComp}</strong>. Referrals receive up to 4x higher interview rates than direct cold applications.
           </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-stretch sm:self-auto text-xs shrink-0">
-          <button
-            type="button"
-            onClick={handleCopyFullMessage}
-            className="inline-flex items-center gap-1.5 px-4 py-2 font-medium text-foreground bg-surface hover:bg-surface-2 border border-border rounded-full transition-all cursor-pointer"
-            title="Copy entire message to clipboard"
-          >
-            {copiedMessage ? (
-              <>
-                <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-                <span className="text-success font-semibold">Copied Message</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-subtle" />
-                <span>Copy Message</span>
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
-            onClick={handleDownloadTxt}
-            className="inline-flex items-center gap-1.5 px-4 py-2 font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-full transition-all cursor-pointer"
-            title="Export as text file"
-          >
-            <Download className="w-3.5 h-3.5 text-primary-foreground" />
-            <span>Export .txt</span>
-          </button>
         </div>
       </div>
 
@@ -778,19 +747,39 @@ ${forwardableBlurb}
           placeholder="Your referral outreach message..."
         />
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-border text-xs text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 border-t border-border text-xs text-muted-foreground">
           <span className="flex items-center gap-1.5">
-            <Lightbulb className="w-3.5 h-3.5 text-amber-500" />
+            <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0" />
             Tip: Send this via LinkedIn Message, InMail, or direct corporate email.
           </span>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
               type="button"
               onClick={handleCopyFullMessage}
-              className="inline-flex items-center gap-1.5 px-4 py-2 font-medium text-foreground bg-surface hover:bg-surface-2 border border-border rounded-full transition-all cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 font-medium text-foreground bg-surface hover:bg-surface-2 border border-border rounded-full transition-all cursor-pointer text-xs"
+              title="Copy entire message to clipboard"
             >
-              {copiedMessage ? <CheckCircle2 className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5 text-subtle" />}
-              <span>{copiedMessage ? 'Copied!' : 'Copy to Clipboard'}</span>
+              {copiedMessage ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+                  <span className="text-success font-semibold">Copied Message</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-subtle" />
+                  <span>Copy Message</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadTxt}
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-full transition-all cursor-pointer text-xs shadow-xs"
+              title="Export as text file"
+            >
+              <Download className="w-3.5 h-3.5 text-primary-foreground" />
+              <span>Export .txt</span>
             </button>
           </div>
         </div>
