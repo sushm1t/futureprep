@@ -51,7 +51,8 @@ import {
 import { AllFiltersModal, FilterState } from './AllFiltersModal';
 import { evaluateHardConstraints, HardConstraintReport } from '../utils/hardConstraints';
 import { detectGhostJobSignal, GhostSignal } from '../utils/ghostJobDetector';
-import { generateAtsApplicationDossier, getSavedScreeningAnswers } from '../utils/screeningAnswerBank';
+import { generateAtsApplicationDossier, getSavedScreeningAnswers, copyTextToClipboard } from '../utils/screeningAnswerBank';
+import { AtsDossierModal } from './AtsDossierModal';
 import {
   JobEvaluationData,
   JobOpportunity,
@@ -494,6 +495,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
   const [isDirectCopied, setIsDirectCopied] = useState<boolean>(false);
   const [isListCopied, setIsListCopied] = useState<boolean>(false);
   const [isDossierCopied, setIsDossierCopied] = useState<boolean>(false);
+  const [isDossierModalOpen, setIsDossierModalOpen] = useState<boolean>(false);
 
   // Freehire 55+ ATS & Multi-Filter States
   const [isAllFiltersOpen, setIsAllFiltersOpen] = useState<boolean>(false);
@@ -875,20 +877,54 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     return evaluateHardConstraints(masterProfileText, jdText, profileSearchContext);
   }, [masterProfileText, activeOpportunity, evaluation.job_description, customJobText, profileSearchContext]);
 
-  const handleCopyAtsDossier = () => {
+  const handleCopyAtsDossier = async () => {
     const answers = getSavedScreeningAnswers();
+    const emailMatch = masterProfileText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+    const phoneMatch = masterProfileText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/);
+    const linkedinMatch = masterProfileText.match(/linkedin\.com\/in\/[a-zA-Z0-9_-]+/i);
+
+    const cName =
+      activeResume?.full_name && activeResume.full_name !== 'Candidate Name'
+        ? activeResume.full_name
+        : profileSearchContext?.targetRole || 'Candidate';
+    const cEmail = activeResume?.email || (emailMatch ? emailMatch[0] : '');
+    const cPhone = activeResume?.phone || (phoneMatch ? phoneMatch[0] : '');
+    const cLocation =
+      activeResume?.location ||
+      profileSearchContext?.location ||
+      (activeOpportunity as any)?.location ||
+      '';
+    const cLinkedin =
+      activeResume?.linkedin || (linkedinMatch ? `https://${linkedinMatch[0]}` : '');
+    const cPortfolio = activeResume?.portfolio || '';
+    const cSummary = activeResume?.tailored_summary || '';
+    const cSkills = activeResume?.skills || [];
+
+    const targetRole =
+      (activeOpportunity as any)?.title ||
+      evaluation.job_title ||
+      profileSearchContext?.targetRole ||
+      '';
+    const targetCompany =
+      (activeOpportunity as any)?.company || evaluation.company_name || '';
+
     const dossierText = generateAtsApplicationDossier(answers, {
-      candidateName: (candidateProfileContext as any)?.fullName || profileSearchContext?.targetRole ? undefined : undefined,
-      email: (candidateProfileContext as any)?.email,
-      phone: (candidateProfileContext as any)?.phone,
-      linkedin: (candidateProfileContext as any)?.linkedin,
+      candidateName: cName,
+      email: cEmail,
+      phone: cPhone,
+      location: cLocation,
+      linkedin: cLinkedin,
+      portfolio: cPortfolio,
+      targetRole,
+      targetCompany,
+      summary: cSummary,
+      skills: cSkills,
     });
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(dossierText).then(() => {
-        setIsDossierCopied(true);
-        setTimeout(() => setIsDossierCopied(false), 2500);
-      }).catch(() => {});
-    }
+
+    await copyTextToClipboard(dossierText);
+    setIsDossierCopied(true);
+    setTimeout(() => setIsDossierCopied(false), 2500);
+    setIsDossierModalOpen(true);
   };
 
   const [isDiscoveringWeb, setIsDiscoveringWeb] = useState<boolean>(false);
@@ -3303,6 +3339,17 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                       <button
                         type="button"
                         onClick={() => {
+                          setIsDossierModalOpen(true);
+                          setIsActionMenuOpen(false);
+                        }}
+                        className="w-full text-left px-3 py-2 rounded-xl text-xs font-medium text-subtle hover:text-foreground hover:bg-surface flex items-center gap-2 transition-colors cursor-pointer"
+                      >
+                        <ClipboardCheck className="w-3.5 h-3.5 text-brand" />
+                        <span>View ATS Dossier</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
                           handleStartFresh();
                           setIsActionMenuOpen(false);
                         }}
@@ -4180,6 +4227,51 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         onClose={() => setIsMarketIntelOpen(false)}
         defaultRole={profileSearchContext.targetRole}
         defaultLocation={selectedAtsLocation}
+      />
+
+      {/* ATS Application Dossier Modal */}
+      <AtsDossierModal
+        isOpen={isDossierModalOpen}
+        onClose={() => setIsDossierModalOpen(false)}
+        targetRole={
+          (activeOpportunity as any)?.title ||
+          evaluation.job_title ||
+          profileSearchContext?.targetRole
+        }
+        targetCompany={
+          (activeOpportunity as any)?.company || evaluation.company_name
+        }
+        targetLocation={
+          (activeOpportunity as any)?.location ||
+          (selectedAtsLocation !== 'All' ? selectedAtsLocation : profileSearchContext.location)
+        }
+        candidateName={
+          activeResume?.full_name && activeResume.full_name !== 'Candidate Name'
+            ? activeResume.full_name
+            : profileSearchContext?.targetRole || 'Candidate'
+        }
+        email={
+          activeResume?.email ||
+          masterProfileText.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/)?.[0] ||
+          ''
+        }
+        phone={
+          activeResume?.phone ||
+          masterProfileText.match(/(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}/)?.[0] ||
+          ''
+        }
+        location={activeResume?.location || profileSearchContext?.location}
+        linkedin={
+          activeResume?.linkedin ||
+          (masterProfileText.match(/linkedin\.com\/in\/[a-zA-Z0-9_-]+/i)?.[0]
+            ? `https://${masterProfileText.match(/linkedin\.com\/in\/[a-zA-Z0-9_-]+/i)?.[0]}`
+            : '')
+        }
+        portfolio={activeResume?.portfolio}
+        summary={activeResume?.tailored_summary}
+        skills={activeResume?.skills}
+        screeningAnswers={getSavedScreeningAnswers()}
+        onNavigateToScreening={onOpenTab ? () => onOpenTab('screening') : undefined}
       />
     </div>
   );

@@ -251,3 +251,4 @@ export function getRoleKeywordExpansions(rawKeyword: string = '', domain?: strin
     isExpanded: norm.hasSeniorityPrefix || searchQueries.length > 1,
   };
 }
+

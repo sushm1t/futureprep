@@ -67,28 +67,99 @@ export function saveScreeningAnswers(answers: ScreeningAnswerEntry[], userId: st
   } catch {}
 }
 
+export interface AtsDossierMeta {
+  candidateName?: string;
+  email?: string;
+  phone?: string;
+  location?: string;
+  linkedin?: string;
+  portfolio?: string;
+  targetRole?: string;
+  targetCompany?: string;
+  skills?: string[];
+  summary?: string;
+}
+
 // Generate formatted ATS Dossier for instant 1-click clipboard copy
 export function generateAtsApplicationDossier(
   answers: ScreeningAnswerEntry[],
-  meta?: { candidateName?: string; email?: string; phone?: string; linkedin?: string; portfolio?: string }
+  meta?: AtsDossierMeta
 ): string {
   const lines: string[] = [
     `📋 ATS ONE-CLICK APPLICATION DOSSIER`,
     `=====================================`,
+  ];
+
+  if (meta?.targetRole || meta?.targetCompany) {
+    if (meta.targetRole) lines.push(`Target Role: ${meta.targetRole}`);
+    if (meta.targetCompany) lines.push(`Company: ${meta.targetCompany}`);
+    if (meta.location) lines.push(`Location: ${meta.location}`);
+    lines.push(`=====================================`);
+  }
+
+  lines.push(
     `Applicant: ${meta?.candidateName || 'Candidate'}`,
     `Email: ${meta?.email || 'N/A'}`,
     `Phone: ${meta?.phone || 'N/A'}`,
-    `LinkedIn: ${meta?.linkedin || 'N/A'}`,
-    meta?.portfolio ? `Portfolio: ${meta.portfolio}` : '',
-    ``,
-    `--- STANDARD APPLICATION ANSWERS ---`,
-  ];
+    `LinkedIn: ${meta?.linkedin || 'N/A'}`
+  );
+  if (meta?.portfolio) lines.push(`Portfolio: ${meta.portfolio}`);
+  lines.push(``);
 
+  lines.push(`--- STANDARD APPLICATION ANSWERS ---`);
   answers.forEach((ans) => {
     lines.push(`Q: ${ans.questionLabel}`);
     lines.push(`A: ${ans.answerText}`);
     lines.push(``);
   });
 
-  return lines.filter(Boolean).join('\n');
+  if (meta?.summary) {
+    lines.push(`--- TAILORED SUMMARY / ELEVATOR PITCH ---`);
+    lines.push(meta.summary);
+    lines.push(``);
+  }
+
+  if (meta?.skills && meta.skills.length > 0) {
+    lines.push(`--- ATS KEYWORDS & CORE COMPETENCIES ---`);
+    lines.push(meta.skills.join(', '));
+    lines.push(``);
+  }
+
+  return lines.filter((l) => l !== undefined).join('\n');
+}
+
+/**
+ * Robust clipboard copy function with fallback to document.execCommand('copy').
+ * Ensures copy works across modern browsers, HTTPS, HTTP, and iframe environments.
+ */
+export async function copyTextToClipboard(text: string): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+
+  // Try modern Clipboard API
+  if (navigator?.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall through to fallback
+    }
+  }
+
+  // Fallback for non-HTTPS, unfocused windows, or restrictive iframes
+  try {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-9999px';
+    textArea.style.top = '-9999px';
+    textArea.style.opacity = '0';
+    textArea.setAttribute('readonly', '');
+    document.body.appendChild(textArea);
+    textArea.select();
+    const success = document.execCommand('copy');
+    document.body.removeChild(textArea);
+    return Boolean(success);
+  } catch {
+    return false;
+  }
 }
