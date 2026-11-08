@@ -3513,7 +3513,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 )}
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2.5 text-xs">
                 <div className="p-3 rounded-xl bg-card/70 border border-border/80 flex flex-col justify-between gap-1.5">
                   <div className="flex items-center justify-between">
                     <span className="font-semibold text-foreground text-[13px]">Lead Recruiter</span>

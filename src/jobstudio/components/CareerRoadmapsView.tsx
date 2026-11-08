@@ -983,7 +983,7 @@ export const CareerRoadmapsView: React.FC<CareerRoadmapsViewProps> = ({
                   <label className="font-semibold text-foreground block">
                     2. What is your current experience level?
                   </label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                     {[
                       { key: 'junior', label: 'Early / New Grad' },
                       { key: 'mid', label: 'Mid-Level' },

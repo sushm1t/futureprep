@@ -362,7 +362,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
         </div>
 
         {/* Controls Toolbar */}
-        <div className="flex flex-wrap items-center gap-2 self-stretch md:self-auto justify-start md:justify-end text-xs">
+        <div className="workspace-document-actions flex flex-wrap items-center gap-2 self-stretch md:self-auto justify-start md:justify-end text-xs">
           {/* Direct Apply Portal Link */}
           {applyUrl && (
             <a

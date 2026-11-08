@@ -1597,7 +1597,7 @@ export const AppliedJobsView: React.FC<AppliedJobsViewProps> = ({
                   <label className="block text-[11px] font-semibold text-subtle uppercase tracking-wider">
                     Follow-Up Strategy & Angle
                   </label>
-                  <div className="grid grid-cols-3 gap-1.5 p-1 bg-surface rounded-xl border border-border">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-1.5 p-1 bg-surface rounded-xl border border-border">
                     <button
                       type="button"
                       onClick={() => setSelectedFollowUpAngle('polite_checkin')}

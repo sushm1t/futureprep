@@ -201,9 +201,9 @@ export const MarketIntelligenceModal: React.FC<MarketIntelligenceModalProps> = (
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl max-h-[88vh] bg-card border border-border rounded-2xl shadow-elevated flex flex-col overflow-hidden text-foreground">
+      <div className="mobile-dialog-panel relative w-full max-w-4xl max-h-[88vh] bg-card border border-border rounded-2xl shadow-elevated flex flex-col overflow-hidden text-foreground">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border bg-surface/50 shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-border bg-surface/50 shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-brand/15 border border-brand/30 flex items-center justify-center text-brand">
               <BarChart3 className="w-4 h-4" />
@@ -232,11 +232,11 @@ export const MarketIntelligenceModal: React.FC<MarketIntelligenceModalProps> = (
         </div>
 
         {/* Tab Switcher */}
-        <div className="flex items-center gap-2 px-6 py-2.5 border-b border-border bg-surface/20 shrink-0 text-xs">
+        <div className="flex items-center gap-2 px-4 sm:px-6 py-2.5 border-b border-border bg-surface/20 shrink-0 text-xs overflow-x-auto whitespace-nowrap">
           <button
             type="button"
             onClick={() => setActiveTab('salary')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer ${
+            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer ${
               activeTab === 'salary'
                 ? 'bg-primary/20 text-brand font-semibold border border-primary/30'
                 : 'text-subtle hover:text-foreground hover:bg-surface'
@@ -248,7 +248,7 @@ export const MarketIntelligenceModal: React.FC<MarketIntelligenceModalProps> = (
           <button
             type="button"
             onClick={() => setActiveTab('skills')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer ${
+            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer ${
               activeTab === 'skills'
                 ? 'bg-primary/20 text-brand font-semibold border border-primary/30'
                 : 'text-subtle hover:text-foreground hover:bg-surface'
@@ -260,7 +260,7 @@ export const MarketIntelligenceModal: React.FC<MarketIntelligenceModalProps> = (
           <button
             type="button"
             onClick={() => setActiveTab('velocity')}
-            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer ${
+            className={`shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-medium transition-colors cursor-pointer ${
               activeTab === 'velocity'
                 ? 'bg-primary/20 text-brand font-semibold border border-primary/30'
                 : 'text-subtle hover:text-foreground hover:bg-surface'
@@ -272,15 +272,15 @@ export const MarketIntelligenceModal: React.FC<MarketIntelligenceModalProps> = (
         </div>
 
         {/* Content Body */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
           {/* TAB 1: SALARY BENCHMARKS */}
           {activeTab === 'salary' && (
             <div className="space-y-6">
               {/* Selectors */}
-              <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-xl bg-surface/30 border border-border">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-subtle font-medium">Role Discipline:</span>
-                  <div className="flex gap-1.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-surface/30 border border-border">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-subtle font-medium shrink-0">Role Discipline:</span>
+                  <div className="flex flex-wrap gap-1.5">
                     {['Product & Management', 'Engineering & Tech', 'Data & AI'].map((d) => (
                       <button
                         key={d}
@@ -298,9 +298,9 @@ export const MarketIntelligenceModal: React.FC<MarketIntelligenceModalProps> = (
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-subtle font-medium">Market:</span>
-                  <div className="flex gap-1.5">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-subtle font-medium shrink-0">Market:</span>
+                  <div className="flex flex-wrap gap-1.5">
                     {['United States', 'Europe & UK', 'India', 'UAE'].map((r) => (
                       <button
                         key={r}

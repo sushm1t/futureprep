@@ -5,8 +5,8 @@ import { WelcomeScreen } from '@/jobstudio/components/onboarding/WelcomeScreen';
 
 afterEach(cleanup);
 
-describe('Next-Level Onboarding Journey & Interactive Graphics', () => {
-  it('renders interactive visual cockpit and switches between phases on click', () => {
+describe('Clean, Low-Cognitive-Load Onboarding Journey', () => {
+  it('renders the friendly 4-step onboarding flow with zero jargon', () => {
     const onStartTour = vi.fn();
     const onSkip = vi.fn();
     const onNavigateToTab = vi.fn();
@@ -20,38 +20,31 @@ describe('Next-Level Onboarding Journey & Interactive Graphics', () => {
       />
     );
 
-    // Initial Phase 1: Build your master profile
-    expect(screen.getByText(/PHASE 01 · Profile Vault/i)).toBeInTheDocument();
-    expect(screen.getByText(/Profile-Backed Baseline/i)).toBeInTheDocument();
-    expect(screen.getByText(/100% Fact Enforced/i)).toBeInTheDocument();
+    // Warm, welcoming header
+    expect(screen.getByRole('heading', { name: "Hi Alex, let's get you set up." })).toBeInTheDocument();
+    expect(screen.getByText(/WELCOME TO JOB STUDIO/i)).toBeInTheDocument();
 
-    // Click on Phase 2: Evaluate target jobs
-    const phase2Tab = screen.getByText('Evaluate target jobs');
-    fireEvent.click(phase2Tab);
+    // 4 simple, human-readable steps
+    expect(screen.getByText('Build your master profile')).toBeInTheDocument();
+    expect(screen.getByText(/Upload your existing resume PDF once/i)).toBeInTheDocument();
 
-    expect(screen.getByText(/PHASE 02 · Live ATS Radar & Match Intelligence/i)).toBeInTheDocument();
-    expect(screen.getByText(/Live Multi-ATS Crawl/i)).toBeInTheDocument();
-    expect(screen.getByText(/Transferable Skill Adjacency/i)).toBeInTheDocument();
-    expect(screen.getByText(/2.4x Optimal Window: Tue 9:30 AM/i)).toBeInTheDocument();
+    expect(screen.getByText('Evaluate target jobs')).toBeInTheDocument();
+    expect(screen.getByText(/Search live jobs or paste any job link/i)).toBeInTheDocument();
 
-    // Click Next Phase button to advance to Phase 3: Application Studio
-    const nextBtn = screen.getByRole('button', { name: /Next Phase/i });
-    fireEvent.click(nextBtn);
+    expect(screen.getByText('Tailor documents')).toBeInTheDocument();
+    expect(screen.getByText(/Click "Tailor Application" for any job/i)).toBeInTheDocument();
 
-    expect(screen.getByText(/PHASE 03 · Application Studio/i)).toBeInTheDocument();
-    expect(screen.getByText(/1-Page ATS Vector Resume/i)).toBeInTheDocument();
-    expect(screen.getByText(/6-Sec Roast \(88\/100\)/i)).toBeInTheDocument();
-    expect(screen.getByText(/Recruiter Radar Active/i)).toBeInTheDocument();
+    expect(screen.getByText('Interview prep & tracking')).toBeInTheDocument();
+    expect(screen.getByText(/Copy pre-filled answers and track your status/i)).toBeInTheDocument();
 
-    // Advance to Phase 4: Post-Apply Copilot
-    fireEvent.click(screen.getByRole('button', { name: /Next Phase/i }));
+    // The single, primary clear call to action
+    expect(screen.getByRole('button', { name: /🚀 Start Step 1: Build My Master Profile/i })).toBeInTheDocument();
 
-    expect(screen.getByText(/PHASE 04 · Post-Apply Copilot/i)).toBeInTheDocument();
-    expect(screen.getByText(/1-Click ATS Application Dossier/i)).toBeInTheDocument();
-    expect(screen.getByText(/Application Pipeline Kanban/i)).toBeInTheDocument();
+    // The single tour trigger
+    expect(screen.getByRole('button', { name: /Take the 2-minute tour/i })).toBeInTheDocument();
   });
 
-  it('allows direct feature launch via onNavigateToTab', () => {
+  it('allows clicking any step card to open that feature directly', () => {
     const onNavigateToTab = vi.fn();
 
     render(
@@ -63,20 +56,24 @@ describe('Next-Level Onboarding Journey & Interactive Graphics', () => {
       />
     );
 
-    // Click "Open Profile Vault now" in the graphic footer
-    const launchBtn = screen.getByRole('button', { name: /Open Profile Vault now/i });
-    fireEvent.click(launchBtn);
-
+    // Click step 1 card
+    fireEvent.click(screen.getByText('Build your master profile'));
     expect(onNavigateToTab).toHaveBeenCalledWith('profile');
 
-    // Click bottom primary CTA
-    const primaryCta = screen.getByRole('button', { name: /🚀 Start Step 1: Build My Master Profile/i });
-    fireEvent.click(primaryCta);
+    // Click step 2 card
+    fireEvent.click(screen.getByText('Evaluate target jobs'));
+    expect(onNavigateToTab).toHaveBeenCalledWith('evaluator');
 
-    expect(onNavigateToTab).toHaveBeenCalledWith('profile');
+    // Click step 3 card
+    fireEvent.click(screen.getByText('Tailor documents'));
+    expect(onNavigateToTab).toHaveBeenCalledWith('resume');
+
+    // Click step 4 card
+    fireEvent.click(screen.getByText('Interview prep & tracking'));
+    expect(onNavigateToTab).toHaveBeenCalledWith('screening');
   });
 
-  it('provides quick jump to Job Evaluator for returning users with existing profile', () => {
+  it('provides quick jump to Job Evaluator for returning users', () => {
     const onNavigateToTab = vi.fn();
 
     render(
@@ -92,5 +89,44 @@ describe('Next-Level Onboarding Journey & Interactive Graphics', () => {
     fireEvent.click(jumpBtn);
 
     expect(onNavigateToTab).toHaveBeenCalledWith('evaluator');
+  });
+
+  it('launches tour when user clicks tour button', () => {
+    const onStartTour = vi.fn();
+
+    render(
+      <WelcomeScreen
+        userName="Alex Rivera"
+        onStartTour={onStartTour}
+        onSkip={vi.fn()}
+      />
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /Take the 2-minute tour/i }));
+    expect(onStartTour).toHaveBeenCalledOnce();
+  });
+
+  it('renders top brand bar and allows user to sign out from onboarding', () => {
+    const onLogout = vi.fn();
+
+    render(
+      <WelcomeScreen
+        userName="Alex Rivera"
+        userEmail="alex@example.com"
+        onLogout={onLogout}
+        onStartTour={vi.fn()}
+        onSkip={vi.fn()}
+      />
+    );
+
+    // Job Studio brand logo
+    expect(screen.getByText('Job Studio')).toBeInTheDocument();
+    // User email
+    expect(screen.getByText('alex@example.com')).toBeInTheDocument();
+
+    // Click Sign out
+    const signOutBtn = screen.getByRole('button', { name: /Sign out/i });
+    fireEvent.click(signOutBtn);
+    expect(onLogout).toHaveBeenCalledOnce();
   });
 });

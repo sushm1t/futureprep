@@ -1090,6 +1090,8 @@ export default function App() {
         {isLoggedIn && activeTab === 'onboarding' && (
           <WelcomeScreen
             userName={userName}
+            userEmail={userEmail}
+            onLogout={handleLogout}
             onStartTour={startTour}
             onSkip={skipWelcome}
             onNavigateToTab={(tab) => {

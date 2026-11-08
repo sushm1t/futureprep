@@ -32,13 +32,13 @@ export const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-foreground/40 backdrop-blur-sm animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-foreground/40 backdrop-blur-sm animate-fadeIn">
       <div
-        className="bg-card rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden"
+        className="mobile-dialog-panel bg-card rounded-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden"
         style={{ boxShadow: '0 24px 80px rgba(0,0,0,0.15)' }}
       >
         {/* Header */}
-        <div className="p-6 border-b border-border flex items-center justify-between">
+        <div className="p-4 sm:p-6 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-full bg-surface flex items-center justify-center">
               <User className="w-4.5 h-4.5 text-subtle" />
@@ -61,9 +61,9 @@ export const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
         </div>
 
         {/* Form Body */}
-        <div className="p-6 overflow-y-auto space-y-5" style={{ fontFamily: 'var(--font-body)' }}>
+        <div className="p-4 sm:p-6 overflow-y-auto space-y-5" style={{ fontFamily: 'var(--font-body)' }}>
           {/* Contact Fields */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="text-muted-foreground text-xs font-medium uppercase tracking-wider block mb-1.5">First Name</label>
               <input
@@ -100,7 +100,7 @@ export const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                 className="w-full px-3.5 py-2.5 bg-surface border-0 rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-brand transition-all duration-200 placeholder:text-subtle"
               />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-1 sm:col-span-2">
               <label className="text-muted-foreground text-xs font-medium uppercase tracking-wider block mb-1.5">Location</label>
               <input
                 type="text"
@@ -109,7 +109,7 @@ export const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
                 className="w-full px-3.5 py-2.5 bg-surface border-0 rounded-xl text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-brand transition-all duration-200 placeholder:text-subtle"
               />
             </div>
-            <div className="col-span-2">
+            <div className="col-span-1 sm:col-span-2">
               <label className="text-muted-foreground text-xs font-medium uppercase tracking-wider block mb-1.5">LinkedIn URL</label>
               <input
                 type="text"
@@ -137,7 +137,7 @@ export const CandidateProfileModal: React.FC<CandidateProfileModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 px-6 border-t border-border bg-surface/50 rounded-b-2xl flex items-center justify-end gap-3">
+        <div className="p-4 sm:px-6 border-t border-border bg-surface/50 rounded-b-2xl flex items-center justify-end gap-3">
           <button
             onClick={onClose}
             className="px-5 py-2 text-sm font-medium text-brand hover:text-brand hover:bg-brand/5 rounded-full transition-all duration-200"

@@ -24,7 +24,7 @@ export const ProfileActivationModal: React.FC<ProfileActivationModalProps> = ({
       aria-modal="true"
       aria-labelledby="activation-modal-title"
     >
-      <div className="bg-card w-full max-w-lg rounded-3xl border border-border shadow-elevated p-6 sm:p-8 space-y-6 relative">
+      <div className="mobile-dialog-panel bg-card w-full max-w-lg rounded-3xl border border-border shadow-elevated p-5 sm:p-8 space-y-6 relative overflow-y-auto">
         <button
           type="button"
           onClick={onClose}

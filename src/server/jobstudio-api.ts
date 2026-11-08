@@ -4166,8 +4166,6 @@ app.get('/api/tracer/stats', async (req, res) => {
 });
 
 export async function handleApi(request: Request): Promise<Response> {
-  console.log('>>> [handleApi] incoming request:', request.method, request.url);
-  console.log('>>> [handleApi] auth header:', request.headers.get('authorization'));
   try {
     const url = new URL(request.url);
 

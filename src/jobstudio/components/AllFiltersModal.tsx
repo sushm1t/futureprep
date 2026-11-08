@@ -276,7 +276,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-5xl h-[88vh] max-h-[840px] bg-card border border-border rounded-2xl shadow-elevated flex flex-col overflow-hidden text-foreground">
+      <div className="mobile-dialog-panel relative w-full max-w-5xl h-[92vh] md:h-[88vh] max-h-[840px] bg-card border border-border rounded-2xl shadow-elevated flex flex-col overflow-hidden text-foreground">
         {/* Top Header */}
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-border bg-surface/50 shrink-0">
           <div className="flex items-center gap-3">
@@ -327,15 +327,15 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
         </div>
 
         {/* Modal Body: Left Tabs + Right Panel */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
           {/* Left Navigation Sidebar */}
-          <div className="w-56 shrink-0 border-r border-border bg-surface/30 overflow-y-auto py-3 px-2 text-xs space-y-1">
+          <div className="w-full md:w-56 shrink-0 border-b md:border-b-0 md:border-r border-border bg-surface/30 overflow-x-auto md:overflow-y-auto py-2 md:py-3 px-2 text-xs flex md:flex-col gap-1 items-center md:items-stretch whitespace-nowrap">
             {/* SAVED */}
-            <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Saved</div>
+            <div className="hidden md:block px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Saved</div>
             <button
               type="button"
               onClick={() => setActiveTab('specialization')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'specialization' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -346,11 +346,11 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             </button>
 
             {/* ROLE */}
-            <div className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Role</div>
+            <div className="hidden md:block px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Role</div>
             <button
               type="button"
               onClick={() => setActiveTab('specialization')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'specialization' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -368,7 +368,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('experience')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'experience' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -386,7 +386,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('posted')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'posted' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -402,7 +402,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('location')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'location' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -418,7 +418,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('workplace')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'workplace' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -435,7 +435,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('skills')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'skills' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -453,7 +453,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('industry')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'industry' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -469,11 +469,11 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             </button>
 
             {/* PAY & BENEFITS */}
-            <div className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Pay & Benefits</div>
+            <div className="hidden md:block px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Pay & Benefits</div>
             <button
               type="button"
               onClick={() => setActiveTab('salary')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'salary' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -487,7 +487,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('benefits')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'benefits' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -503,11 +503,11 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             </button>
 
             {/* REQUIREMENTS & ELIGIBILITY */}
-            <div className="px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Requirements & Eligibility</div>
+            <div className="hidden md:block px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Requirements & Eligibility</div>
             <button
               type="button"
               onClick={() => setActiveTab('language')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'language' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
@@ -525,7 +525,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('relocation')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
                 activeTab === 'relocation' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >

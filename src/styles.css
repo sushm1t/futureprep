@@ -722,18 +722,7 @@ html.lenis, html.lenis body { height: auto; }
   .app-col { flex-basis: 220px; min-width: 220px; }
 }
 
-/* Onboarding: welcome screen, tour card, getting-started checklist */
-.onboarding-welcome { max-width: 72rem; margin: 2rem auto; padding: 2.5rem; border: 1px solid var(--border); border-radius: 1.5rem; background: var(--card); }
-.onboarding-eyebrow { font-size: .75rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted-foreground); }
-.onboarding-welcome h1 { font-size: clamp(1.75rem, 4vw, 2.5rem); font-weight: 600; margin: .5rem 0 .75rem; color: var(--foreground); }
-.onboarding-lead { color: var(--muted-foreground); max-width: 36rem; }
-.onboarding-path { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 0; margin: 2rem 0; border-top: 1px solid var(--border); }
-.onboarding-path li { display: flex; flex-direction: column; gap: .4rem; padding: 1.25rem 1rem 1.25rem 0; border-bottom: 1px solid var(--border); }
-.onboarding-path li svg { width: 1.25rem; height: 1.25rem; color: var(--primary); }
-.onboarding-path strong { color: var(--foreground); font-size: .95rem; }
-.onboarding-path span { color: var(--muted-foreground); font-size: .85rem; }
-.onboarding-path .onboarding-step-index { font-size: .7rem; font-variant-numeric: tabular-nums; }
-.onboarding-actions { display: flex; flex-wrap: wrap; gap: .75rem; }
+/* Onboarding: tour card, getting-started checklist */
 
 .job-workspace .workspace-main > .tour-card, .tour-card { position: fixed; margin: 0; right: 1.5rem; bottom: 1.5rem; z-index: 60; width: min(24rem, calc(100vw - 2rem)); max-width: min(24rem, calc(100vw - 2rem)); padding: 1.25rem; border: 1px solid var(--border); border-radius: .875rem; background: var(--popover); color: var(--popover-foreground); box-shadow: 0 20px 50px -20px color-mix(in oklab, var(--foreground) 35%, transparent); }
 .tour-card h2 { font-size: 1.125rem; font-weight: 600; margin-bottom: .5rem; }
@@ -743,7 +732,7 @@ html.lenis, html.lenis body { height: auto; }
 .tour-card-head { display: flex; justify-content: space-between; align-items: center; font-size: .75rem; color: var(--muted-foreground); margin-bottom: .25rem; }
 .tour-card-actions { display: flex; justify-content: space-between; gap: .5rem; margin-top: .75rem; }
 .tour-highlight { outline: 2px solid var(--primary) !important; outline-offset: 3px; border-radius: .5rem; position: relative; z-index: 1; }
-@media (max-width: 640px) { .job-workspace .workspace-main > .tour-card, .tour-card { left: .75rem; right: .75rem; bottom: 4.75rem; width: auto; max-width: none; } }
+@media (max-width: 767px) { .job-workspace .workspace-main > .tour-card, .tour-card { left: .75rem; right: .75rem; bottom: 4.75rem; width: auto; max-width: none; max-height: calc(100dvh - 5.5rem); overflow-y: auto; } }
 
 .job-workspace .workspace-main > .onboarding-checklist, .onboarding-checklist { position: fixed; margin: 0; right: 1.5rem; bottom: 1.5rem; z-index: 50; width: 17rem; max-width: 17rem; padding: 1rem; border: 1px solid var(--border); border-radius: .875rem; background: var(--popover); color: var(--popover-foreground); }
 .onboarding-checklist-head { display: flex; align-items: center; gap: .5rem; font-size: .875rem; }
@@ -756,7 +745,7 @@ html.lenis, html.lenis body { height: auto; }
 .onboarding-checklist li button svg { width: 1rem; height: 1rem; color: var(--muted-foreground); }
 .onboarding-checklist li button.is-done { color: var(--muted-foreground); text-decoration: line-through; }
 .onboarding-checklist li button.is-done svg { color: var(--primary); }
-@media (max-width: 640px) { .job-workspace .workspace-main > .onboarding-checklist, .onboarding-checklist { left: .75rem; right: .75rem; bottom: 4.75rem; width: auto; max-width: none; } }
+@media (max-width: 767px) { .job-workspace .workspace-main > .onboarding-checklist, .onboarding-checklist { left: .75rem; right: .75rem; bottom: 4.75rem; width: auto; max-width: none; } }
 
 /* Phone layouts: let content grow rather than squeeze or conceal its labels.
    Screen-only rules keep paper exports and desktop layouts unchanged. */
@@ -775,6 +764,13 @@ html.lenis, html.lenis body { height: auto; }
   .job-workspace .workspace-main .overflow-x-auto > button { flex-shrink: 0; white-space: nowrap; }
   .workspace-section-tabs button { min-height: 52px; }
   .workspace-document-toolbar > div:first-child > div { flex-wrap: wrap; }
+  .workspace-document-actions { gap: 6px; }
+  .workspace-document-actions button,
+  .workspace-document-actions a {
+    white-space: nowrap !important;
+    font-size: 11.5px !important;
+    padding: 5px 10px !important;
+  }
   .workspace-roadmaps .roadmap-category-filters { display: flex; flex-wrap: wrap; overflow: visible; gap: 8px; }
   .workspace-roadmaps .roadmap-category-filters button { flex: 0 0 auto !important; white-space: nowrap !important; text-align: left; padding: 6px 12px; }
   .workspace-roadmaps .roadmap-detail-navigation { display: grid; grid-template-columns: 1fr; gap: 12px; }
@@ -786,7 +782,7 @@ html.lenis, html.lenis body { height: auto; }
   .workspace-roadmaps .roadmap-progress-heading { display: grid; grid-template-columns: 1fr; gap: 8px; }
   .workspace-roadmaps .roadmap-stats { flex-wrap: wrap; gap: 6px 10px; }
   .workspace-roadmaps .roadmap-card-stats { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; }
-  .job-workspace .mobile-dialog-panel { max-height: calc(100dvh - 32px); overflow-y: auto; margin-block: 0; min-width: 0; }
+  :is(.job-workspace, body) .mobile-dialog-panel { max-height: calc(100dvh - 32px); overflow-y: auto; margin-block: 0; min-width: 0; }
   .mobile-dialog-heading { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: start; }
   .mobile-dialog-heading > div { min-width: 0; }
   .mobile-dialog-heading > div > div { flex-wrap: wrap; }
@@ -799,8 +795,6 @@ html.lenis, html.lenis body { height: auto; }
   .mobile-recruiter-panel > .mobile-dialog-heading h3 { overflow-wrap: anywhere; }
   .mobile-recruiter-panel > .mobile-dialog-content { min-height: 0; padding: 16px; }
   .mobile-application-heading { padding-right: 36px; flex-wrap: wrap; }
-  .onboarding-welcome { margin: 0 auto; padding: 20px 0; border: none; }
-  .onboarding-path { grid-template-columns: 1fr; }
   .job-workspace .workspace-main > .onboarding-checklist { position: static; width: 100%; margin-bottom: 24px; }
   .tour-card { max-height: calc(100dvh - 24px); overflow-y: auto; }
   .job-workspace .workspace-main h1 { font-size: 24px; }

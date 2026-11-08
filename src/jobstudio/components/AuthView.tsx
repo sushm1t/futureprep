@@ -1,5 +1,5 @@
 // @ts-nocheck -- ported verbatim from the original project
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BusyIndicator } from './BusyIndicator';
 import {
   User,
@@ -12,6 +12,10 @@ import {
   CheckCircle2,
   Briefcase,
   AlertCircle,
+  RefreshCw,
+  School,
+  Clock,
+  AlertTriangle,
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { lovable } from '@/integrations/lovable/index';
@@ -39,12 +43,92 @@ export const AuthView: React.FC<AuthViewProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
+  // Email confirmation delivery & institutional assistance
+  const [confirmationPendingEmail, setConfirmationPendingEmail] = useState<string | null>(null);
+  const [resendCooldown, setResendCooldown] = useState<number>(0);
+  const [isResending, setIsResending] = useState<boolean>(false);
+  const [resendStatus, setResendStatus] = useState<{ text: string; type: 'success' | 'error' | 'info' } | null>(null);
+
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+
+  // Cooldown timer for resend email
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [resendCooldown]);
+
+  const isInstitutionalEmail = (emailStr: string): boolean => {
+    const clean = (emailStr || '').trim().toLowerCase();
+    if (!clean.includes('@')) return false;
+    const domain = clean.split('@')[1] || '';
+    return (
+      /\.(edu|ac\.[a-z]{2}|edu\.[a-z]{2}|ernet\.in|res\.in)$/i.test(domain) ||
+      domain.includes('university') ||
+      domain.includes('college') ||
+      domain.includes('campus') ||
+      domain.includes('school') ||
+      domain.includes('institute')
+    );
+  };
+
+  const handleResendConfirmation = async (targetEmail?: string) => {
+    const mailToUse = (targetEmail || confirmationPendingEmail || email).trim();
+    if (!mailToUse) {
+      setError('Please provide your email address to resend the confirmation link.');
+      return;
+    }
+    if (resendCooldown > 0) return;
+
+    setIsResending(true);
+    setResendStatus(null);
+    setError(null);
+
+    try {
+      const { error: resendErr } = await supabase.auth.resend({
+        type: 'signup',
+        email: mailToUse,
+        options: {
+          emailRedirectTo: new URL(returnPath, window.location.origin).href,
+        },
+      });
+
+      if (resendErr) {
+        if (/rate limit/i.test(resendErr.message)) {
+          setResendStatus({
+            type: 'error',
+            text: 'Email rate limit reached for this project. Please wait a minute or use Continue with Google for instant access.',
+          });
+        } else {
+          setResendStatus({
+            type: 'error',
+            text: resendErr.message || 'Could not resend email. Please verify your address.',
+          });
+        }
+      } else {
+        setResendStatus({
+          type: 'success',
+          text: `New confirmation link dispatched to ${mailToUse}! Please check your Inbox and Spam/Junk folder.`,
+        });
+        setResendCooldown(60);
+      }
+    } catch (err: any) {
+      setResendStatus({
+        type: 'error',
+        text: err?.message || 'Failed to resend confirmation email.',
+      });
+    } finally {
+      setIsResending(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccessMessage(null);
+    setResendStatus(null);
 
     if (!email.trim()) {
       setError('Please provide a valid email address.');
@@ -72,7 +156,8 @@ export const AuthView: React.FC<AuthViewProps> = ({
         });
         if (err) throw err;
         if (!data.session) {
-          setSuccessMessage(`Check ${email.trim()} for a confirmation link, then sign in.`);
+          setConfirmationPendingEmail(email.trim());
+          setResendCooldown(60);
           setMode('signin');
           return;
         }
@@ -84,7 +169,16 @@ export const AuthView: React.FC<AuthViewProps> = ({
       if (returnPath !== '/') { window.location.assign(returnPath); return; }
       setTimeout(() => onNavigateToTab('profile'), 600);
     } catch (err: any) {
-      setError(err?.message || 'Something went wrong. Please try again.');
+      const rawMsg = err?.message || 'Something went wrong. Please try again.';
+      if (/not confirmed/i.test(rawMsg)) {
+        setConfirmationPendingEmail(email.trim());
+        setError('Email not confirmed');
+      } else if (/user already registered/i.test(rawMsg)) {
+        setConfirmationPendingEmail(email.trim());
+        setError('User already registered');
+      } else {
+        setError(rawMsg);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -164,15 +258,113 @@ export const AuthView: React.FC<AuthViewProps> = ({
           </button>
         </div>
 
-        {/* Notifications */}
-        {error && (
+        {/* Interactive Confirmation / Resend Assistant */}
+        {confirmationPendingEmail && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-surface border border-brand/30 shadow-elevated space-y-3.5 animate-fade-in text-xs">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-xl bg-brand/10 border border-brand/20 flex items-center justify-center shrink-0 text-brand">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div className="space-y-1 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="font-semibold text-foreground text-sm">
+                    Confirmation Link Sent
+                  </span>
+                  <span className="px-2 py-0.5 rounded-full bg-brand/10 text-brand font-mono text-[10px] uppercase font-bold">
+                    Action Required
+                  </span>
+                </div>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  We dispatched a verification link to <strong className="text-foreground font-mono">{confirmationPendingEmail}</strong>. Click the link in your email to activate your account.
+                </p>
+              </div>
+            </div>
+
+            {/* University / Institutional Domain Advisory */}
+            {isInstitutionalEmail(confirmationPendingEmail) && (
+              <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 space-y-1 text-[11px] text-amber-200">
+                <div className="flex items-center gap-1.5 font-semibold text-amber-300">
+                  <School className="w-3.5 h-3.5 shrink-0" />
+                  <span>University / Institutional Email Notice</span>
+                </div>
+                <p className="text-amber-200/90 leading-relaxed text-[10px] sm:text-[11px]">
+                  Campus mail firewalls (such as <strong>@{confirmationPendingEmail.split('@')[1]}</strong>) frequently quarantine automated transactional messages. Please check your <strong>Spam / Junk</strong> folder or security quarantine portal.
+                </p>
+              </div>
+            )}
+
+            {/* Feedback from resending */}
+            {resendStatus && (
+              <div className={`p-2.5 rounded-xl border text-xs flex items-center gap-2 ${
+                resendStatus.type === 'success'
+                  ? 'bg-success/10 border-success/25 text-success'
+                  : resendStatus.type === 'error'
+                  ? 'bg-danger/10 border-danger/25 text-danger'
+                  : 'bg-surface border-border text-foreground'
+              }`}>
+                {resendStatus.type === 'success' ? (
+                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                ) : (
+                  <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                )}
+                <span>{resendStatus.text}</span>
+              </div>
+            )}
+
+            <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-2.5">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleResendConfirmation(confirmationPendingEmail)}
+                  disabled={isResending || resendCooldown > 0}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-surface-2 hover:bg-surface border border-border text-foreground font-semibold text-xs transition-all cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isResending ? 'animate-spin' : ''}`} />
+                  <span>
+                    {isResending
+                      ? 'Sending...'
+                      : resendCooldown > 0
+                      ? `Resend Link (${resendCooldown}s)`
+                      : 'Resend Confirmation Link'}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setConfirmationPendingEmail(null);
+                    setError(null);
+                    setSuccessMessage(null);
+                  }}
+                  className="text-[11px] text-subtle hover:text-foreground transition-colors cursor-pointer px-2 py-1"
+                >
+                  Dismiss
+                </button>
+              </div>
+
+              {/* Instant Google OAuth Alternative */}
+              <button
+                type="button"
+                onClick={handleGoogle}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 hover:bg-primary/20 text-primary border border-primary/25 font-semibold text-xs transition-all cursor-pointer"
+                title="Sign in with your Google account (institutional or personal) without waiting for email verification"
+              >
+                <Sparkles className="w-3 h-3 text-primary" />
+                <span>Continue with Google (Instant)</span>
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Other Notifications */}
+        {error && error !== 'Email not confirmed' && (
           <div className="p-3.5 rounded-2xl bg-danger/10 border border-danger/20 text-xs text-danger flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        {successMessage && (
+        {successMessage && !confirmationPendingEmail && (
           <div className="p-3.5 rounded-2xl bg-success/10 border border-success/20 text-xs text-success flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 shrink-0" />
             <span className="font-semibold">{successMessage}</span>
@@ -260,10 +452,34 @@ export const AuthView: React.FC<AuthViewProps> = ({
             <button
               type="button"
               onClick={handleGoogle}
-              className="w-full py-2.5 bg-surface hover:bg-surface-2 text-foreground font-medium rounded-full transition-all cursor-pointer border border-border flex items-center justify-center gap-2 text-xs"
+              className="w-full py-3 bg-surface hover:bg-surface-2 text-foreground font-medium rounded-full transition-all cursor-pointer border border-border flex items-center justify-center gap-2 text-xs group shadow-sm hover:border-brand/40"
             >
-              <span>Continue with Google</span>
+              <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
+                <path
+                  fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                />
+                <path
+                  fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                />
+              </svg>
+              <span className="font-semibold">Continue with Google</span>
+              <span className="ml-1 px-2 py-0.5 rounded-full text-[10px] bg-brand/10 text-brand font-mono font-medium">
+                ⚡ Instant • No wait
+              </span>
             </button>
+            <p className="text-[10px] text-muted-foreground/80">
+              Recommended for university &amp; corporate accounts to bypass SMTP spam filters
+            </p>
           </div>
         </form>
 

@@ -267,7 +267,7 @@ export const ReportBugModal: React.FC<ReportBugModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/80 backdrop-blur-md overflow-y-auto">
-      <div className="bg-card border border-border rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col my-auto animate-in fade-in zoom-in-95 duration-200">
+      <div className="mobile-dialog-panel bg-card border border-border rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl flex flex-col my-auto animate-in fade-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="mobile-dialog-heading px-6 py-5 border-b border-border flex items-center justify-between bg-card">
           <div className="flex items-center gap-3">
