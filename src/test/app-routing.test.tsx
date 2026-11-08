@@ -14,4 +14,12 @@ describe("App routing", () => {
 
     expect(matches.at(-1)?.routeId).not.toBe(rootRouteId);
   });
+
+  it("matches the /r/$ route for recruiter radar redirect tokens", () => {
+    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+
+    const matches = router.matchRoutes("/r/tr_test_token_123");
+
+    expect(matches.at(-1)?.routeId).toContain("/r/$");
+  });
 });
