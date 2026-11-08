@@ -19,6 +19,7 @@ import {
   Radio,
   ShieldCheck,
   Shield,
+  Flame,
 } from 'lucide-react';
 import { TailoredResumeData, WorkExperience } from '../data/defaultData';
 import { getUserMasterProfile } from '../data/candidateProfiles';
@@ -29,6 +30,9 @@ import { maskResumePii } from '../utils/piiRedactor';
 import { scoreAtsReadiness } from '../utils/atsReadinessScorer';
 import { AtsReadinessDrawer } from './AtsReadinessDrawer';
 import { RecruiterRadarModal } from './RecruiterRadarModal';
+import { generateRecruiterRoast } from '../utils/recruiterRoast';
+import { RecruiterRoastModal } from './RecruiterRoastModal';
+import { detectMissingHaveSkills, injectMissingHaveSkill } from '../utils/missingHaveIntelligence';
 import {
   getSavedExperienceBank,
   saveExperienceBank,
@@ -104,6 +108,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
   const [isRadarModalOpen, setIsRadarModalOpen] = useState(false);
   const [isPrivacyMasked, setIsPrivacyMasked] = useState(false);
   const [isAtsDrawerOpen, setIsAtsDrawerOpen] = useState(false);
+  const [isRoastModalOpen, setIsRoastModalOpen] = useState(false);
   const [experienceBank, setExperienceBank] = useState<EvidenceAtom[]>(() => {
     const saved = getSavedExperienceBank();
     if (saved.length > 0) return saved;
@@ -150,6 +155,10 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
       ? jobTitle.split(/[\s/–—,-]+/).filter((t) => t.length > 2)
       : [];
     return scoreAtsReadiness(displayedResume, targetKeywords);
+  }, [displayedResume, jobTitle]);
+
+  const roastAnalysis = React.useMemo(() => {
+    return generateRecruiterRoast(displayedResume, jobTitle || 'Target Role');
   }, [displayedResume, jobTitle]);
 
   const handleDownloadPdf = async () => {
@@ -454,6 +463,17 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
           >
             <Shield className={`w-3.5 h-3.5 ${isPrivacyMasked ? 'text-brand' : 'text-subtle'}`} />
             <span>{isPrivacyMasked ? 'Privacy Shield: ON' : 'Privacy Shield: OFF'}</span>
+          </button>
+
+          {/* Recruiter 6-Second Roast Mode */}
+          <button
+            type="button"
+            onClick={() => setIsRoastModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 font-semibold transition-all duration-200 cursor-pointer shadow-xs"
+            title="Open Recruiter 6-Second Roast diagnostic and Signal-to-Fluff scoring"
+          >
+            <Flame className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+            <span>6-Second Roast ({roastAnalysis.signalToFluffScore}/100)</span>
           </button>
 
           {/* Copy Plaintext */}
@@ -1179,6 +1199,14 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
         jobTitle={jobTitle}
         targetLinkedInUrl={resume.linkedin}
         targetPortfolioUrl={resume.portfolio}
+      />
+
+      {/* Recruiter 6-Second Roast Modal */}
+      <RecruiterRoastModal
+        isOpen={isRoastModalOpen}
+        onClose={() => setIsRoastModalOpen(false)}
+        roast={roastAnalysis}
+        targetRole={jobTitle || 'Target Role'}
       />
     </div>
   );

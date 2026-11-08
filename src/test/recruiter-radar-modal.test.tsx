@@ -106,3 +106,4 @@ describe('RecruiterRadarModal Component & Tracer Engine', () => {
     expect(res).toContain('/r/tr_');
   });
 });
+

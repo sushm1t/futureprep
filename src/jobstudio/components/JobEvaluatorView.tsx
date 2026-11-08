@@ -22,6 +22,7 @@ import {
   Award,
   BookOpen,
   Clock,
+  ShieldAlert,
   Target,
   TrendingUp,
   Milestone,
@@ -72,6 +73,10 @@ import { extractProfileSearchContext } from '../utils/profileSearchContext';
 import { MarketIntelligenceModal } from './MarketIntelligenceModal';
 import { resolveAtsFromUrl } from '../utils/atsUrlResolver';
 import { getRoleKeywordExpansions, normalizeRoleTitle } from '../utils/roleExpansion';
+import { findSkillAdjacency } from '../utils/skillAdjacency';
+import { detectMissingHaveSkills, injectMissingHaveSkill } from '../utils/missingHaveIntelligence';
+import { calculateOptimalDeliveryWindow } from '../utils/deliveryWindow';
+import { analyzeTrueRequisitionAge } from '../utils/freshnessSentinel';
 
 export const ALL_DISCIPLINE_DEFINITIONS = [
   { id: 'Engineering', label: '💻 Engineering' },
@@ -3161,7 +3166,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   <h2 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
                     {evaluation.job_title}
                   </h2>
-                  <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 font-medium">
+                  <div className="text-xs sm:text-sm text-muted-foreground flex items-center gap-2 font-medium flex-wrap">
                     <span className="text-foreground font-semibold">{evaluation.company_name}</span>
                     {evaluation.location_info && (
                       <>
@@ -3169,6 +3174,53 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                         <span>{evaluation.location_info}</span>
                       </>
                     )}
+
+                    {/* Phase 3: Optimal Application Delivery Window Badge */}
+                    {(() => {
+                      const loc = evaluation.location_info || (activeOpportunity as any)?.location || selectedAtsLocation;
+                      const windowInfo = calculateOptimalDeliveryWindow(loc);
+                      return (
+                        <div
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                            windowInfo.tier === 'optimal'
+                              ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                              : windowInfo.tier === 'good'
+                              ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30'
+                              : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                          }`}
+                          title={`${windowInfo.recommendation} — ${windowInfo.recruiterInsight}`}
+                        >
+                          <Clock className="w-3 h-3" />
+                          <span>{windowInfo.badgeText}</span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Phase 4: Fake Freshness & True Age Sentinel Badge */}
+                    {(() => {
+                      if (!activeOpportunity && !evaluation.job_title) return null;
+                      const sentinel = analyzeTrueRequisitionAge(activeOpportunity || {
+                        title: evaluation.job_title,
+                        company: evaluation.company_name,
+                        rawDescription: evaluation.job_description,
+                      });
+                      if (!sentinel.isBumped && sentinel.estimatedDaysOpen <= 30) return null;
+                      return (
+                        <div
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
+                            sentinel.badgeVariant === 'warning'
+                              ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                              : sentinel.badgeVariant === 'danger'
+                              ? 'bg-rose-500/10 text-rose-400 border-rose-500/30'
+                              : 'bg-surface border-border text-subtle'
+                          }`}
+                          title={sentinel.diagnosticExplanation}
+                        >
+                          <ShieldAlert className="w-3 h-3" />
+                          <span>{sentinel.badgeLabel}</span>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
               </div>
@@ -3595,6 +3647,53 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                                   </span>
                                   <span>{gap.where_to_work}</span>
                                 </div>
+
+                                {/* Phase 1: Transferable Skill Adjacency Engine */}
+                                {(() => {
+                                  const adjacent = findSkillAdjacency(gap.missing, activeResume?.skills || []);
+                                  if (!adjacent) return null;
+                                  return (
+                                    <div className="mt-2 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-xs text-foreground space-y-1">
+                                      <span className="text-[10px] uppercase font-bold text-emerald-400 font-mono flex items-center gap-1">
+                                        <Sparkles className="w-3 h-3 text-emerald-400" />
+                                        <span>Transferable Equivalent: {adjacent.candidateSkill} ({Math.round(adjacent.transferabilityScore * 100)}% Match)</span>
+                                      </span>
+                                      <p className="text-[11px] text-muted-foreground leading-relaxed">
+                                        {adjacent.bridgingStatement}
+                                      </p>
+                                    </div>
+                                  );
+                                })()}
+
+                                {/* Phase 2: Missing-Have Intelligence (1-Click Inject) */}
+                                {(() => {
+                                  const missingHaves = detectMissingHaveSkills([gap.missing], masterProfileText, activeResume?.skills || []);
+                                  if (missingHaves.length === 0) return null;
+                                  const item = missingHaves[0];
+                                  return (
+                                    <div className="mt-2 p-2.5 rounded-lg bg-brand/10 border border-brand/25 text-xs text-foreground flex items-center justify-between gap-2">
+                                      <div className="min-w-0 flex-1">
+                                        <span className="text-[10px] uppercase font-bold text-brand font-mono block">
+                                          Verified in Master Profile
+                                        </span>
+                                        <span className="text-[11px] text-muted-foreground truncate block">
+                                          "{item.evidenceQuote}"
+                                        </span>
+                                      </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          const updated = injectMissingHaveSkill(activeResume, item);
+                                          activeSetResume(updated);
+                                        }}
+                                        className="px-2.5 py-1 rounded-lg bg-brand text-brand-foreground hover:bg-brand/90 text-[10px] font-semibold shrink-0 cursor-pointer shadow-2xs"
+                                        title="Add this verified skill from your master profile into your active draft"
+                                      >
+                                        + 1-Click Add
+                                      </button>
+                                    </div>
+                                  );
+                                })()}
                               </li>
                             ))
                           ) : (

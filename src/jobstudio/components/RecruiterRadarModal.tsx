@@ -336,3 +336,4 @@ export const RecruiterRadarModal: React.FC<RecruiterRadarModalProps> = ({
     </div>
   );
 };
+
