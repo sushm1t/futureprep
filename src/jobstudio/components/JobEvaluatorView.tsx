@@ -71,6 +71,58 @@ import { extractProfileSearchContext } from '../utils/profileSearchContext';
 import { MarketIntelligenceModal } from './MarketIntelligenceModal';
 import { resolveAtsFromUrl } from '../utils/atsUrlResolver';
 
+export const ALL_DISCIPLINE_DEFINITIONS = [
+  { id: 'Engineering', label: '💻 Engineering' },
+  { id: 'Product & Design', label: '🎨 Product & Design' },
+  { id: 'Data & AI', label: '🤖 Data & AI' },
+  { id: 'Operations & Strategy', label: '⚙️ Operations & Corporate' },
+  { id: 'Sales & Growth', label: '📈 Sales / Growth' },
+  { id: 'Healthcare', label: '🩺 Healthcare & Clinical' },
+  { id: 'Trades', label: '🔧 Skilled Trades & Construction' },
+  { id: 'Logistics', label: '🚛 Logistics & Transport' },
+  { id: 'Hospitality', label: '🛎️ Hospitality & Services' },
+];
+
+export function matchesDiscipline(
+  job: { title?: string; department?: string; rawDescription?: string },
+  deptId: string
+): boolean {
+  if (!deptId || deptId === 'All') return true;
+  const text = `${job.title || ''} ${job.department || ''}`.toLowerCase();
+
+  switch (deptId) {
+    case 'Engineering':
+      return /software|engineer|developer|frontend|backend|full\s*stack|devops|infrastructure|sre|platform|architect|systems|mobile|ios|android|cloud|mechanical|piping|electrical|civil|chemical|cad|structural|hardware|embedded|firmware|industrial|automation|process|plant|instrumentation/i.test(text);
+
+    case 'Product & Design':
+      return /product manager|product management|designer|design|ux|ui|\bpm\b|creative|art director|cad|drafting|modeler|piping\s*designer/i.test(text);
+
+    case 'Data & AI':
+      return /data|\bai\b|machine learning|\bml\b|deep learning|researcher|scientist|analytics|prompt|llm|nlp|computer vision/i.test(text);
+
+    case 'Operations & Strategy':
+      return /operations|operational|support|specialist|analyst|coordinator|program manager|project manager|bizops|strategy|supply chain|hr|finance|procurement/i.test(text);
+
+    case 'Sales & Growth':
+      return /sales|account|customer success|growth|marketing|bdr|sdr|revops|business development/i.test(text);
+
+    case 'Healthcare':
+      return /medical|laboratory|technologist|technician|hospital|clinic|clinical|nurse|nursing|phlebotomy|pathology|biochem|hematology|health|doctor|pharma|apheresis|caregiver/i.test(text);
+
+    case 'Trades':
+      return /plumb|electric|carpenter|welder|hvac|mechanic|mason|painter|pipefitter|machinist|construction|roofer|handyman|technician|fitter|fabricator|foreman|site supervisor/i.test(text);
+
+    case 'Logistics':
+      return /truck|driver|transport|freight|logistics|warehouse|forklift|courier|dispatch|fleet|delivery|cdl|shipping|receiving|material handler/i.test(text);
+
+    case 'Hospitality':
+      return /chef|cook|hotel|hospitality|barista|waiter|steward|housekeeping|restaurant|catering|retail|cashier|store|customer service|front desk|concierge|bartender|facilities/i.test(text);
+
+    default:
+      return true;
+  }
+}
+
 
 interface JobEvaluatorViewProps {
   evaluation: JobEvaluationData;
@@ -893,7 +945,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
   const profileTerms = useMemo(() => buildProfileTerms(masterProfileText), [masterProfileText]);
   const hasProfile = profileTerms.size > 0;
 
-  const baseFilteredAtsJobs = useMemo(() => {
+  const candidateJobsBeforeDiscipline = useMemo(() => {
     return atsJobs.filter((job) => {
       // 1. Seniority filter
       if (selectedSeniority !== 'All' && job.seniority !== selectedSeniority) {
@@ -1085,29 +1137,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             (cleanQ && text.includes(cleanQ)) ||
             (tokens.length > 0 && tokens.some((t) => text.includes(t)));
           if (!matches) return false;
-        }
-      }
-      // 5. Discipline / Department filter
-      if (selectedDepartment !== 'All') {
-        const text = `${job.title || ''} ${job.department || ''}`.toLowerCase();
-        if (selectedDepartment === 'Engineering') {
-          if (!/software|engineer|developer|frontend|backend|full\s*stack|devops|infrastructure|sre|platform|architect|systems|mobile|ios|android|cloud/i.test(text)) return false;
-        } else if (selectedDepartment === 'Trades') {
-          if (!/plumb|electric|carpenter|welder|hvac|mechanic|mason|painter|pipefitter|machinist|construction|roofer|handyman|technician|fitter|fabricator|foreman|site supervisor/i.test(text)) return false;
-        } else if (selectedDepartment === 'Logistics') {
-          if (!/truck|driver|transport|freight|logistics|warehouse|forklift|courier|dispatch|fleet|delivery|cdl|shipping|receiving|material handler/i.test(text)) return false;
-        } else if (selectedDepartment === 'Hospitality') {
-          if (!/chef|cook|hotel|hospitality|barista|waiter|steward|housekeeping|restaurant|catering|retail|cashier|store|customer service|front desk|concierge|bartender|facilities/i.test(text)) return false;
-        } else if (selectedDepartment === 'Product & Design') {
-          if (!/product manager|product management|designer|design|ux|ui|\bpm\b|creative|art director/i.test(text)) return false;
-        } else if (selectedDepartment === 'Operations & Strategy') {
-          if (!/operations|operational|support|specialist|analyst|coordinator|program manager|project manager|bizops|strategy|supply chain|hr|finance|procurement/i.test(text)) return false;
-        } else if (selectedDepartment === 'Data & AI') {
-          if (!/data|\bai\b|machine learning|\bml\b|deep learning|researcher|scientist|analytics|prompt|llm/i.test(text)) return false;
-        } else if (selectedDepartment === 'Sales & Growth') {
-          if (!/sales|account|customer success|growth|marketing|bdr|sdr|revops|business development/i.test(text)) return false;
-        } else if (selectedDepartment === 'Healthcare') {
-          if (!/medical|laboratory|technologist|technician|hospital|clinic|clinical|nurse|nursing|phlebotomy|pathology|biochem|hematology|health|doctor|pharma|apheresis|caregiver/i.test(text)) return false;
         }
       }
 
@@ -1306,7 +1335,64 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
       return true;
     });
-  }, [atsJobs, selectedSeniority, selectedWorkplace, selectedAtsLocation, atsKeyword, selectedDepartment, advancedFilters]);
+  }, [atsJobs, selectedSeniority, selectedWorkplace, selectedAtsLocation, atsKeyword, advancedFilters, hasProfile, profileSearchContext]);
+
+  // Candidate pool in current view (Best Matches vs All Open Roles) before discipline filtering
+  const candidatePoolForCurrentView = useMemo(() => {
+    if (hasProfile && !showAllRoles) {
+      return candidateJobsBeforeDiscipline.filter((job) => {
+        const score = scoreJobAgainstProfile(job, profileTerms);
+        return (score || 0) >= PROFILE_MATCH_THRESHOLD;
+      });
+    }
+    return candidateJobsBeforeDiscipline;
+  }, [candidateJobsBeforeDiscipline, hasProfile, showAllRoles, profileTerms]);
+
+  // Available disciplines dynamically calculated from current candidate pool (only show disciplines with > 0 jobs)
+  const availableDisciplines = useMemo(() => {
+    if (candidatePoolForCurrentView.length === 0) {
+      return [{ id: 'All', label: 'All Roles', count: 0 }];
+    }
+
+    const counts: Record<string, number> = {};
+    for (const job of candidatePoolForCurrentView) {
+      for (const def of ALL_DISCIPLINE_DEFINITIONS) {
+        if (matchesDiscipline(job, def.id)) {
+          counts[def.id] = (counts[def.id] || 0) + 1;
+        }
+      }
+    }
+
+    const matching = ALL_DISCIPLINE_DEFINITIONS
+      .filter((def) => (counts[def.id] || 0) > 0)
+      .map((def) => ({
+        ...def,
+        count: counts[def.id],
+      }));
+
+    return [
+      { id: 'All', label: 'All Roles', count: candidatePoolForCurrentView.length },
+      ...matching,
+    ];
+  }, [candidatePoolForCurrentView]);
+
+  // If active selectedDepartment is no longer available in current view, reset to 'All'
+  useEffect(() => {
+    if (selectedDepartment !== 'All') {
+      const exists = availableDisciplines.some((d) => d.id === selectedDepartment);
+      if (!exists) {
+        setSelectedDepartment('All');
+      }
+    }
+  }, [availableDisciplines, selectedDepartment]);
+
+  // Base filtered ATS jobs (applying selected discipline)
+  const baseFilteredAtsJobs = useMemo(() => {
+    if (selectedDepartment === 'All') {
+      return candidateJobsBeforeDiscipline;
+    }
+    return candidateJobsBeforeDiscipline.filter((job) => matchesDiscipline(job, selectedDepartment));
+  }, [candidateJobsBeforeDiscipline, selectedDepartment]);
 
   // Score every fetched role against the Master Profile; by default show only matching roles, best first.
   const scoredAtsJobs = useMemo(
@@ -2199,38 +2285,36 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 </div>
               </div>
 
-              {/* Quick Discipline Filter Bar (LinkedIn style) */}
-              <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-xs no-scrollbar">
-                <span className="text-[11px] text-subtle uppercase tracking-wider font-semibold mr-1 shrink-0">Discipline:</span>
-                {[
-                  { id: 'All', label: 'All Roles' },
-                  { id: 'Trades', label: '🔧 Skilled Trades & Construction' },
-                  { id: 'Logistics', label: '🚛 Logistics & Transport' },
-                  { id: 'Hospitality', label: '🛎️ Hospitality & Services' },
-                  { id: 'Healthcare', label: '🩺 Healthcare & Clinical' },
-                  { id: 'Engineering', label: '💻 Engineering' },
-                  { id: 'Data & AI', label: '🤖 Data & AI' },
-                  { id: 'Product & Design', label: '🎨 Product & Design' },
-                  { id: 'Operations & Strategy', label: '⚙️ Operations & Corporate' },
-                  { id: 'Sales & Growth', label: '📈 Sales / Growth' },
-                ].map((dept) => {
-                  const isActive = selectedDepartment === dept.id;
-                  return (
-                    <button
-                      key={dept.id}
-                      type="button"
-                      onClick={() => setSelectedDepartment(dept.id)}
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
-                        isActive
-                          ? 'bg-primary text-primary-foreground shadow-2xs font-semibold'
-                          : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border border-border/60'
-                      }`}
-                    >
-                      {dept.label}
-                    </button>
-                  );
-                })}
-              </div>
+              {/* Quick Discipline Filter Bar (dynamically populated from matching roles) */}
+              {availableDisciplines.length > 1 && (
+                <div className="flex items-center gap-1.5 overflow-x-auto py-1 text-xs no-scrollbar">
+                  <span className="text-[11px] text-subtle uppercase tracking-wider font-semibold mr-1 shrink-0">Discipline:</span>
+                  {availableDisciplines.map((dept) => {
+                    const isActive = selectedDepartment === dept.id;
+                    return (
+                      <button
+                        key={dept.id}
+                        type="button"
+                        onClick={() => setSelectedDepartment(dept.id)}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap transition-all cursor-pointer shrink-0 ${
+                          isActive
+                            ? 'bg-primary text-primary-foreground shadow-2xs font-semibold'
+                            : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border border-border/60'
+                        }`}
+                      >
+                        {dept.label}
+                        {dept.count !== undefined && (
+                          <span className={`ml-1.5 text-[10px] font-mono px-1.5 py-0.2 rounded-full ${
+                            isActive ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-surface-2 text-subtle'
+                          }`}>
+                            {dept.count}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* Results rows */}
               <div className="workspace-job-results grid grid-cols-1 gap-2 max-h-[520px] overflow-y-auto">
@@ -3849,29 +3933,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 <span><strong className="text-foreground">1-click tailored resume</strong> & behavioral STAR questions</span>
               </li>
             </ul>
-          </div>
-
-          <div className="pt-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              type="button"
-              onClick={() => {
-                setSearchExpanded(true);
-                setIsCustomJdOpen(true);
-                setTimeout(() => {
-                  const el = document.getElementById('custom-jd-accordion');
-                  if (el) {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    const input = el.querySelector<HTMLInputElement | HTMLTextAreaElement>('input, textarea');
-                    if (input) input.focus();
-                  }
-                }, 50);
-              }}
-              className="gap-2 text-brand text-xs font-semibold cursor-pointer hover:bg-brand/10"
-            >
-              Import a job description <ArrowRight className="w-3.5 h-3.5" />
-            </Button>
           </div>
         </div>
       )}

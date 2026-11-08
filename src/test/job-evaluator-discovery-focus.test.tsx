@@ -115,19 +115,17 @@ describe('JobEvaluatorView Two-Stage Architecture', () => {
     expect(body.location).toBe('India');
   });
 
-  it('opens custom job description accordion when clicking Import a job description in empty state', () => {
+  it('allows expanding and using custom job description accordion on the left side', () => {
     window.HTMLElement.prototype.scrollIntoView = vi.fn();
 
     render(<JobEvaluatorView {...mockProps} />);
-
-    const importBtn = screen.getByRole('button', { name: /Import a job description/i });
-    expect(importBtn).toBeInTheDocument();
 
     const accordion = document.getElementById('custom-jd-accordion');
     expect(accordion).toBeInTheDocument();
     expect(accordion).not.toHaveAttribute('open');
 
-    fireEvent.click(importBtn);
+    const summary = screen.getByText(/Or paste a custom job description/i);
+    fireEvent.click(summary);
 
     expect(accordion).toHaveAttribute('open');
   });

@@ -79,7 +79,8 @@ describe('Task 7: JobEvaluatorView Modern 2-Pane Master-Detail Cockpit', () => {
     expect(
       screen.getByText(/Select a position from the live feed or import your custom job description/i)
     ).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /Import a job description/i })).toBeInTheDocument();
+    expect(screen.getByText(/What you'll see upon selecting a role/i)).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Import a job description/i })).not.toBeInTheDocument();
   });
 
   it('renders Action Dossier in the right pane with sticky positioning and mobile back button when a role is active', () => {
