@@ -1567,7 +1567,31 @@ async function fetchLiveAtsCatalogueJobs(
 
       const dept = item.enrichment?.category || 'Tech & Operations';
       const { score, highlight } = calculateCandidateMatch(title, dept, desc);
-      const platformName = item.source ? item.source.toUpperCase() : 'DIRECT ATS';
+      const rawSource = (item.source || '').toLowerCase();
+      const platformName =
+        rawSource === 'workday' ? 'WORKDAY' :
+        rawSource === 'oracle' || rawSource === 'oracle_hcm' ? 'ORACLE HCM' :
+        rawSource === 'successfactors' || rawSource === 'sap' ? 'SAP SUCCESSFACTORS' :
+        rawSource === 'smartrecruiters' ? 'SMARTRECRUITERS' :
+        rawSource === 'adp' ? 'ADP WORKFORCE' :
+        rawSource === 'greenhouse' ? 'GREENHOUSE' :
+        rawSource === 'ukg' || rawSource === 'kronos' ? 'UKG / KRONOS' :
+        rawSource === 'icims' ? 'iCIMS' :
+        rawSource === 'teamtailor' ? 'TEAMTAILOR' :
+        rawSource === 'taleo' ? 'TALEO' :
+        rawSource === 'ashby' ? 'ASHBY' :
+        rawSource === 'lever' ? 'LEVER' :
+        rawSource === 'bamboohr' ? 'BAMBOOHR' :
+        rawSource === 'personio' ? 'PERSONIO' :
+        rawSource === 'francetravail' ? 'FRANCE TRAVAIL' :
+        rawSource === 'whatjobs' ? 'WHATJOBS' :
+        rawSource === 'eures' ? 'EURES' :
+        rawSource === 'join' ? 'JOIN.COM' :
+        rawSource === 'xing' ? 'XING' :
+        rawSource === 'welcometothejungle' || rawSource === 'wttj' ? 'WELCOME TO THE JUNGLE' :
+        rawSource === 'remotive' ? 'REMOTIVE' :
+        rawSource === 'arbeitnow' ? 'ARBEITNOW' :
+        item.source ? item.source.toUpperCase() : 'DIRECT ATS';
 
       // Salary Extraction & Multi-Currency Formatting
       let salary = '';
@@ -1739,6 +1763,80 @@ async function fetchRemotiveJobs(query?: string, limitCount = 80): Promise<any[]
   } catch (err) {
     console.warn('Remotive fetch warning:', err);
     return remotiveCache ? remotiveCache.jobs.slice(0, limitCount) : [];
+  }
+}
+
+// Arbeitnow Public Remote & Tech Jobs Ingestion & In-Memory Cache
+let arbeitnowCache: { timestamp: number; jobs: any[] } | null = null;
+
+async function fetchArbeitnowJobs(query?: string, limitCount = 60): Promise<any[]> {
+  try {
+    const now = Date.now();
+    if (arbeitnowCache && now - arbeitnowCache.timestamp < 10 * 60 * 1000 && (!query || !query.trim())) {
+      return arbeitnowCache.jobs.slice(0, limitCount);
+    }
+    const res = await fetch('https://www.arbeitnow.com/api/job-board-api', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
+        Accept: 'application/json',
+      },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) return arbeitnowCache ? arbeitnowCache.jobs.slice(0, limitCount) : [];
+    const json = await res.json();
+    const data = Array.isArray(json?.data) ? json.data : [];
+    const mapped = data.map((j: any) => {
+      const title = j.title || 'Specialist';
+      const company = j.company_name || 'Enterprise';
+      const desc = cleanHtmlText(j.description || '');
+      const isRem = Boolean(j.remote);
+      const loc = j.location || (isRem ? 'Remote' : 'Hybrid / Global');
+      const { score, highlight } = calculateCandidateMatch(title, 'Tech & Engineering', desc);
+      return {
+        id: `arb-${j.slug || Math.random().toString(36).substring(2, 8)}`,
+        originalId: j.slug || '',
+        title,
+        company,
+        location: loc,
+        department: 'Tech & Engineering',
+        platform: 'ARBEITNOW DIRECT',
+        applyUrl: j.url,
+        publishedAt: j.created_at ? new Date(j.created_at * 1000).toISOString() : new Date().toISOString(),
+        descriptionSnippet: desc.slice(0, 300),
+        rawDescription: desc,
+        isRemote: isRem,
+        workplaceType: isRem ? ('Remote' as const) : ('Hybrid' as const),
+        seniority: extractSeniorityLevel(title, desc),
+        skills: Array.isArray(j.tags) ? j.tags.slice(0, 5) : [],
+        matchScore: score,
+        matchHighlight: highlight,
+        verifiedLive: true,
+        ghostSignal: {
+          level: 'none',
+          label: 'Direct ATS Verified',
+          badge: 'emerald',
+          ageDays: 14,
+          isVerifiedDirect: true,
+        },
+      };
+    });
+    if (!query || !query.trim()) {
+      arbeitnowCache = { timestamp: now, jobs: mapped };
+    }
+    if (query && query.trim()) {
+      const qLow = query.toLowerCase();
+      return mapped
+        .filter(
+          (j) =>
+            j.title.toLowerCase().includes(qLow) ||
+            j.company.toLowerCase().includes(qLow) ||
+            j.rawDescription.toLowerCase().includes(qLow)
+        )
+        .slice(0, limitCount);
+    }
+    return mapped.slice(0, limitCount);
+  } catch (err) {
+    return arbeitnowCache ? arbeitnowCache.jobs.slice(0, limitCount) : [];
   }
 }
 
@@ -1974,6 +2072,7 @@ app.post('/api/ats/crawl', async (req, res) => {
         }
       );
       const remotivePromise = fetchRemotiveJobs(cleanKeyword || undefined, 60);
+      const arbeitnowPromise = fetchArbeitnowJobs(cleanKeyword || undefined, 50);
 
       // 2. Query top corporate ATS platforms concurrently
       const providers = [
@@ -2005,9 +2104,10 @@ app.post('/api/ats/crawl', async (req, res) => {
         { name: 'Cohere', url: 'https://api.ashbyhq.com/posting-api/job-board/cohere', ats: 'Ashby' },
       ];
 
-      const [fhResult, remotiveResult, ...fetchedResults] = await Promise.allSettled([
+      const [fhResult, remotiveResult, arbeitnowResult, ...fetchedResults] = await Promise.allSettled([
         cataloguePromise,
         remotivePromise,
+        arbeitnowPromise,
         ...providers.map(async (p) => {
           const r = await fetch(p.url, { headers: fetchHeaders, signal: AbortSignal.timeout(3500) });
           if (!r.ok) return [];
@@ -2110,6 +2210,10 @@ app.post('/api/ats/crawl', async (req, res) => {
 
       if (remotiveResult.status === 'fulfilled' && Array.isArray(remotiveResult.value)) {
         rawJobs.push(...remotiveResult.value);
+      }
+
+      if (arbeitnowResult.status === 'fulfilled' && Array.isArray(arbeitnowResult.value)) {
+        rawJobs.push(...arbeitnowResult.value);
       }
 
       for (const res of fetchedResults) {

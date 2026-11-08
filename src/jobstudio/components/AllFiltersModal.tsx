@@ -21,7 +21,6 @@ import {
   Zap,
 } from 'lucide-react';
 import {
-  ALL_JOB_SOURCES,
   ALL_SPECIALIZATION_GROUPS,
   ALL_INDUSTRIES,
   ALL_VC_COLLECTIONS,
@@ -31,7 +30,6 @@ import {
   EMPLOYMENT_TYPES,
   POPULAR_LOCATIONS,
   POPULAR_SKILLS,
-  JobSourceEntry,
 } from '../data/jobFiltersData';
 
 export interface FilterState {
@@ -87,7 +85,6 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
   const [draftFilters, setDraftFilters] = useState<FilterState>(initialFilters);
   const [activeTab, setActiveTab] = useState<TabKey>('specialization');
   const [filterSearch, setFilterSearch] = useState<string>('');
-  const [sourceSearch, setSourceSearch] = useState<string>('');
   const [specSearch, setSpecSearch] = useState<string>('');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
     engineering: true,
@@ -98,23 +95,6 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
   if (!isOpen) return null;
 
   // Toggle helpers
-  const toggleSource = (sourceId: string) => {
-    setDraftFilters((prev) => {
-      const exists = prev.sources.includes(sourceId);
-      const updated = exists ? prev.sources.filter((s) => s !== sourceId) : [...prev.sources, sourceId];
-      return { ...prev, sources: updated };
-    });
-  };
-
-  const selectAllAtsSources = () => {
-    const atsIds = ALL_JOB_SOURCES.filter((s) => s.kind === 'ats').map((s) => s.id);
-    setDraftFilters((prev) => ({ ...prev, sources: Array.from(new Set([...prev.sources, ...atsIds])) }));
-  };
-
-  const clearAllSources = () => {
-    setDraftFilters((prev) => ({ ...prev, sources: [] }));
-  };
-
   const toggleSpecialization = (specId: string) => {
     setDraftFilters((prev) => {
       const exists = prev.specializations.includes(specId);
@@ -178,18 +158,6 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
     if (draftFilters.minSalary) count += 1;
     return count;
   }, [draftFilters]);
-
-  // Sources filtered by type & search
-  const visibleSources = useMemo(() => {
-    return ALL_JOB_SOURCES.filter((s) => {
-      if (draftFilters.sourceType !== 'all' && s.kind !== draftFilters.sourceType) return false;
-      if (sourceSearch.trim()) {
-        const q = sourceSearch.toLowerCase().trim();
-        return s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q);
-      }
-      return true;
-    });
-  }, [draftFilters.sourceType, sourceSearch]);
 
   const handleApply = () => {
     onApplyFilters(draftFilters);
@@ -395,24 +363,6 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
               {(draftFilters.industries.length > 0 || draftFilters.collections.length > 0) && (
                 <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
                   {draftFilters.industries.length + draftFilters.collections.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('source')}
-              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
-                activeTab === 'source' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Zap className="w-3.5 h-3.5" />
-                <span>Source & ATS</span>
-              </span>
-              {draftFilters.sources.length > 0 && (
-                <span className="px-1.5 py-0.5 rounded-full bg-brand text-[10px] font-bold text-white">
-                  {draftFilters.sources.length}
                 </span>
               )}
             </button>
@@ -778,110 +728,6 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
                       );
                     })}
                   </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB: SOURCE & ATS */}
-            {activeTab === 'source' && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-semibold mb-1">ATS & Direct Hiring Source Platforms</h3>
-                  <p className="text-xs text-subtle">
-                    Search across 55+ official corporate Applicant Tracking Systems (Workday, Oracle HCM, SAP, SmartRecruiters, Greenhouse, etc.) indexing over 4.89M+ verified requisitions.
-                  </p>
-                </div>
-
-                {/* Source Type Pills */}
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap gap-1.5 p-1 bg-surface rounded-xl">
-                    {(
-                      [
-                        { id: 'all', label: 'All Sources' },
-                        { id: 'ats', label: 'Enterprise ATS' },
-                        { id: 'company', label: 'Company Boards' },
-                        { id: 'aggregator', label: 'Public & Regional' },
-                        { id: 'social', label: 'Social' },
-                      ] as const
-                    ).map((st) => (
-                      <button
-                        key={st.id}
-                        type="button"
-                        onClick={() => setDraftFilters((prev) => ({ ...prev, sourceType: st.id }))}
-                        className={`px-3 py-1 rounded-lg text-xs font-medium transition-all cursor-pointer ${
-                          draftFilters.sourceType === st.id
-                            ? 'bg-card text-brand font-semibold shadow-sm'
-                            : 'text-subtle hover:text-foreground'
-                        }`}
-                      >
-                        {st.label}
-                      </button>
-                    ))}
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={selectAllAtsSources}
-                      className="px-2.5 py-1 text-[11px] font-medium text-brand hover:underline cursor-pointer"
-                    >
-                      Select all ATS
-                    </button>
-                    {draftFilters.sources.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={clearAllSources}
-                        className="px-2.5 py-1 text-[11px] font-medium text-subtle hover:text-foreground cursor-pointer"
-                      >
-                        Clear sources ({draftFilters.sources.length})
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-                {/* Source Search Bar */}
-                <div className="relative">
-                  <Search className="w-3.5 h-3.5 text-subtle absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={sourceSearch}
-                    onChange={(e) => setSourceSearch(e.target.value)}
-                    placeholder="Search 55+ hiring sources (e.g. Workday, Oracle, SAP, Greenhouse)..."
-                    className="w-full pl-9 pr-3 py-2 bg-surface border border-transparent focus:border-brand rounded-xl text-xs outline-none transition-all placeholder:text-subtle"
-                  />
-                </div>
-
-                {/* Grid of Sources */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                  {visibleSources.map((source) => {
-                    const isSelected = draftFilters.sources.includes(source.id);
-                    return (
-                      <button
-                        key={source.id}
-                        type="button"
-                        onClick={() => toggleSource(source.id)}
-                        className={`flex items-center justify-between p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-primary/15 border-primary/40 text-brand font-semibold'
-                            : 'bg-surface hover:bg-surface-2 border-transparent text-subtle hover:text-foreground'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 min-w-0 pr-1">
-                          <div
-                            className={`w-3.5 h-3.5 rounded flex items-center justify-center border transition-colors shrink-0 ${
-                              isSelected ? 'bg-brand border-brand text-white' : 'border-subtle/50 bg-card'
-                            }`}
-                          >
-                            {isSelected && <Check className="w-2.5 h-2.5 stroke-[3]" />}
-                          </div>
-                          <span className="truncate font-medium text-foreground">{source.name}</span>
-                        </div>
-                        <span className="text-[10px] text-subtle shrink-0 font-normal">
-                          {source.openJobsApprox}
-                        </span>
-                      </button>
-                    );
-                  })}
                 </div>
               </div>
             )}

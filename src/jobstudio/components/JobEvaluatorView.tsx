@@ -49,7 +49,6 @@ import {
   XCircle,
 } from 'lucide-react';
 import { AllFiltersModal, FilterState } from './AllFiltersModal';
-import { ALL_JOB_SOURCES } from '../data/jobFiltersData';
 import { evaluateHardConstraints, HardConstraintReport } from '../utils/hardConstraints';
 import { detectGhostJobSignal, GhostSignal } from '../utils/ghostJobDetector';
 import { generateAtsApplicationDossier, getSavedScreeningAnswers } from '../utils/screeningAnswerBank';
@@ -438,7 +437,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   // Freehire 55+ ATS & Multi-Filter States
   const [isAllFiltersOpen, setIsAllFiltersOpen] = useState<boolean>(false);
-  const [selectedQuickSource, setSelectedQuickSource] = useState<string>('all');
   const [advancedFilters, setAdvancedFilters] = useState<FilterState>({
     sources: [],
     sourceType: 'all',
@@ -455,7 +453,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   const activeFiltersBadgeCount = useMemo(() => {
     let count = 0;
-    if (selectedQuickSource !== 'all') count += 1;
     if (advancedFilters.sources.length > 0) count += advancedFilters.sources.length;
     if (advancedFilters.sourceType !== 'all') count += 1;
     if (advancedFilters.specializations.length > 0) count += advancedFilters.specializations.length;
@@ -469,7 +466,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     if (selectedWorkplace !== 'All') count += 1;
     if (selectedAtsLocation !== 'All') count += 1;
     return count;
-  }, [selectedQuickSource, advancedFilters, selectedSeniority, selectedWorkplace, selectedAtsLocation]);
+  }, [advancedFilters, selectedSeniority, selectedWorkplace, selectedAtsLocation]);
 
   const handleCrawlAts = async (
     companyInputOverride?: string,
@@ -497,10 +494,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     const currentKeyword = keywordOverride !== undefined ? keywordOverride : (atsKeyword || profileSearchContext.targetRole);
 
     const mergedFilters = { ...advancedFilters, ...filtersOverride };
-    let sourcesToSend = mergedFilters.sources && mergedFilters.sources.length > 0 ? mergedFilters.sources : undefined;
-    if (!sourcesToSend && selectedQuickSource !== 'all') {
-      sourcesToSend = [selectedQuickSource];
-    }
+    const sourcesToSend = mergedFilters.sources && mergedFilters.sources.length > 0 ? mergedFilters.sources : undefined;
 
     try {
       const res = await fetch('/api/ats/crawl', {
@@ -1084,11 +1078,10 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         }
       }
 
-      // 6. Source Filter (from Quick Source dropdown or All Filters)
-      const effectiveSources = advancedFilters.sources.length > 0 ? advancedFilters.sources : (selectedQuickSource !== 'all' ? [selectedQuickSource] : []);
-      if (effectiveSources.length > 0) {
+      // 6. Source Filter (from All Filters if applied)
+      if (advancedFilters.sources.length > 0) {
         const plat = ((job as any).sourceId || job.platform || '').toLowerCase();
-        const matchesSource = effectiveSources.some((s) => plat.includes(s.toLowerCase()));
+        const matchesSource = advancedFilters.sources.some((s) => plat.includes(s.toLowerCase()));
         if (!matchesSource) return false;
       }
 
@@ -1101,7 +1094,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
       return true;
     });
-  }, [atsJobs, selectedSeniority, selectedWorkplace, selectedAtsLocation, atsKeyword, selectedDepartment, advancedFilters, selectedQuickSource]);
+  }, [atsJobs, selectedSeniority, selectedWorkplace, selectedAtsLocation, atsKeyword, selectedDepartment, advancedFilters]);
 
   // Score every fetched role against the Master Profile; by default show only matching roles, best first.
   const scoredAtsJobs = useMemo(
@@ -1572,48 +1565,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 </span>
               )}
             </button>
-
-            {/* Quick Source Selector Dropdown */}
-            <div className="relative shrink-0">
-              <select
-                value={selectedQuickSource}
-                onChange={(e) => {
-                  const s = e.target.value;
-                  setSelectedQuickSource(s);
-                  const newSources = s !== 'all' ? [s] : [];
-                  setAdvancedFilters((prev) => ({ ...prev, sources: newSources }));
-                  handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { sources: newSources });
-                }}
-                className="appearance-none pl-3 pr-7 py-1.5 bg-surface hover:bg-surface-2 text-foreground font-medium rounded-xl text-xs outline-none cursor-pointer border border-transparent focus:border-brand transition-all"
-              >
-                <option value="all">⚡ All Sources (4.8M+)</option>
-                <option disabled>── Top ATS Engines ──</option>
-                <option value="workday">Workday (1.2M+)</option>
-                <option value="oracle">Oracle HCM (1.3M+)</option>
-                <option value="successfactors">SAP SuccessFactors (480k+)</option>
-                <option value="smartrecruiters">SmartRecruiters (400k+)</option>
-                <option value="adp">ADP Workforce (560k+)</option>
-                <option value="greenhouse">Greenhouse (240k+)</option>
-                <option value="ukg">UKG / Kronos (330k+)</option>
-                <option value="icims">iCIMS (170k+)</option>
-                <option value="teamtailor">Teamtailor (170k+)</option>
-                <option value="taleo">Taleo Enterprise (110k+)</option>
-                <option value="ashby">Ashby (76k+)</option>
-                <option value="lever">Lever (82k+)</option>
-                <option value="bamboohr">BambooHR (79k+)</option>
-                <option value="personio">Personio (49k+)</option>
-                <option disabled>── Public & Regional ──</option>
-                <option value="francetravail">France Travail (155k+)</option>
-                <option value="whatjobs">WhatJobs (41k+)</option>
-                <option value="eures">EURES Europe (37k+)</option>
-                <option value="join">Join.com (21k+)</option>
-                <option value="xing">XING (18k+)</option>
-                <option value="welcometothejungle">Welcome to the Jungle (17k+)</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-subtle">
-                <ChevronDown className="h-3 w-3" />
-              </div>
-            </div>
 
             {/* Seniority */}
             <div className="relative shrink-0">
