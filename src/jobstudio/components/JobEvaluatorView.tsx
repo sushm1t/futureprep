@@ -41,7 +41,10 @@ import {
   Share2,
   Copy,
   Check,
+  SlidersHorizontal,
 } from 'lucide-react';
+import { AllFiltersModal, FilterState } from './AllFiltersModal';
+import { ALL_JOB_SOURCES } from '../data/jobFiltersData';
 import {
   JobEvaluationData,
   JobOpportunity,
@@ -424,13 +427,49 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
   const [isDirectCopied, setIsDirectCopied] = useState<boolean>(false);
   const [isListCopied, setIsListCopied] = useState<boolean>(false);
 
+  // Freehire 55+ ATS & Multi-Filter States
+  const [isAllFiltersOpen, setIsAllFiltersOpen] = useState<boolean>(false);
+  const [selectedQuickSource, setSelectedQuickSource] = useState<string>('all');
+  const [advancedFilters, setAdvancedFilters] = useState<FilterState>({
+    sources: [],
+    sourceType: 'all',
+    specializations: [],
+    seniority: 'All',
+    workplace: 'All',
+    employmentType: 'all',
+    location: 'All',
+    postedWithin: 'all',
+    industries: [],
+    collections: [],
+    skills: [],
+  });
+
+  const activeFiltersBadgeCount = useMemo(() => {
+    let count = 0;
+    if (selectedQuickSource !== 'all') count += 1;
+    if (advancedFilters.sources.length > 0) count += advancedFilters.sources.length;
+    if (advancedFilters.sourceType !== 'all') count += 1;
+    if (advancedFilters.specializations.length > 0) count += advancedFilters.specializations.length;
+    if (advancedFilters.industries.length > 0) count += advancedFilters.industries.length;
+    if (advancedFilters.collections.length > 0) count += advancedFilters.collections.length;
+    if (advancedFilters.skills.length > 0) count += advancedFilters.skills.length;
+    if (advancedFilters.postedWithin && advancedFilters.postedWithin !== 'all') count += 1;
+    if (advancedFilters.employmentType && advancedFilters.employmentType !== 'all') count += 1;
+    if (advancedFilters.minSalary) count += 1;
+    if (selectedSeniority !== 'All') count += 1;
+    if (selectedWorkplace !== 'All') count += 1;
+    if (selectedAtsLocation !== 'All') count += 1;
+    return count;
+  }, [selectedQuickSource, advancedFilters, selectedSeniority, selectedWorkplace, selectedAtsLocation]);
+
   const handleCrawlAts = async (
     companyInputOverride?: string,
     seniorityOverride?: SeniorityFilter,
     workplaceOverride?: WorkplaceFilter,
     locationOverride?: string,
     keywordOverride?: string,
-    isLoadMore: boolean = false
+    isLoadMore: boolean = false,
+    filtersOverride?: Partial<FilterState>
   ) => {
     if (isLoadMore) {
       setIsLoadingMore(true);
@@ -448,6 +487,12 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     const currentLocation = locationOverride !== undefined ? locationOverride : (selectedAtsLocation || profileSearchContext.location || 'All');
     const currentKeyword = keywordOverride !== undefined ? keywordOverride : (atsKeyword || profileSearchContext.targetRole);
 
+    const mergedFilters = { ...advancedFilters, ...filtersOverride };
+    let sourcesToSend = mergedFilters.sources && mergedFilters.sources.length > 0 ? mergedFilters.sources : undefined;
+    if (!sourcesToSend && selectedQuickSource !== 'all') {
+      sourcesToSend = [selectedQuickSource];
+    }
+
     try {
       const res = await fetch('/api/ats/crawl', {
         method: 'POST',
@@ -461,6 +506,11 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           limit: 400,
           offset: isLoadMore ? atsJobs.length : 0,
           profileContext: profileSearchContext,
+          sources: sourcesToSend,
+          sourceType: mergedFilters.sourceType !== 'all' ? mergedFilters.sourceType : undefined,
+          category: mergedFilters.specializations?.length ? mergedFilters.specializations.join(',') : undefined,
+          domain: mergedFilters.industries?.length ? mergedFilters.industries.join(',') : undefined,
+          collection: mergedFilters.collections?.length ? mergedFilters.collections.join(',') : undefined,
         }),
       });
       const data = await res.json();
@@ -544,6 +594,57 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       setIsCrawlingAts(false);
       setIsLoadingMore(false);
     }
+  };
+
+  const handleApplyAllFilters = (newFilters: FilterState) => {
+    setAdvancedFilters(newFilters);
+    if (newFilters.sources.length === 1) {
+      setSelectedQuickSource(newFilters.sources[0]);
+    } else if (newFilters.sources.length === 0) {
+      setSelectedQuickSource('all');
+    }
+    if (newFilters.seniority && newFilters.seniority !== 'All') {
+      setSelectedSeniority(newFilters.seniority as SeniorityFilter);
+    }
+    if (newFilters.workplace && newFilters.workplace !== 'All') {
+      setSelectedWorkplace(newFilters.workplace as WorkplaceFilter);
+    }
+    if (newFilters.location && newFilters.location !== 'All') {
+      setSelectedAtsLocation(newFilters.location);
+    }
+    handleCrawlAts(
+      undefined,
+      newFilters.seniority as SeniorityFilter,
+      newFilters.workplace as WorkplaceFilter,
+      newFilters.location,
+      undefined,
+      false,
+      newFilters
+    );
+  };
+
+  const handleResetAllFilters = () => {
+    setSelectedQuickSource('all');
+    setSelectedSeniority('All');
+    setSelectedWorkplace('All');
+    setSelectedAtsLocation('All');
+    setSelectedDepartment('All');
+    setAtsKeyword('');
+    const emptyFilters: FilterState = {
+      sources: [],
+      sourceType: 'all',
+      specializations: [],
+      seniority: 'All',
+      workplace: 'All',
+      employmentType: 'all',
+      location: 'All',
+      postedWithin: 'all',
+      industries: [],
+      collections: [],
+      skills: [],
+    };
+    setAdvancedFilters(emptyFilters);
+    handleCrawlAts(undefined, 'All', 'All', 'All', '', false, emptyFilters);
   };
 
   useEffect(() => {
@@ -945,9 +1046,25 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           if (!/medical|laboratory|technologist|technician|hospital|clinic|clinical|nurse|nursing|phlebotomy|pathology|biochem|hematology|health|doctor|pharma|apheresis|caregiver/i.test(text)) return false;
         }
       }
+
+      // 6. Source Filter (from Quick Source dropdown or All Filters)
+      const effectiveSources = advancedFilters.sources.length > 0 ? advancedFilters.sources : (selectedQuickSource !== 'all' ? [selectedQuickSource] : []);
+      if (effectiveSources.length > 0) {
+        const plat = ((job as any).sourceId || job.platform || '').toLowerCase();
+        const matchesSource = effectiveSources.some((s) => plat.includes(s.toLowerCase()));
+        if (!matchesSource) return false;
+      }
+
+      // 7. Skills Filter
+      if (advancedFilters.skills.length > 0) {
+        const jobText = `${job.title} ${job.descriptionSnippet || ''} ${job.rawDescription || ''} ${(job.skills || []).join(' ')}`.toLowerCase();
+        const matchesSkill = advancedFilters.skills.some((sk) => jobText.includes(sk.toLowerCase()));
+        if (!matchesSkill) return false;
+      }
+
       return true;
     });
-  }, [atsJobs, selectedSeniority, selectedWorkplace, selectedAtsLocation, atsKeyword, selectedDepartment]);
+  }, [atsJobs, selectedSeniority, selectedWorkplace, selectedAtsLocation, atsKeyword, selectedDepartment, advancedFilters, selectedQuickSource]);
 
   // Score every fetched role against the Master Profile; by default show only matching roles, best first.
   const scoredAtsJobs = useMemo(
@@ -1404,6 +1521,63 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
               <span>Filter By:</span>
             </div>
 
+            {/* All Filters Deep Modal Trigger */}
+            <button
+              type="button"
+              onClick={() => setIsAllFiltersOpen(true)}
+              className="inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-brand border border-primary/30 font-medium rounded-xl text-xs transition-all cursor-pointer shadow-xs"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5 text-brand" />
+              <span className="font-semibold">All Filters</span>
+              {activeFiltersBadgeCount > 0 && (
+                <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
+                  {activeFiltersBadgeCount}
+                </span>
+              )}
+            </button>
+
+            {/* Quick Source Selector Dropdown */}
+            <div className="relative shrink-0">
+              <select
+                value={selectedQuickSource}
+                onChange={(e) => {
+                  const s = e.target.value;
+                  setSelectedQuickSource(s);
+                  const newSources = s !== 'all' ? [s] : [];
+                  setAdvancedFilters((prev) => ({ ...prev, sources: newSources }));
+                  handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { sources: newSources });
+                }}
+                className="appearance-none pl-3 pr-7 py-1.5 bg-surface hover:bg-surface-2 text-foreground font-medium rounded-xl text-xs outline-none cursor-pointer border border-transparent focus:border-brand transition-all"
+              >
+                <option value="all">⚡ All Sources (4.8M+)</option>
+                <option disabled>── Top ATS Engines ──</option>
+                <option value="workday">Workday (1.2M+)</option>
+                <option value="oracle">Oracle HCM (1.3M+)</option>
+                <option value="successfactors">SAP SuccessFactors (480k+)</option>
+                <option value="smartrecruiters">SmartRecruiters (400k+)</option>
+                <option value="adp">ADP Workforce (560k+)</option>
+                <option value="greenhouse">Greenhouse (240k+)</option>
+                <option value="ukg">UKG / Kronos (330k+)</option>
+                <option value="icims">iCIMS (170k+)</option>
+                <option value="teamtailor">Teamtailor (170k+)</option>
+                <option value="taleo">Taleo Enterprise (110k+)</option>
+                <option value="ashby">Ashby (76k+)</option>
+                <option value="lever">Lever (82k+)</option>
+                <option value="bamboohr">BambooHR (79k+)</option>
+                <option value="personio">Personio (49k+)</option>
+                <option disabled>── Public & Regional ──</option>
+                <option value="francetravail">France Travail (155k+)</option>
+                <option value="whatjobs">WhatJobs (41k+)</option>
+                <option value="eures">EURES Europe (37k+)</option>
+                <option value="join">Join.com (21k+)</option>
+                <option value="xing">XING (18k+)</option>
+                <option value="welcometothejungle">Welcome to the Jungle (17k+)</option>
+              </select>
+              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-subtle">
+                <ChevronDown className="h-3 w-3" />
+              </div>
+            </div>
+
             {/* Seniority */}
             <div className="relative shrink-0">
               <select
@@ -1477,16 +1651,10 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             </div>
 
             {/* Reset Filters Shortcut */}
-            {(selectedSeniority !== 'All' || selectedWorkplace !== 'All' || selectedAtsLocation !== 'All' || selectedDepartment !== 'All' || atsKeyword.trim()) && (
+            {(activeFiltersBadgeCount > 0 || atsKeyword.trim()) && (
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedSeniority('All');
-                  setSelectedWorkplace('All');
-                  setSelectedAtsLocation('All');
-                  setSelectedDepartment('All');
-                  setAtsKeyword('');
-                }}
+                onClick={handleResetAllFilters}
                 className="text-[11px] font-semibold text-brand hover:text-brand px-2.5 py-1 rounded-lg hover:bg-brand/10 transition-colors cursor-pointer"
               >
                 Reset Filters
@@ -3539,6 +3707,17 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           </div>
         </div>
       )}
+
+      {/* All Filters Deep Modal */}
+      <AllFiltersModal
+        isOpen={isAllFiltersOpen}
+        onClose={() => setIsAllFiltersOpen(false)}
+        filters={advancedFilters}
+        onApplyFilters={handleApplyAllFilters}
+        onResetFilters={handleResetAllFilters}
+        totalCatalogueJobs={totalInCatalogue}
+        candidateProfileContext={profileSearchContext}
+      />
     </div>
   );
 };

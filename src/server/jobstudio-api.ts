@@ -1400,13 +1400,50 @@ async function fetchLiveAtsCatalogueJobs(
   query?: string | string[],
   limitCount = 350,
   startOffset = 0,
-  targetLocation?: string
+  targetLocation?: string,
+  extraFilters?: {
+    sources?: string[] | string;
+    sourceType?: string;
+    category?: string;
+    domain?: string;
+    collection?: string;
+    seniority?: string;
+    workMode?: string;
+  }
 ): Promise<any[]> {
   try {
     const rawQueries = Array.isArray(query) ? query.filter(Boolean) : [query || ''];
     const queries = rawQueries.length > 0 ? rawQueries : [''];
     const pageSize = 100;
     const locationParams = mapLocationToFreehireParams(targetLocation);
+
+    let filterParams = '';
+    if (extraFilters) {
+      if (extraFilters.sources) {
+        const s = Array.isArray(extraFilters.sources) ? extraFilters.sources.filter(Boolean).join(',') : String(extraFilters.sources).trim();
+        if (s && s !== 'all') {
+          filterParams += `&source=${encodeURIComponent(s)}`;
+        }
+      }
+      if (extraFilters.sourceType && extraFilters.sourceType !== 'all') {
+        filterParams += `&source_type=${encodeURIComponent(extraFilters.sourceType)}`;
+      }
+      if (extraFilters.category && extraFilters.category !== 'all') {
+        filterParams += `&category=${encodeURIComponent(extraFilters.category)}`;
+      }
+      if (extraFilters.domain && extraFilters.domain !== 'all') {
+        filterParams += `&domains=${encodeURIComponent(extraFilters.domain)}`;
+      }
+      if (extraFilters.collection && extraFilters.collection !== 'all') {
+        filterParams += `&collections=${encodeURIComponent(extraFilters.collection)}`;
+      }
+      if (extraFilters.seniority && extraFilters.seniority !== 'All' && extraFilters.seniority !== 'all') {
+        filterParams += `&seniority=${encodeURIComponent(extraFilters.seniority.toLowerCase())}`;
+      }
+      if (extraFilters.workMode && extraFilters.workMode !== 'All' && extraFilters.workMode !== 'all') {
+        filterParams += `&work_mode=${encodeURIComponent(extraFilters.workMode.toLowerCase())}`;
+      }
+    }
 
     // Calculate pages per query to reach desired batch size
     const pagesPerQuery = Math.max(1, Math.min(Math.ceil(limitCount / (pageSize * queries.length)), 4));
@@ -1417,10 +1454,10 @@ async function fetchLiveAtsCatalogueJobs(
       for (let p = 0; p < pagesPerQuery; p++) {
         const offset = startOffset + p * pageSize;
         const trimmed = q.trim();
-        // Use fast indexed /api/v1/jobs/search endpoint with location parameters
+        // Use fast indexed /api/v1/jobs/search endpoint with location parameters & filters
         const url = trimmed
-          ? `https://freehire.me/api/v1/jobs/search?q=${encodeURIComponent(trimmed)}&limit=${pageSize}&offset=${offset}${locationParams}`
-          : `https://freehire.me/api/v1/jobs/search?limit=${pageSize}&offset=${offset}${locationParams}`;
+          ? `https://freehire.me/api/v1/jobs/search?q=${encodeURIComponent(trimmed)}&limit=${pageSize}&offset=${offset}${locationParams}${filterParams}`
+          : `https://freehire.me/api/v1/jobs/search?limit=${pageSize}&offset=${offset}${locationParams}${filterParams}`;
 
         fetchTasks.push(
           (async () => {
@@ -1573,6 +1610,7 @@ async function fetchLiveAtsCatalogueJobs(
         location: displayLoc,
         department: dept,
         platform: platformName,
+        sourceId: item.source || '',
         applyUrl: item.url,
         publishedAt: item.posted_at || item.created_at,
         descriptionSnippet: desc.slice(0, 300),
@@ -1685,7 +1723,21 @@ app.get('/api/ats/companies', (req, res) => {
 // Endpoint: Direct ATS Crawler (fetches directly from unauthenticated ATS APIs)
 app.post('/api/ats/crawl', async (req, res) => {
   try {
-    const { input = 'all', keyword, location, seniority = 'All', workplaceType = 'All', limit = 400, offset = 0, profileContext } = req.body;
+    const {
+      input = 'all',
+      keyword,
+      location,
+      seniority = 'All',
+      workplaceType = 'All',
+      limit = 400,
+      offset = 0,
+      profileContext,
+      sources,
+      sourceType,
+      category,
+      domain,
+      collection,
+    } = req.body;
 
     const fetchHeaders = {
       'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -1880,7 +1932,16 @@ app.post('/api/ats/crawl', async (req, res) => {
         searchQueries.length > 0 ? searchQueries : undefined,
         catalogueLimit,
         Number(offset) || 0,
-        normalizedLoc || location
+        normalizedLoc || location,
+        {
+          sources,
+          sourceType,
+          category,
+          domain,
+          collection,
+          seniority: seniority !== 'All' ? seniority : undefined,
+          workMode: workplaceType !== 'All' ? workplaceType : undefined,
+        }
       );
       const remotivePromise = fetchRemotiveJobs(cleanKeyword || undefined, 60);
 
@@ -2298,6 +2359,19 @@ app.post('/api/ats/crawl', async (req, res) => {
         });
       } else {
         filtered = filtered.filter((j) => j.workplaceType === workplaceType);
+      }
+    }
+
+    // Filter by Source if requested
+    if (sources) {
+      const sourceList = (Array.isArray(sources) ? sources : String(sources).split(','))
+        .map((s) => s.toLowerCase().trim())
+        .filter(Boolean);
+      if (sourceList.length > 0 && !sourceList.includes('all')) {
+        filtered = filtered.filter((j) => {
+          const sId = (j.sourceId || j.platform || '').toLowerCase();
+          return sourceList.some((s) => sId.includes(s));
+        });
       }
     }
 
