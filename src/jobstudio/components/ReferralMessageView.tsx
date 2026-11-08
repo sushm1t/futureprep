@@ -389,53 +389,239 @@ ${forwardableBlurb}
         </div>
       </div>
 
-      {/* Relationship Preset Selector */}
-      <div className="space-y-2">
-        <label className="text-xs font-semibold text-foreground flex items-center justify-between">
-          <span>Choose Outreach Scenario:</span>
-          <span className="text-[11px] text-muted-foreground font-normal">
-            Customizes the tone, formality, and ask
-          </span>
-        </label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-          {RELATIONSHIP_PRESETS.map((preset) => {
-            const isSelected = relationship === preset.id;
-            const Icon = preset.icon;
-            return (
-              <button
-                key={preset.id}
-                type="button"
-                onClick={() => {
-                  setRelationship(preset.id);
-                  setCustomMessage(null); // Switch to the selected preset's template
-                }}
-                className={`p-3.5 rounded-xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
-                  isSelected
-                    ? 'bg-card border-brand shadow-xs ring-1 ring-brand/50'
-                    : 'bg-surface hover:bg-surface-2 border-border text-muted-foreground hover:text-foreground'
-                }`}
+      {/* UNIFIED OUTREACH SCENARIO & ONE-CLICK LINKEDIN FINDER */}
+      <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 space-y-4 shadow-xs" data-testid="linkedin-finder-panel">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-[#0077B5]/10 text-[#0077B5] flex items-center justify-center shrink-0">
+              <Linkedin className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xs sm:text-sm font-semibold text-foreground">
+                  One-Click LinkedIn Connection Finder
+                </h3>
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-success/10 text-success font-semibold">
+                  Zero Scraping · 100% Safe
+                </span>
+              </div>
+              <p className="text-[11px] text-muted-foreground mt-0.5">
+                Select your outreach scenario below to calibrate message tone, and click any card to find targeted contacts at <strong className="text-foreground">{activeComp}</strong> inside your actual network.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Card 1: Former Colleague / Friend */}
+          <div
+            className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
+              relationship === 'colleague'
+                ? 'bg-surface-2/80 border-brand shadow-xs ring-1 ring-brand/40'
+                : 'bg-surface hover:bg-surface-2 border-border'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setRelationship('colleague');
+                setCustomMessage(null);
+              }}
+              className="text-left w-full cursor-pointer space-y-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                  relationship === 'colleague' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
+                }`}>
+                  <Users className="w-3.5 h-3.5" />
+                </div>
+                <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded font-mono ${
+                  relationship === 'colleague' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
+                }`}>
+                  Warm Outreach
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs font-semibold text-foreground">Former Colleague / Friend</h4>
+                <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                  Warm, direct, and high-trust
+                </p>
+              </div>
+            </button>
+            <div className="pt-2 border-t border-border/60">
+              <a
+                href={linkedinMutualsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="linkedin-search-mutuals"
+                className="inline-flex items-center justify-between w-full text-[11px] font-semibold text-brand hover:text-[#0077B5] transition-colors group cursor-pointer"
+                title={`Find 2nd-degree mutual connections at ${activeComp} on LinkedIn`}
               >
-                <div className="flex items-center justify-between gap-2">
-                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                    isSelected ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
-                  }`}>
-                    <Icon className="w-3.5 h-3.5" />
-                  </div>
-                  <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded ${
-                    isSelected ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
-                  }`}>
-                    {preset.badge}
-                  </span>
+                <span>Find Mutuals on LinkedIn</span>
+                <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-[#0077B5] group-hover:translate-x-0.5 transition-all shrink-0" />
+              </a>
+            </div>
+          </div>
+
+          {/* Card 2: LinkedIn / 2nd Degree */}
+          <div
+            className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
+              relationship === 'linkedin'
+                ? 'bg-surface-2/80 border-brand shadow-xs ring-1 ring-brand/40'
+                : 'bg-surface hover:bg-surface-2 border-border'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setRelationship('linkedin');
+                setCustomMessage(null);
+              }}
+              className="text-left w-full cursor-pointer space-y-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                  relationship === 'linkedin' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
+                }`}>
+                  <Briefcase className="w-3.5 h-3.5" />
                 </div>
-                <div>
-                  <h4 className="text-xs font-semibold text-foreground">{preset.label}</h4>
-                  <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
-                    {preset.subtitle}
-                  </p>
+                <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded font-mono ${
+                  relationship === 'linkedin' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
+                }`}>
+                  Cold / 2nd Degree
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs font-semibold text-foreground">LinkedIn / 2nd Degree</h4>
+                <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                  Polite, professional &amp; low-pressure
+                </p>
+              </div>
+            </button>
+            <div className="pt-2 border-t border-border/60">
+              <a
+                href={linkedinMutualsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-between w-full text-[11px] font-semibold text-brand hover:text-[#0077B5] transition-colors group cursor-pointer"
+                title={`Find 2nd-degree connections at ${activeComp} on LinkedIn`}
+              >
+                <span>Find 2nd-Degree Network</span>
+                <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-[#0077B5] group-hover:translate-x-0.5 transition-all shrink-0" />
+              </a>
+            </div>
+          </div>
+
+          {/* Card 3: School / Alumni Network */}
+          <div
+            className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
+              relationship === 'alumni'
+                ? 'bg-surface-2/80 border-brand shadow-xs ring-1 ring-brand/40'
+                : 'bg-surface hover:bg-surface-2 border-border'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setRelationship('alumni');
+                setCustomMessage(null);
+              }}
+              className="text-left w-full cursor-pointer space-y-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                  relationship === 'alumni' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
+                }`}>
+                  <GraduationCap className="w-3.5 h-3.5" />
                 </div>
-              </button>
-            );
-          })}
+                <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded font-mono ${
+                  relationship === 'alumni' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
+                }`}>
+                  Affinity Match
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs font-semibold text-foreground">School / Alumni Network</h4>
+                <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                  Shared alma mater or affinity group
+                </p>
+              </div>
+            </button>
+            <div className="pt-2 border-t border-border/60">
+              <a
+                href={linkedinAlumniUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="linkedin-search-alumni"
+                className="inline-flex items-center justify-between w-full text-[11px] font-semibold text-amber-500 hover:text-amber-400 transition-colors group cursor-pointer"
+                title={`Find alumni at ${activeComp} on LinkedIn`}
+              >
+                <span className="truncate">School Alumni at {activeComp}</span>
+                <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-amber-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+              </a>
+            </div>
+          </div>
+
+          {/* Card 4: Hiring Manager Pitch */}
+          <div
+            className={`p-3.5 rounded-xl border transition-all flex flex-col justify-between gap-3 ${
+              relationship === 'manager'
+                ? 'bg-surface-2/80 border-brand shadow-xs ring-1 ring-brand/40'
+                : 'bg-surface hover:bg-surface-2 border-border'
+            }`}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setRelationship('manager');
+                setCustomMessage(null);
+              }}
+              className="text-left w-full cursor-pointer space-y-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                  relationship === 'manager' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
+                }`}>
+                  <Send className="w-3.5 h-3.5" />
+                </div>
+                <span className={`text-[10px] font-semibold uppercase px-1.5 py-0.5 rounded font-mono ${
+                  relationship === 'manager' ? 'bg-brand/10 text-brand' : 'bg-surface-2 text-subtle'
+                }`}>
+                  Direct Pitch
+                </span>
+              </div>
+              <div>
+                <h4 className="text-xs font-semibold text-foreground">Hiring Manager Pitch</h4>
+                <p className="text-[11px] text-muted-foreground line-clamp-1 mt-0.5">
+                  Direct, value-first elevator pitch
+                </p>
+              </div>
+            </button>
+            <div className="pt-2 border-t border-border/60 space-y-1">
+              <a
+                href={linkedinPeersUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="linkedin-search-peers"
+                className="inline-flex items-center justify-between w-full text-[11px] font-semibold text-brand hover:text-[#0077B5] transition-colors group cursor-pointer"
+                title={`Find ${activeRole} peers and team leads at ${activeComp} on LinkedIn`}
+              >
+                <span className="truncate">{activeRole} Peers &amp; Leads</span>
+                <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-[#0077B5] group-hover:translate-x-0.5 transition-all shrink-0" />
+              </a>
+              <a
+                href={linkedinRecruitersUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="linkedin-search-recruiters"
+                className="inline-flex items-center justify-between w-full text-[10px] font-semibold text-purple-400 hover:text-purple-300 transition-colors group cursor-pointer"
+                title={`Find recruiters and talent partners at ${activeComp} on LinkedIn`}
+              >
+                <span className="truncate">Recruiters &amp; Talent Partners</span>
+                <ExternalLink className="w-3 h-3 text-subtle group-hover:text-purple-300 group-hover:translate-x-0.5 transition-all shrink-0" />
+              </a>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -520,128 +706,6 @@ ${forwardableBlurb}
             />
           </div>
         )}
-      </div>
-
-      {/* ONE-CLICK LINKEDIN CONNECTION FINDER */}
-      <div className="bg-card rounded-2xl border border-border p-5 sm:p-6 space-y-4 shadow-xs" data-testid="linkedin-finder-panel">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-[#0077B5]/10 text-[#0077B5] flex items-center justify-center shrink-0">
-              <Linkedin className="w-4 h-4" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-xs sm:text-sm font-semibold text-foreground">
-                  One-Click LinkedIn Connection Finder
-                </h3>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-success/10 text-success font-semibold">
-                  Zero Scraping · 100% Safe
-                </span>
-              </div>
-              <p className="text-[11px] text-muted-foreground mt-0.5">
-                Targeted deep-links opening LinkedIn pre-filtered to employees, alumni, and recruiters at <strong className="text-foreground">{activeComp}</strong> inside your actual network.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {/* Card 1: 2nd-Degree Mutual Connections */}
-          <a
-            href={linkedinMutualsUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-testid="linkedin-search-mutuals"
-            className="p-3.5 rounded-xl border border-border bg-surface hover:bg-surface-2 hover:border-[#0077B5]/40 transition-all flex items-start justify-between gap-3 group cursor-pointer"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-[#0077B5]/10 text-[#0077B5] flex items-center justify-center shrink-0">
-                  <Users className="w-3.5 h-3.5" />
-                </div>
-                <h4 className="text-xs font-semibold text-foreground group-hover:text-[#0077B5] transition-colors">
-                  2nd-Degree Mutual Connections
-                </h4>
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed pl-8">
-                Employees at {activeComp} connected to people you know. Highest referral acceptance rate.
-              </p>
-            </div>
-            <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-[#0077B5] group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-          </a>
-
-          {/* Card 2: School & Alumni Network */}
-          <a
-            href={linkedinAlumniUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-testid="linkedin-search-alumni"
-            className="p-3.5 rounded-xl border border-border bg-surface hover:bg-surface-2 hover:border-[#0077B5]/40 transition-all flex items-start justify-between gap-3 group cursor-pointer"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0">
-                  <GraduationCap className="w-3.5 h-3.5" />
-                </div>
-                <h4 className="text-xs font-semibold text-foreground group-hover:text-[#0077B5] transition-colors">
-                  School Alumni at {activeComp}
-                </h4>
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed pl-8">
-                Filter by {sharedAffiliation || 'your university'} alumni currently working at {activeComp}.
-              </p>
-            </div>
-            <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-[#0077B5] group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-          </a>
-
-          {/* Card 3: Role Peers & Leads */}
-          <a
-            href={linkedinPeersUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-testid="linkedin-search-peers"
-            className="p-3.5 rounded-xl border border-border bg-surface hover:bg-surface-2 hover:border-[#0077B5]/40 transition-all flex items-start justify-between gap-3 group cursor-pointer"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-brand/10 text-brand flex items-center justify-center shrink-0">
-                  <Briefcase className="w-3.5 h-3.5" />
-                </div>
-                <h4 className="text-xs font-semibold text-foreground group-hover:text-[#0077B5] transition-colors">
-                  {activeRole} Peers &amp; Leads
-                </h4>
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed pl-8">
-                Find current team members and leads working in the same discipline at {activeComp}.
-              </p>
-            </div>
-            <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-[#0077B5] group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-          </a>
-
-          {/* Card 4: Recruiters & Talent Acquisition */}
-          <a
-            href={linkedinRecruitersUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-testid="linkedin-search-recruiters"
-            className="p-3.5 rounded-xl border border-border bg-surface hover:bg-surface-2 hover:border-[#0077B5]/40 transition-all flex items-start justify-between gap-3 group cursor-pointer"
-          >
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 rounded-md bg-purple-500/10 text-purple-500 flex items-center justify-center shrink-0">
-                  <Target className="w-3.5 h-3.5" />
-                </div>
-                <h4 className="text-xs font-semibold text-foreground group-hover:text-[#0077B5] transition-colors">
-                  Recruiters &amp; Talent Partners
-                </h4>
-              </div>
-              <p className="text-[11px] text-muted-foreground leading-relaxed pl-8">
-                Find in-house technical recruiters and hiring partners handling {activeComp} openings.
-              </p>
-            </div>
-            <ExternalLink className="w-3.5 h-3.5 text-subtle group-hover:text-[#0077B5] group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-          </a>
-        </div>
       </div>
 
       {/* Forwardable Blurb Card (High-Utility Feature) */}
