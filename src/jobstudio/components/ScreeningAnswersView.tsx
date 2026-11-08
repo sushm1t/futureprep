@@ -1138,8 +1138,8 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border pb-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="bg-success/10 text-success text-[11px] font-semibold rounded-md px-2 py-0.5 uppercase tracking-wider border border-success/30 flex items-center gap-1">
-                    <DollarSign className="w-3 h-3 text-success" />
+                  <span className="bg-brand/10 text-brand text-[11px] font-semibold rounded-md px-2 py-0.5 uppercase tracking-wider border border-brand/20 flex items-center gap-1 font-mono">
+                    <DollarSign className="w-3 h-3 text-brand" />
                     OFFER &amp; COMPENSATION COPILOT
                   </span>
                   <h3 className="font-display font-bold text-base text-foreground">
@@ -1161,7 +1161,7 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
                   value={offeredBase}
                   onChange={(e) => setOfferedBase(e.target.value)}
                   placeholder="e.g. $95,000"
-                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-success/20 focus:border-success/30"
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
                 />
               </div>
 
@@ -1172,7 +1172,7 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
                   value={targetBase}
                   onChange={(e) => setTargetBase(e.target.value)}
                   placeholder="e.g. $115,000"
-                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-success/20 focus:border-success/30"
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
                 />
               </div>
 
@@ -1185,7 +1185,7 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
                   value={benefitsInput}
                   onChange={(e) => setBenefitsInput(e.target.value)}
                   placeholder="e.g. Standard health, 15 days PTO, 401(k) match, 2,000 stock options"
-                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-success/20 focus:border-success/30"
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
                 />
               </div>
 
@@ -1209,7 +1209,7 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
                   value={leverageInput}
                   onChange={(e) => { leverageEditedRef.current = true; setLeverageInput(e.target.value); }}
                   placeholder="Your strongest achievements, certifications, or results from your Master Profile"
-                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-success/20 focus:border-success/30"
+                  className="w-full px-3.5 py-2 text-xs sm:text-sm bg-surface border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-brand/20 focus:border-brand"
                 />
               </div>
             </div>
@@ -1217,7 +1217,7 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
             <button
               onClick={handleGenerateNegotiation}
               disabled={isGeneratingOfferPrep}
-              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-success hover:bg-success text-primary-foreground font-semibold text-xs transition-colors shadow-sm disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs transition-colors shadow-xs disabled:opacity-50 flex items-center justify-center gap-2 cursor-pointer"
             >
               {isGeneratingOfferPrep ? (
                 <>
@@ -1235,11 +1235,11 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
             {offerPrepResult && (
               <div className="space-y-6 pt-2">
                 {/* Market Benchmark Insight */}
-                <div className="p-4 rounded-xl bg-success/10/60 border border-success/30 text-xs text-success flex items-start gap-2.5">
-                  <TrendingUp className="w-4 h-4 text-success mt-0.5 shrink-0" />
+                <div className="p-4 rounded-xl bg-brand/5 border border-brand/20 text-xs text-foreground flex items-start gap-2.5">
+                  <TrendingUp className="w-4 h-4 text-brand mt-0.5 shrink-0" />
                   <div>
-                    <span className="font-bold block">Market Benchmark Context:</span>
-                    <span>{offerPrepResult.market_benchmark_insight}</span>
+                    <span className="font-bold block text-foreground">Market Benchmark Context:</span>
+                    <span className="text-muted-foreground">{offerPrepResult.market_benchmark_insight}</span>
                   </div>
                 </div>
 
@@ -1283,7 +1283,7 @@ export const ScreeningAnswersView: React.FC<ScreeningAnswersViewProps> = ({
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <PhoneCall className="w-4 h-4 text-success" />
+                      <PhoneCall className="w-4 h-4 text-brand" />
                       <h4 className="text-xs font-bold text-foreground uppercase tracking-wider">
                         Live Phone Call Speaking Script &amp; Talking Track
                       </h4>
