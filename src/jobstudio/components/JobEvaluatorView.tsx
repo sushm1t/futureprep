@@ -1871,7 +1871,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                         {isDiscoveringWeb ? (
                           <>
                             <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                            <span>Searching real hospital & employer sites...</span>
+                            <span>Searching live {profileSearchContext.targetRole ? `${profileSearchContext.targetRole} openings...` : 'verified employer sites...'}</span>
                           </>
                         ) : (
                           <>
@@ -1939,7 +1939,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                       </p>
                       <div className="flex items-center justify-center gap-2 flex-wrap">
                         <a
-                          href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent((atsKeyword || profileSearchContext.targetRole || 'Medical Laboratory Technologist').trim())}&location=${encodeURIComponent(selectedAtsLocation !== 'All' ? selectedAtsLocation : (profileSearchContext.location || 'India'))}`}
+                          href={`https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent((atsKeyword || profileSearchContext.targetRole || 'Specialized Professional').trim())}&location=${encodeURIComponent(selectedAtsLocation !== 'All' ? selectedAtsLocation : (profileSearchContext.location || 'India'))}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-3 py-1.5 text-xs font-medium rounded-xl bg-card border border-border hover:border-primary/50 text-foreground hover:text-primary transition-all flex items-center gap-1.5 shadow-xs"
@@ -1949,7 +1949,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                           <ExternalLink className="w-3 h-3 opacity-60" />
                         </a>
                         <a
-                          href={`https://in.indeed.com/jobs?q=${encodeURIComponent((atsKeyword || profileSearchContext.targetRole || 'Medical Laboratory Technologist').trim())}&l=${encodeURIComponent(selectedAtsLocation !== 'All' ? selectedAtsLocation : (profileSearchContext.location || 'India'))}`}
+                          href={`https://in.indeed.com/jobs?q=${encodeURIComponent((atsKeyword || profileSearchContext.targetRole || 'Specialized Professional').trim())}&l=${encodeURIComponent(selectedAtsLocation !== 'All' ? selectedAtsLocation : (profileSearchContext.location || 'India'))}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-3 py-1.5 text-xs font-medium rounded-xl bg-card border border-border hover:border-primary/50 text-foreground hover:text-primary transition-all flex items-center gap-1.5 shadow-xs"
@@ -1959,7 +1959,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                           <ExternalLink className="w-3 h-3 opacity-60" />
                         </a>
                         <a
-                          href={`https://www.google.com/search?q=${encodeURIComponent((atsKeyword || profileSearchContext.targetRole || 'Medical Laboratory Technologist') + ' jobs in ' + (selectedAtsLocation !== 'All' ? selectedAtsLocation : (profileSearchContext.location || 'India')))}&ibp=htl;jobs`}
+                          href={`https://www.google.com/search?q=${encodeURIComponent((atsKeyword || profileSearchContext.targetRole || 'Specialized Professional') + ' jobs in ' + (selectedAtsLocation !== 'All' ? selectedAtsLocation : (profileSearchContext.location || 'India')))}&ibp=htl;jobs`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="px-3 py-1.5 text-xs font-medium rounded-xl bg-card border border-border hover:border-primary/50 text-foreground hover:text-primary transition-all flex items-center gap-1.5 shadow-xs"
