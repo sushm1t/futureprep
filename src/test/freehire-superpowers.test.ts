@@ -119,4 +119,90 @@ Please select a convenient time slot on my Calendly: https://calendly.com/recrui
       expect(token).toMatch(/^tr_[a-z0-9]+_[a-z0-9]+$/);
     });
   });
+
+  describe('Candidate-Centric Filtration & Eligibility Logic', () => {
+    const sampleJobs = [
+      {
+        id: 'job-1',
+        title: 'Senior Product Manager - Payments',
+        company: 'Stripe',
+        descriptionSnippet: 'Leading payment disputes product. 5+ years experience required. Comprehensive health insurance, 401(k) match, and generous equity. English fluent. Visa sponsorship available.',
+        skills: ['Product Strategy', 'SQL', 'FinTech'],
+      },
+      {
+        id: 'job-2',
+        title: 'Backend Engineer (Go)',
+        company: 'Monzo',
+        descriptionSnippet: 'Distributed banking systems. 3+ years experience. Remote stipend, unlimited PTO, and flexible hours. English and German preferred. Local work authorization required.',
+        skills: ['Go', 'Kubernetes', 'PostgreSQL'],
+      },
+      {
+        id: 'job-3',
+        title: 'Engineering Manager - Core Platform',
+        company: 'Figma',
+        descriptionSnippet: 'People manager leading 8 senior engineers. 8+ years experience. Relocation assistance package provided, full health coverage and stock options.',
+        skills: ['System Design', 'People Management', 'TypeScript'],
+      },
+    ];
+
+    it('filters by candidate product specialization accurately', () => {
+      const isProductManager = (j: typeof sampleJobs[0]) =>
+        /product\s*manag|group\s*pm|\bpm\b/i.test(`${j.title} ${j.descriptionSnippet}`);
+
+      const matching = sampleJobs.filter(isProductManager);
+      expect(matching.length).toBe(1);
+      expect(matching[0].company).toBe('Stripe');
+    });
+
+    it('filters by People Manager role type', () => {
+      const isPeopleManager = (j: typeof sampleJobs[0]) =>
+        /manager|director|lead/i.test(j.title);
+
+      const matching = sampleJobs.filter(isPeopleManager);
+      expect(matching.length).toBe(2); // Senior Product Manager, Engineering Manager
+      expect(matching.some((j) => j.title.includes('Engineering Manager'))).toBe(true);
+    });
+
+    it('evaluates benefits and perks in flexible vs mandatory strictness mode', () => {
+      const checkBenefits = (j: typeof sampleJobs[0], requiredBenefits: string[], isStrict: boolean) => {
+        const text = `${j.title} ${j.descriptionSnippet}`.toLowerCase();
+        const testBenefit = (b: string) => {
+          if (b === 'health_insurance') return /health|medical|insurance/i.test(text);
+          if (b === 'equity_stock') return /equity|stock/i.test(text);
+          if (b === 'remote_stipend') return /remote\s*stipend|wfh/i.test(text);
+          return false;
+        };
+
+        return isStrict
+          ? requiredBenefits.every(testBenefit)
+          : requiredBenefits.some(testBenefit);
+      };
+
+      // In flexible (any) mode: matches if job has health OR equity OR remote stipend
+      const flexible = sampleJobs.filter((j) => checkBenefits(j, ['health_insurance', 'remote_stipend'], false));
+      expect(flexible.length).toBe(3); // All 3 have either health or remote stipend
+
+      // In mandatory (all) mode: must have BOTH health AND equity
+      const mandatory = sampleJobs.filter((j) => checkBenefits(j, ['health_insurance', 'equity_stock'], true));
+      expect(mandatory.length).toBe(2); // Stripe and Figma have both; Monzo doesn't
+      expect(mandatory.map((j) => j.company)).toEqual(['Stripe', 'Figma']);
+    });
+
+    it('evaluates language requirements and visa sponsorship eligibility', () => {
+      const checkEligibility = (j: typeof sampleJobs[0], lang: string, visaNeeded: boolean) => {
+        const text = `${j.title} ${j.descriptionSnippet}`.toLowerCase();
+        const hasLang = text.includes(lang.toLowerCase());
+        const hasVisa = !visaNeeded || /visa\s*sponsor/i.test(text);
+        return hasLang && hasVisa;
+      };
+
+      const germanJobs = sampleJobs.filter((j) => checkEligibility(j, 'German', false));
+      expect(germanJobs.length).toBe(1);
+      expect(germanJobs[0].company).toBe('Monzo');
+
+      const visaSponsorJobs = sampleJobs.filter((j) => checkEligibility(j, 'English', true));
+      expect(visaSponsorJobs.length).toBe(1);
+      expect(visaSponsorJobs[0].company).toBe('Stripe');
+    });
+  });
 });

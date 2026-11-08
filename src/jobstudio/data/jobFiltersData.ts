@@ -145,6 +145,12 @@ export const ALL_SPECIALIZATION_GROUPS: SpecializationGroup[] = [
     label: 'Product & Management',
     items: [
       { id: 'product_manager', label: 'Product Manager', countApprox: '14,200' },
+      { id: 'technical_pm', label: 'Technical Product Manager (TPM)', countApprox: '6,400' },
+      { id: 'growth_pm', label: 'Growth Product Manager', countApprox: '4,100' },
+      { id: 'ai_pm', label: 'AI Product Manager', countApprox: '3,200' },
+      { id: 'senior_pm', label: 'Senior Product Manager', countApprox: '9,800' },
+      { id: 'group_pm', label: 'Group / Director of Product', countApprox: '2,900' },
+      { id: 'associate_pm', label: 'Associate PM (APM)', countApprox: '1,800' },
       { id: 'program_manager', label: 'Program Manager', countApprox: '16,500' },
       { id: 'product_operations', label: 'Product Operations', countApprox: '3,800' },
       { id: 'scrum_master', label: 'Scrum / Agile Coach', countApprox: '2,400' },
@@ -199,24 +205,42 @@ export interface IndustryItem {
 }
 
 export const ALL_INDUSTRIES: IndustryItem[] = [
-  { id: 'fintech', label: 'FinTech & Payments', countApprox: '45k+' },
-  { id: 'ai', label: 'Artificial Intelligence', countApprox: '18k+' },
-  { id: 'healthcare', label: 'Healthcare & HealthTech', countApprox: '15k+' },
-  { id: 'ecommerce', label: 'E-Commerce & Retail', countApprox: '12k+' },
-  { id: 'devtools', label: 'DevTools & Cloud Infra', countApprox: '10k+' },
-  { id: 'cybersecurity', label: 'Cybersecurity', countApprox: '8k+' },
-  { id: 'logistics', label: 'Logistics, Supply & Freight', countApprox: '9k+' },
-  { id: 'travel', label: 'Travel, Hospitality & Tourism', countApprox: '5k+' },
-  { id: 'climatetech', label: 'ClimateTech & Green Energy', countApprox: '6k+' },
-  { id: 'edtech', label: 'EdTech & Education', countApprox: '4k+' },
-  { id: 'govtech', label: 'GovTech & Public Sector', countApprox: '6k+' },
-  { id: 'crypto', label: 'Crypto & Digital Assets', countApprox: '2k+' },
-  { id: 'gamedev', label: 'Gaming & Interactive Media', countApprox: '3k+' },
-  { id: 'media', label: 'Media, Streaming & Content', countApprox: '4k+' },
-  { id: 'hrtech', label: 'HRTech & Work Platforms', countApprox: '4k+' },
-  { id: 'adtech', label: 'AdTech & Marketing Tech', countApprox: '3k+' },
-  { id: 'proptech', label: 'PropTech & Real Estate', countApprox: '2k+' },
-  { id: 'mobility', label: 'Mobility, Automotive & EV', countApprox: '5k+' },
+  { id: 'fintech', label: 'FinTech & Payments', countApprox: '13,734' },
+  { id: 'crypto', label: 'Crypto & Digital Assets', countApprox: '703' },
+  { id: 'ecommerce', label: 'E-Commerce & Retail', countApprox: '3,680' },
+  { id: 'gambling', label: 'Gambling & iGaming', countApprox: '901' },
+  { id: 'gamedev', label: 'GameDev & Gaming', countApprox: '1,349' },
+  { id: 'media', label: 'Media, Content & Streaming', countApprox: '1,984' },
+  { id: 'travel', label: 'Travel & Hospitality', countApprox: '1,236' },
+  { id: 'healthcare', label: 'Healthcare & HealthTech', countApprox: '5,993' },
+  { id: 'edtech', label: 'EdTech & Education', countApprox: '1,154' },
+  { id: 'govtech', label: 'GovTech & Defense', countApprox: '5,352' },
+  { id: 'devtools', label: 'DevTools & Cloud Infra', countApprox: '5,910' },
+  { id: 'cybersecurity', label: 'Cybersecurity', countApprox: '2,849' },
+  { id: 'ai', label: 'AI & Machine Learning', countApprox: '4,647' },
+  { id: 'hrtech', label: 'HRTech & Work', countApprox: '2,201' },
+  { id: 'adtech', label: 'AdTech & Marketing', countApprox: '1,388' },
+  { id: 'proptech', label: 'PropTech & Real Estate', countApprox: '1,140' },
+  { id: 'logistics', label: 'Logistics, Supply & Freight', countApprox: '2,519' },
+  { id: 'mobility', label: 'Mobility & Automotive', countApprox: '2,652' },
+  { id: 'climatetech', label: 'ClimateTech & Clean Energy', countApprox: '2,864' },
+  { id: 'other', label: 'Other Disciplines', countApprox: '24,738' },
+];
+
+export interface CompanyTypeItem {
+  id: string;
+  label: string;
+  countApprox?: string;
+}
+
+export const ALL_COMPANY_TYPES: CompanyTypeItem[] = [
+  { id: 'product', label: 'Product', countApprox: '36,833' },
+  { id: 'startup', label: 'Startup', countApprox: '3,733' },
+  { id: 'outsource', label: 'Outsource', countApprox: '15,803' },
+  { id: 'outstaff', label: 'Outstaff', countApprox: '9,362' },
+  { id: 'agency', label: 'Agency', countApprox: '2,142' },
+  { id: 'inhouse', label: 'In-house', countApprox: '13,043' },
+  { id: 'government', label: 'Government', countApprox: '2,923' },
 ];
 
 export interface CollectionItem {
@@ -227,14 +251,15 @@ export interface CollectionItem {
 }
 
 export const ALL_VC_COLLECTIONS: CollectionItem[] = [
-  { id: 'y_combinator', label: 'Y Combinator Backed', badge: 'YC', countApprox: '2.3k+' },
-  { id: 'sequoia', label: 'Sequoia Capital', badge: 'SQ', countApprox: '3.0k+' },
-  { id: 'a16z-portfolio', label: 'Andreessen Horowitz (a16z)', badge: 'a16z', countApprox: '1.5k+' },
-  { id: 'accel', label: 'Accel Partners', badge: 'ACC', countApprox: '2.2k+' },
-  { id: 'greylock', label: 'Greylock Partners', badge: 'GREY', countApprox: '600+' },
-  { id: 'techstars', label: 'Techstars Alumni', badge: 'TS', countApprox: '750+' },
-  { id: 'bond', label: 'BOND Capital', badge: 'BOND', countApprox: '700+' },
-  { id: 'ai-native', label: 'AI-Native Startups', badge: 'AI', countApprox: '4.5k+' },
+  { id: 'y_combinator', label: 'Y Combinator', badge: 'YC', countApprox: '2,305' },
+  { id: 'techstars', label: 'Techstars', badge: 'TS', countApprox: '754' },
+  { id: 'a16z-portfolio', label: 'a16z', badge: 'a16z', countApprox: '1,564' },
+  { id: 'a16z-speedrun', label: 'a16z Speedrun', badge: 'SR', countApprox: '49' },
+  { id: 'sequoia', label: 'Sequoia Capital', badge: 'SQ', countApprox: '3,008' },
+  { id: 'accel', label: 'Accel', badge: 'ACC', countApprox: '2,274' },
+  { id: 'greylock', label: 'Greylock', badge: 'GREY', countApprox: '598' },
+  { id: 'usv', label: 'Union Square Ventures', badge: 'USV', countApprox: '464' },
+  { id: 'bond', label: 'BOND', badge: 'BOND', countApprox: '690' },
   { id: 'fortune500', label: 'Fortune 500 Enterprises', badge: 'F500', countApprox: '85k+' },
 ];
 
@@ -306,4 +331,96 @@ export const POPULAR_SKILLS = [
   'Node.js', 'Go', 'Java', 'Next.js', 'PyTorch', 'C++', 'Rust', 'GraphQL',
   'PostgreSQL', 'TailwindCSS', 'FastAPI', 'GCP', 'Linux', 'Terraform',
   'CI/CD', 'Product Strategy', 'Figma', 'System Design', 'Agile'
+];
+
+export interface BenefitPerkItem {
+  id: string;
+  label: string;
+  category: 'Health & Wellness' | 'Financial & Equity' | 'Work-Life & Family' | 'Remote & Office' | 'Growth & Learning';
+  popular?: boolean;
+}
+
+export const ALL_BENEFITS_PERKS: BenefitPerkItem[] = [
+  // Health & Wellness
+  { id: 'health_insurance', label: 'Health Insurance (Medical, Dental, Vision)', category: 'Health & Wellness', popular: true },
+  { id: 'mental_health', label: 'Mental Health / Therapy Allowance', category: 'Health & Wellness' },
+  { id: 'gym_wellness', label: 'Gym / Fitness Membership Stipend', category: 'Health & Wellness' },
+
+  // Financial & Equity
+  { id: 'equity_stock', label: 'Equity / Stock Options / RSUs', category: 'Financial & Equity', popular: true },
+  { id: 'retirement_401k', label: '401(k) / Pension Match', category: 'Financial & Equity', popular: true },
+  { id: 'annual_bonus', label: 'Annual Bonus / Performance Incentive', category: 'Financial & Equity' },
+
+  // Work-Life & Family
+  { id: 'parental_leave', label: 'Paid Parental Leave (12+ weeks)', category: 'Work-Life & Family', popular: true },
+  { id: 'flexible_hours', label: 'Flexible Working Hours / Core Hours', category: 'Work-Life & Family', popular: true },
+  { id: 'unlimited_pto', label: 'Generous / Unlimited Paid Time Off', category: 'Work-Life & Family', popular: true },
+  { id: 'four_day_week', label: '4-Day Work Week / Summer Hours', category: 'Work-Life & Family' },
+
+  // Remote & Office
+  { id: 'remote_stipend', label: 'Home Office / WFH Equipment Stipend', category: 'Remote & Office', popular: true },
+  { id: 'hardware_choice', label: 'Hardware of Choice (MacBook Pro / Displays)', category: 'Remote & Office' },
+  { id: 'coworking_allowance', label: 'Coworking Space Pass / WeWork', category: 'Remote & Office' },
+
+  // Growth & Learning
+  { id: 'learning_budget', label: 'Annual Learning & L&D Budget ($1,500+)', category: 'Growth & Learning', popular: true },
+  { id: 'conference_stipend', label: 'Conference Travel & Attendance Budget', category: 'Growth & Learning' },
+];
+
+export interface LanguageItem {
+  id: string;
+  label: string;
+  nativeLabel: string;
+  flag: string;
+  popular?: boolean;
+}
+
+export const ALL_LANGUAGES: LanguageItem[] = [
+  { id: 'english', label: 'English', nativeLabel: 'English', flag: '🇬🇧', popular: true },
+  { id: 'german', label: 'German', nativeLabel: 'Deutsch', flag: '🇩🇪', popular: true },
+  { id: 'french', label: 'French', nativeLabel: 'Français', flag: '🇫🇷', popular: true },
+  { id: 'spanish', label: 'Spanish', nativeLabel: 'Español', flag: '🇪🇸', popular: true },
+  { id: 'japanese', label: 'Japanese', nativeLabel: '日本語', flag: '🇯🇵' },
+  { id: 'arabic', label: 'Arabic', nativeLabel: 'العربية', flag: '🇦🇪', popular: true },
+  { id: 'mandarin', label: 'Mandarin Chinese', nativeLabel: '中文', flag: '🇨🇳' },
+  { id: 'portuguese', label: 'Portuguese', nativeLabel: 'Português', flag: '🇧🇷' },
+  { id: 'italian', label: 'Italian', nativeLabel: 'Italiano', flag: '🇮🇹' },
+  { id: 'dutch', label: 'Dutch', nativeLabel: 'Nederlands', flag: '🇳🇱' },
+  { id: 'swedish', label: 'Swedish', nativeLabel: 'Svenska', flag: '🇸🇪' },
+  { id: 'polish', label: 'Polish', nativeLabel: 'Polski', flag: '🇵🇱' },
+  { id: 'hindi', label: 'Hindi', nativeLabel: 'हिन्दी', flag: '🇮🇳' },
+];
+
+export interface RelocationOption {
+  id: string;
+  label: string;
+  description: string;
+  badge: string;
+}
+
+export const RELOCATION_OPTIONS: RelocationOption[] = [
+  {
+    id: 'relocation_assistance',
+    label: 'Relocation Assistance Package',
+    description: 'Employer covers relocation expenses, flights, or temporary living allowance.',
+    badge: 'Relocation Help',
+  },
+  {
+    id: 'visa_sponsorship',
+    label: 'Visa Sponsorship Offered',
+    description: 'Employer is able to sponsor work visas (H-1B, EU Blue Card, UK Skilled Worker, etc.).',
+    badge: 'Visa Sponsor',
+  },
+  {
+    id: 'work_authorization',
+    label: 'Must Have Local Work Authorization',
+    description: 'Applicant must already possess legal authorization to work in the country.',
+    badge: 'Local Auth',
+  },
+  {
+    id: 'worldwide_remote',
+    label: 'Worldwide / Anywhere Remote',
+    description: 'Employer hires globally through an Employer of Record (EoR) with no local residency requirement.',
+    badge: 'Hire Anywhere',
+  },
 ];

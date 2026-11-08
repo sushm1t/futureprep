@@ -442,26 +442,41 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     sourceType: 'all',
     specializations: [],
     seniority: 'All',
+    minExperienceYears: 0,
+    peopleManagerOnly: false,
+    includeNoLevelStated: true,
+    includeNoExperienceStated: true,
+    applyLimitOnlyNoLevel: false,
     workplace: 'All',
     employmentType: 'all',
     location: 'All',
     postedWithin: 'all',
     industries: [],
+    companyTypes: [],
     collections: [],
     skills: [],
+    minSalary: undefined,
+    benefits: [],
+    languages: [],
+    relocation: [],
+    strictness: 'any',
   });
 
   const activeFiltersBadgeCount = useMemo(() => {
     let count = 0;
-    if (advancedFilters.sources.length > 0) count += advancedFilters.sources.length;
-    if (advancedFilters.sourceType !== 'all') count += 1;
-    if (advancedFilters.specializations.length > 0) count += advancedFilters.specializations.length;
-    if (advancedFilters.industries.length > 0) count += advancedFilters.industries.length;
-    if (advancedFilters.collections.length > 0) count += advancedFilters.collections.length;
-    if (advancedFilters.skills.length > 0) count += advancedFilters.skills.length;
+    if (advancedFilters.specializations?.length > 0) count += advancedFilters.specializations.length;
+    if (advancedFilters.minExperienceYears !== undefined && advancedFilters.minExperienceYears > 0) count += 1;
+    if (advancedFilters.peopleManagerOnly) count += 1;
+    if (advancedFilters.industries?.length > 0) count += advancedFilters.industries.length;
+    if (advancedFilters.companyTypes?.length > 0) count += advancedFilters.companyTypes.length;
+    if (advancedFilters.collections?.length > 0) count += advancedFilters.collections.length;
+    if (advancedFilters.skills?.length > 0) count += advancedFilters.skills.length;
     if (advancedFilters.postedWithin && advancedFilters.postedWithin !== 'all') count += 1;
     if (advancedFilters.employmentType && advancedFilters.employmentType !== 'all') count += 1;
     if (advancedFilters.minSalary) count += 1;
+    if (advancedFilters.benefits?.length > 0) count += advancedFilters.benefits.length;
+    if (advancedFilters.languages?.length > 0) count += advancedFilters.languages.length;
+    if (advancedFilters.relocation?.length > 0) count += advancedFilters.relocation.length;
     if (selectedSeniority !== 'All') count += 1;
     if (selectedWorkplace !== 'All') count += 1;
     if (selectedAtsLocation !== 'All') count += 1;
@@ -514,6 +529,10 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           category: mergedFilters.specializations?.length ? mergedFilters.specializations.join(',') : undefined,
           domain: mergedFilters.industries?.length ? mergedFilters.industries.join(',') : undefined,
           collection: mergedFilters.collections?.length ? mergedFilters.collections.join(',') : undefined,
+          benefits: mergedFilters.benefits?.length ? mergedFilters.benefits.join(',') : undefined,
+          languages: mergedFilters.languages?.length ? mergedFilters.languages.join(',') : undefined,
+          relocation: mergedFilters.relocation?.length ? mergedFilters.relocation.join(',') : undefined,
+          minSalary: mergedFilters.minSalary,
         }),
       });
       const data = await res.json();
@@ -601,11 +620,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   const handleApplyAllFilters = (newFilters: FilterState) => {
     setAdvancedFilters(newFilters);
-    if (newFilters.sources.length === 1) {
-      setSelectedQuickSource(newFilters.sources[0]);
-    } else if (newFilters.sources.length === 0) {
-      setSelectedQuickSource('all');
-    }
     if (newFilters.seniority && newFilters.seniority !== 'All') {
       setSelectedSeniority(newFilters.seniority as SeniorityFilter);
     }
@@ -627,7 +641,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
   };
 
   const handleResetAllFilters = () => {
-    setSelectedQuickSource('all');
     setSelectedSeniority('All');
     setSelectedWorkplace('All');
     setSelectedAtsLocation('All');
@@ -638,13 +651,24 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       sourceType: 'all',
       specializations: [],
       seniority: 'All',
+      minExperienceYears: 0,
+      peopleManagerOnly: false,
+      includeNoLevelStated: true,
+      includeNoExperienceStated: true,
+      applyLimitOnlyNoLevel: false,
       workplace: 'All',
       employmentType: 'all',
       location: 'All',
       postedWithin: 'all',
       industries: [],
+      companyTypes: [],
       collections: [],
       skills: [],
+      minSalary: undefined,
+      benefits: [],
+      languages: [],
+      relocation: [],
+      strictness: 'any',
     };
     setAdvancedFilters(emptyFilters);
     handleCrawlAts(undefined, 'All', 'All', 'All', '', false, emptyFilters);
@@ -1078,6 +1102,9 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         }
       }
 
+      // Combined text for deep keyword matching
+      const combinedJobText = `${job.title || ''} ${job.company || ''} ${job.department || ''} ${job.location || ''} ${job.descriptionSnippet || ''} ${job.rawDescription || ''} ${(job.skills || []).join(' ')}`.toLowerCase();
+
       // 6. Source Filter (from All Filters if applied)
       if (advancedFilters.sources.length > 0) {
         const plat = ((job as any).sourceId || job.platform || '').toLowerCase();
@@ -1085,11 +1112,187 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         if (!matchesSource) return false;
       }
 
-      // 7. Skills Filter
-      if (advancedFilters.skills.length > 0) {
-        const jobText = `${job.title} ${job.descriptionSnippet || ''} ${job.rawDescription || ''} ${(job.skills || []).join(' ')}`.toLowerCase();
-        const matchesSkill = advancedFilters.skills.some((sk) => jobText.includes(sk.toLowerCase()));
-        if (!matchesSkill) return false;
+      // 7. Specializations Filter (Role Specialization)
+      if (advancedFilters.specializations && advancedFilters.specializations.length > 0) {
+        const specMatches = advancedFilters.specializations.some((spec) => {
+          const s = spec.toLowerCase().replace(/_/g, ' ');
+          if (combinedJobText.includes(s)) return true;
+          if (spec === 'software_engineering' && /software\s*engine|software\s*develop/i.test(combinedJobText)) return true;
+          if (spec === 'backend' && /back\s*end|server\s*side|node|golang|python|java\s*engine/i.test(combinedJobText)) return true;
+          if (spec === 'frontend' && /front\s*end|react|vue|angular|web\s*develop/i.test(combinedJobText)) return true;
+          if (spec === 'fullstack' && /full\s*stack/i.test(combinedJobText)) return true;
+          if (spec === 'mobile' && /ios|android|swift|kotlin|react\s*native|flutter|mobile/i.test(combinedJobText)) return true;
+          if (spec === 'devops' && /devops|infra|sre|platform|cloud\s*engine|terraform|k8s|kubernetes/i.test(combinedJobText)) return true;
+          if (spec === 'data_engineering' && /data\s*engine|etl|pipeline|spark|dbt|bigquery|snowflake/i.test(combinedJobText)) return true;
+          if (spec === 'data_science' && /data\s*scien|machine\s*learn|statistician/i.test(combinedJobText)) return true;
+          if (spec === 'product_manager' && /product\s*manag|group\s*pm|\bpm\b|technical\s*pm/i.test(combinedJobText)) return true;
+          if (spec === 'technical_pm' && /technical\s*product\s*manag|technical\s*pm|\btpm\b/i.test(combinedJobText)) return true;
+          if (spec === 'ai_pm' && /ai\s*product|machine\s*learning\s*product/i.test(combinedJobText)) return true;
+          if (spec === 'growth_pm' && /growth\s*product|growth\s*pm/i.test(combinedJobText)) return true;
+          if (spec === 'qa' && /qa|test|quality\s*assur|sdet|automation\s*test/i.test(combinedJobText)) return true;
+          if (spec === 'security' && /security|infosec|cyber|soc\s*analyst|appsec/i.test(combinedJobText)) return true;
+          return false;
+        });
+        if (!specMatches) return false;
+      }
+
+      // 8. Role Type / People Manager Filter
+      if (advancedFilters.peopleManagerOnly) {
+        const isManager = /manager|lead|director|head\s*of|vp\s*|vice\s*president|supervisor|chief/i.test(job.title || '');
+        if (!isManager) return false;
+      }
+
+      // 9. Experience Years Filter
+      if (advancedFilters.minExperienceYears && advancedFilters.minExperienceYears > 0) {
+        const expMatch = combinedJobText.match(/(\d+)\+?\s*(?:years?|yrs?)(?:\s*(?:of\s*)?experience)?/i);
+        if (expMatch) {
+          const years = parseInt(expMatch[1], 10);
+          if (years < advancedFilters.minExperienceYears) return false;
+        } else if (!advancedFilters.includeNoExperienceStated) {
+          return false;
+        }
+      }
+
+      // 10. Employment Type Filter
+      if (advancedFilters.employmentType && advancedFilters.employmentType !== 'all') {
+        const emp = (job.employmentType || '').toLowerCase();
+        const targetType = advancedFilters.employmentType.toLowerCase();
+        if (targetType === 'full_time' && !/full[\s-]?time|permanent/i.test(emp + ' ' + combinedJobText)) return false;
+        if (targetType === 'part_time' && !/part[\s-]?time/i.test(emp + ' ' + combinedJobText)) return false;
+        if (targetType === 'contract' && !/contract|freelance|consultant|temp/i.test(emp + ' ' + combinedJobText)) return false;
+        if (targetType === 'internship' && !/intern|apprentice/i.test(emp + ' ' + combinedJobText)) return false;
+      }
+
+      // 11. Industry Filter
+      if (advancedFilters.industries && advancedFilters.industries.length > 0) {
+        const matchesIndustry = advancedFilters.industries.some((ind) => {
+          const indClean = ind.toLowerCase();
+          if (combinedJobText.includes(indClean)) return true;
+          if (indClean === 'fintech' && /fintech|bank|pay|crypto|trading|securities/i.test(combinedJobText)) return true;
+          if (indClean === 'healthcare' && /health|clinic|hospital|med|biotech|pharma/i.test(combinedJobText)) return true;
+          if (indClean === 'ecommerce' && /ecommerce|retail|store|cart|marketplace/i.test(combinedJobText)) return true;
+          if (indClean === 'devtools' && /devtools|developer\s*tools|infra|cloud|saas/i.test(combinedJobText)) return true;
+          if (indClean === 'cybersecurity' && /security|cyber|soc|threat/i.test(combinedJobText)) return true;
+          if (indClean === 'ai' && /ai|machine\s*learning|llm|deep\s*learning/i.test(combinedJobText)) return true;
+          return false;
+        });
+        if (!matchesIndustry) return false;
+      }
+
+      // 12. Company Type Filter
+      if (advancedFilters.companyTypes && advancedFilters.companyTypes.length > 0) {
+        const matchesCompanyType = advancedFilters.companyTypes.some((ct) => {
+          const c = ct.toLowerCase();
+          if (c === 'startup' && /startup|seed|series\s*[a-d]|early\s*stage/i.test(combinedJobText)) return true;
+          if (c === 'product' && /product\s*company|saas|software\s*company/i.test(combinedJobText)) return true;
+          if (c === 'agency' && /agency|consultancy|digital\s*agency/i.test(combinedJobText)) return true;
+          if (c === 'government' && /government|public\s*sector|defense|ministry/i.test(combinedJobText)) return true;
+          if (c === 'inhouse' && !/agency|outsource/i.test(combinedJobText)) return true;
+          return false;
+        });
+        if (!matchesCompanyType) return false;
+      }
+
+      // 13. VC Collections Filter
+      if (advancedFilters.collections && advancedFilters.collections.length > 0) {
+        const matchesCol = advancedFilters.collections.some((col) => {
+          const c = col.toLowerCase().replace(/_/g, ' ');
+          if (c.includes('y combinator') && /y\s*combinator|yc/i.test(combinedJobText)) return true;
+          if (c.includes('sequoia') && /sequoia/i.test(combinedJobText)) return true;
+          if (c.includes('a16z') && /a16z|andreessen/i.test(combinedJobText)) return true;
+          if (c.includes('techstars') && /techstars/i.test(combinedJobText)) return true;
+          return combinedJobText.includes(c);
+        });
+        if (!matchesCol) return false;
+      }
+
+      // 14. Salary Minimum Filter
+      if (advancedFilters.minSalary && advancedFilters.minSalary > 0) {
+        if (job.salaryMax && job.salaryMax < advancedFilters.minSalary) return false;
+        if (job.salaryMin && job.salaryMin < advancedFilters.minSalary && !job.salaryMax) return false;
+      }
+
+      // 15. Skills Filter
+      if (advancedFilters.skills && advancedFilters.skills.length > 0) {
+        const isStrict = advancedFilters.strictness === 'all';
+        if (isStrict) {
+          const matchesAllSkills = advancedFilters.skills.every((sk) => combinedJobText.includes(sk.toLowerCase()));
+          if (!matchesAllSkills) return false;
+        } else {
+          const matchesAnySkill = advancedFilters.skills.some((sk) => combinedJobText.includes(sk.toLowerCase()));
+          if (!matchesAnySkill) return false;
+        }
+      }
+
+      // 16. Benefits & Perks Filter
+      if (advancedFilters.benefits && advancedFilters.benefits.length > 0) {
+        const checkBenefit = (bId: string) => {
+          if (bId === 'health_insurance') return /health|medical|dental|vision|insurance/i.test(combinedJobText);
+          if (bId === 'equity_stock') return /equity|stock|options|rsu|shares/i.test(combinedJobText);
+          if (bId === 'retirement_401k') return /401\s*k|pension|retirement|match/i.test(combinedJobText);
+          if (bId === 'parental_leave') return /parental|maternity|paternity|family\s*leave/i.test(combinedJobText);
+          if (bId === 'flexible_hours') return /flexible\s*(?:hours|schedule)|core\s*hours/i.test(combinedJobText);
+          if (bId === 'unlimited_pto') return /unlimited\s*(?:pto|vacation)|generous\s*(?:pto|vacation)|paid\s*time\s*off/i.test(combinedJobText);
+          if (bId === 'remote_stipend') return /wfh\s*stipend|home\s*office|remote\s*stipend|equipment\s*budget/i.test(combinedJobText);
+          if (bId === 'learning_budget') return /learning|education|tuition|conference|l&d/i.test(combinedJobText);
+          if (bId === 'gym_wellness') return /gym|fitness|wellness|mental\s*health/i.test(combinedJobText);
+          return false;
+        };
+        const isStrict = advancedFilters.strictness === 'all';
+        if (isStrict) {
+          const matchesAllBenefits = advancedFilters.benefits.every((b) => checkBenefit(b));
+          if (!matchesAllBenefits) return false;
+        } else {
+          const matchesAnyBenefit = advancedFilters.benefits.some((b) => checkBenefit(b));
+          if (!matchesAnyBenefit) return false;
+        }
+      }
+
+      // 17. Language Filter
+      if (advancedFilters.languages && advancedFilters.languages.length > 0) {
+        const checkLanguage = (lId: string) => {
+          if (lId === 'english') return /english|fluent\s*in\s*english/i.test(combinedJobText);
+          if (lId === 'german') return /german|deutsch/i.test(combinedJobText);
+          if (lId === 'french') return /french|français/i.test(combinedJobText);
+          if (lId === 'spanish') return /spanish|español/i.test(combinedJobText);
+          if (lId === 'japanese') return /japanese|日本語/i.test(combinedJobText);
+          if (lId === 'arabic') return /arabic|العربية/i.test(combinedJobText);
+          if (lId === 'mandarin') return /mandarin|chinese|中文/i.test(combinedJobText);
+          if (lId === 'portuguese') return /portuguese|português/i.test(combinedJobText);
+          if (lId === 'italian') return /italian|italiano/i.test(combinedJobText);
+          if (lId === 'dutch') return /dutch|nederlands/i.test(combinedJobText);
+          if (lId === 'swedish') return /swedish|svenska/i.test(combinedJobText);
+          if (lId === 'polish') return /polish|polski/i.test(combinedJobText);
+          if (lId === 'hindi') return /hindi|हिन्दी/i.test(combinedJobText);
+          return false;
+        };
+        const isStrict = advancedFilters.strictness === 'all';
+        if (isStrict) {
+          const matchesAllLangs = advancedFilters.languages.every((l) => checkLanguage(l));
+          if (!matchesAllLangs) return false;
+        } else {
+          const matchesAnyLang = advancedFilters.languages.some((l) => checkLanguage(l));
+          if (!matchesAnyLang) return false;
+        }
+      }
+
+      // 18. Relocation & Work Auth Filter
+      if (advancedFilters.relocation && advancedFilters.relocation.length > 0) {
+        const checkReloc = (rId: string) => {
+          if (rId === 'relocation_assistance') return /relocation\s*(?:assistance|package|support|allowance)|flights|temporary\s*housing/i.test(combinedJobText);
+          if (rId === 'visa_sponsorship') return /visa\s*sponsor|h-?1b|blue\s*card|sponsorship\s*available|work\s*permit\s*support/i.test(combinedJobText);
+          if (rId === 'work_authorization') return /authorized\s*to\s*work|no\s*sponsorship|citizen|green\s*card|permanent\s*resident/i.test(combinedJobText);
+          if (rId === 'worldwide_remote') return /anywhere|worldwide|global\s*remote|remote\s*worldwide|eor/i.test(combinedJobText);
+          return false;
+        };
+        const isStrict = advancedFilters.strictness === 'all';
+        if (isStrict) {
+          const matchesAllReloc = advancedFilters.relocation.every((r) => checkReloc(r));
+          if (!matchesAllReloc) return false;
+        } else {
+          const matchesAnyReloc = advancedFilters.relocation.some((r) => checkReloc(r));
+          if (!matchesAnyReloc) return false;
+        }
       }
 
       return true;
