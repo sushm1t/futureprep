@@ -47,7 +47,6 @@ import {
   AlertOctagon,
   ClipboardCheck,
   XCircle,
-  Tag,
 } from 'lucide-react';
 import { AllFiltersModal, FilterState } from './AllFiltersModal';
 import { evaluateHardConstraints, HardConstraintReport } from '../utils/hardConstraints';
@@ -2370,33 +2369,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   );
                 })}
               </div>
-
-              {/* 2. Key Competency Skill Chips */}
-              {profileSearchContext.topSkillKeywords && profileSearchContext.topSkillKeywords.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                  <span className="text-[11px] text-subtle font-medium flex items-center gap-1 shrink-0">
-                    <Tag className="w-3 h-3 text-brand" />
-                    <span>Top Skills:</span>
-                  </span>
-                  {profileSearchContext.topSkillKeywords.map((skill) => (
-                    <button
-                      key={skill}
-                      type="button"
-                      onClick={() => {
-                        setIsBroadRoleMatch(false);
-                        const newKw = atsKeyword && !atsKeyword.toLowerCase().includes(skill.toLowerCase())
-                          ? `${atsKeyword} ${skill}`
-                          : skill;
-                        setAtsKeyword(newKw);
-                      }}
-                      className="px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-surface-2/60 text-muted-foreground hover:text-foreground hover:border-brand/40 border border-border/40 transition-all cursor-pointer flex items-center gap-1"
-                      title={`Add "${skill}" to search keywords`}
-                    >
-                      <span>+{skill}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
           ) : (
             (roleExpansions.suggestionChips.length > 0 || (roleExpansions.hasSeniorityPrefix && atsKeyword.trim())) && (

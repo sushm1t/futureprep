@@ -224,7 +224,7 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
     expect(screen.getByText(/Live feed connected/i)).toBeInTheDocument();
   });
 
-  it('renders interactive Target Roles and Top Skills pills for sales & growth candidate and passes expanded context to crawl API', async () => {
+  it('renders interactive Target Roles pills for sales & growth candidate and passes expanded context to crawl API', async () => {
     const vishalResume: TailoredResumeData = {
       full_name: 'Vishal Jayaprakash',
       headline: 'B2B Enterprise Sales | AI-Driven Selling | Full-Cycle Closer',
@@ -305,11 +305,6 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
     expect(screen.getByText(/All Profile Roles/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Enterprise Account Executive/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /VP of Sales/i })).toBeInTheDocument();
-
-    // Verify Top Skills chips are rendered
-    expect(screen.getByText(/Top Skills:/i)).toBeInTheDocument();
-    expect(screen.getByText(/\+B2B Enterprise Software Sales/i)).toBeInTheDocument();
-    expect(screen.getByText(/\+Pipeline Management/i)).toBeInTheDocument();
 
     // Clicking an individual target role pill activates that role without auto-fetching
     const aeBtn = screen.getByRole('button', { name: /Enterprise Account Executive/i });
