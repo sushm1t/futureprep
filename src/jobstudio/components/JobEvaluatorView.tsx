@@ -2055,37 +2055,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   return (
     <div className="workspace-evaluator space-y-6 max-w-7xl mx-auto">
-      {/* Landing-Inspired Showcase Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-card via-card/95 to-surface/90 rounded-3xl border border-border/80 p-6 sm:p-8 shadow-elevated">
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand/10 text-brand text-xs font-semibold tracking-widest uppercase font-mono border border-brand/20 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span>ROLE DISCOVERY &amp; ATS INTELLIGENCE</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tight text-foreground leading-[1.1]">
-              Job Evaluator
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Discover opportunities and evaluate how well they match your experience.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium font-mono bg-surface/90 border border-border/80 text-foreground shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-              <span>
-                {userPlan === 'pro' || isProUser
-                  ? 'Pro plan · Unlimited tailoring'
-                  : userPlan === 'plus'
-                  ? `Plus plan · ${50 - Math.min(tailoredCount, 50)} of 50 tailored resumes available`
-                  : `${2 - Math.min(tailoredCount, 2)} of 2 free tailored resumes available`}
-              </span>
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Modern 2-Pane Master-Detail Cockpit */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Pane (lg:col-span-5): The Discovery Feed */}
@@ -2185,6 +2154,16 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   </button>
                 </>
               )}
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium font-mono bg-surface/90 border border-border/80 text-foreground shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
+                <span>
+                  {userPlan === 'pro' || isProUser
+                    ? 'Pro plan · Unlimited tailoring'
+                    : userPlan === 'plus'
+                    ? `Plus plan · ${50 - Math.min(tailoredCount, 50)} of 50 tailored resumes available`
+                    : `${2 - Math.min(tailoredCount, 2)} of 2 free tailored resumes available`}
+                </span>
+              </span>
               <span className="text-[11px] font-semibold text-success bg-success/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
                 Live feed connected

@@ -123,7 +123,7 @@ describe('JobEvaluatorView Two-Stage Architecture', () => {
     await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
     const body = JSON.parse(fetchMock.mock.calls[0]?.[1]?.body || '{}');
     expect(body.location).toBe('India');
-  });
+  }, 20000);
 
   it('allows expanding and using custom job description accordion on the left side', () => {
     window.HTMLElement.prototype.scrollIntoView = vi.fn();

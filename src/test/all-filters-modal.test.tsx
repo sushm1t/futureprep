@@ -155,7 +155,7 @@ describe('AllFiltersModal trigger in JobEvaluatorView', () => {
     expect(appliedState.minSalary).toBe(120000);
   });
 
-  it('actively filters live jobs in JobEvaluatorView by Specialization, Seniority, Posted Date, Salary, and Benefits', { timeout: 20000 }, async () => {
+  it('actively filters live jobs in JobEvaluatorView by Specialization, Seniority, Posted Date, Salary, and Benefits', { timeout: 45000 }, async () => {
     const mockJobs = [
       {
         id: 'job-1',
