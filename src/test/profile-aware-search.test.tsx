@@ -88,7 +88,7 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
 
     // Profile Focus badge should show Amaya's role and domain
     expect(screen.getByText(/Profile Focus:/i)).toBeInTheDocument();
-    expect(screen.getByText(/Medical Laboratory Technologist/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Medical Laboratory Technologist/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/Healthcare & Life Sciences/i)).toBeInTheDocument();
 
     // Search input placeholder should be tailored to Medical Laboratory Technologist
@@ -222,6 +222,120 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
     const healthcareBtn = screen.queryByText(/Healthcare & Clinical/i);
     // Note: When no crawl has occurred, the results area isn't rendered yet
     expect(screen.getByText(/Live feed connected/i)).toBeInTheDocument();
+  });
+
+  it('renders interactive Target Roles and Top Skills pills for sales & growth candidate and passes expanded context to crawl API', async () => {
+    const vishalResume: TailoredResumeData = {
+      full_name: 'Vishal Jayaprakash',
+      headline: 'B2B Enterprise Sales | AI-Driven Selling | Full-Cycle Closer',
+      target_role: 'Head of Growth',
+      contact_info: {
+        email: 'vishal@example.com',
+        phone: '+91 98765 00000',
+        location: 'Kochi, Kerala, India (Relocating to Dubai / UAE)',
+        linkedin: 'linkedin.com/in/vishal',
+      },
+      tailored_summary: '5+ years closing software & services deals with enterprise leaders including Google, Meta, and banking institutions.',
+      skills: [
+        'B2B Enterprise Software Sales',
+        'Deal Qualification',
+        'Pipeline Management',
+        'HubSpot',
+        'Apollo',
+        'Sales Navigator',
+      ],
+      experiences: [
+        {
+          title: 'Head of Growth',
+          company: 'Torc Infotech',
+          date_range: '2021 – Present',
+          location: 'Kochi, India',
+          bullets: ['Scaled B2B revenue and closed multi-year enterprise contracts.'],
+        },
+      ],
+      education: [],
+      certifications: [],
+    };
+
+    let capturedCrawlBody: any = null;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, opts: any) => {
+        if (url === '/api/ats/crawl') {
+          capturedCrawlBody = JSON.parse(opts.body);
+          return {
+            ok: true,
+            json: async () => ({
+              success: true,
+              jobs: sampleHealthcareJobs,
+              totalAvailableInCatalogue: 1500,
+            }),
+          };
+        }
+        return { ok: true, json: async () => ({ success: true }) };
+      })
+    );
+
+    render(
+      <JobEvaluatorView
+        evaluation={{ ...EMPTY_EVALUATION, job_title: '', company_name: '' }}
+        isEvaluationComplete={false}
+        opportunities={[]}
+        selectedJobId=""
+        customJobText=""
+        setCustomJobText={vi.fn()}
+        customUrl=""
+        setCustomUrl={vi.fn()}
+        onEvaluate={vi.fn()}
+        isLoading={false}
+        onProceedToResume={vi.fn()}
+        onSelectPreset={vi.fn()}
+        resume={vishalResume}
+        masterProfileText={JSON.stringify(vishalResume)}
+      />
+    );
+
+    // Profile Focus shows Head of Growth and Sales & Business Development
+    expect(screen.getByText(/Profile Focus:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Sales & Business Development/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/United Arab Emirates \(UAE\)/i).length).toBeGreaterThanOrEqual(1);
+
+    // Verify Target Roles interactive pills are visible
+    expect(screen.getByText(/Target Roles:/i)).toBeInTheDocument();
+    expect(screen.getByText(/All Profile Roles/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Enterprise Account Executive/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /VP of Sales/i })).toBeInTheDocument();
+
+    // Verify Top Skills chips are rendered
+    expect(screen.getByText(/Top Skills:/i)).toBeInTheDocument();
+    expect(screen.getByText(/\+B2B Enterprise Software Sales/i)).toBeInTheDocument();
+    expect(screen.getByText(/\+Pipeline Management/i)).toBeInTheDocument();
+
+    // Clicking an individual target role pill triggers crawl for that role
+    const aeBtn = screen.getByRole('button', { name: /Enterprise Account Executive/i });
+    fireEvent.click(aeBtn);
+
+    await waitFor(() => {
+      expect(capturedCrawlBody).not.toBeNull();
+    });
+
+    expect(capturedCrawlBody.keyword).toBe('Enterprise Account Executive');
+    expect(capturedCrawlBody.location).toBe('United Arab Emirates (UAE)');
+    expect(capturedCrawlBody.profileContext.relatedRoles).toContain('Enterprise Account Executive');
+    expect(capturedCrawlBody.profileContext.relatedRoles).toContain('Head of Growth');
+
+    // Clicking All Profile Roles broad match triggers crawl with broad keyword
+    capturedCrawlBody = null;
+    const allRolesBtn = screen.getByText(/All Profile Roles/i);
+    fireEvent.click(allRolesBtn);
+
+    await waitFor(() => {
+      expect(capturedCrawlBody).not.toBeNull();
+    });
+
+    expect(capturedCrawlBody.keyword).toBe('');
+    expect(capturedCrawlBody.profileContext.relatedRoles).toContain('Head of Growth');
+    expect(capturedCrawlBody.profileContext.relatedRoles).toContain('VP of Sales');
   });
 });
 

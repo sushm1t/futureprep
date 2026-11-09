@@ -2091,11 +2091,32 @@ app.post('/api/ats/crawl', async (req, res) => {
 
       // 2. Candidate targeted queries with Seniority Normalization & Domain Expansion
       let targetedQueries: string[] = [];
-      if (cleanKeyword) {
-        targetedQueries.push(cleanKeyword);
+
+      // Automatically include all related roles & queries derived from the user's Master Profile
+      if (Array.isArray(profileContext?.relatedRoles)) {
+        for (const r of profileContext.relatedRoles) {
+          if (r && !targetedQueries.includes(r)) {
+            targetedQueries.push(r);
+          }
+        }
+      }
+      if (Array.isArray(profileContext?.searchQueries)) {
+        for (const q of profileContext.searchQueries) {
+          if (q && !targetedQueries.includes(q)) {
+            targetedQueries.push(q);
+          }
+        }
+      }
+
+      const isBroadSearch = !cleanKeyword || cleanKeyword === 'All Profile Roles' || cleanKeyword.toLowerCase() === 'all';
+
+      if (cleanKeyword && !isBroadSearch) {
+        if (!targetedQueries.includes(cleanKeyword)) {
+          targetedQueries.unshift(cleanKeyword);
+        }
 
         // Intelligent Role Expansion (strips "Sr." / "Senior" and auto-expands related role variants)
-        const roleExp = getRoleKeywordExpansions(cleanKeyword);
+        const roleExp = getRoleKeywordExpansions(cleanKeyword, profileContext?.domain);
         if (roleExp.baseTitle && roleExp.baseTitle.toLowerCase() !== cleanKeyword.toLowerCase()) {
           targetedQueries.push(roleExp.baseTitle);
         }
@@ -2111,13 +2132,6 @@ app.post('/api/ats/crawl', async (req, res) => {
         for (const seg of segments) {
           if (!targetedQueries.includes(seg)) targetedQueries.push(seg);
         }
-        if (Array.isArray(profileContext?.searchQueries)) {
-          for (const q of profileContext.searchQueries) {
-            if (q && !targetedQueries.includes(q)) {
-              targetedQueries.push(q);
-            }
-          }
-        }
         if (/pipe|pipeline|piping/i.test(cleanKeyword)) {
           ['Piping Designer', 'Pipeline Engineer', 'Piping Design Engineer', 'Piping Engineer', 'Senior Piping Designer'].forEach((v) => {
             if (!targetedQueries.includes(v)) targetedQueries.push(v);
@@ -2125,6 +2139,21 @@ app.post('/api/ats/crawl', async (req, res) => {
         }
         if (/payment|fintech|dispute|chargeback|card operation|reconciliation/i.test(cleanKeyword)) {
           ['Payment Operations', 'Fintech Operations', 'Disputes Specialist', 'Card Operations', 'Real-Time Operations', 'Incident Coordinator', 'Operations Analyst'].forEach((v) => {
+            if (!targetedQueries.includes(v)) targetedQueries.push(v);
+          });
+        }
+        if (/growth|sales|account executive|business development|gtm|closer|revenue/i.test(cleanKeyword) || profileContext?.domain === 'Sales & Business Development') {
+          [
+            'Head of Growth',
+            'Enterprise Account Executive',
+            'VP of Sales',
+            'Director of Sales',
+            'Head of Business Development',
+            'Go-To-Market Lead',
+            'B2B Sales Lead',
+            'Strategic Account Executive',
+            'Account Executive',
+          ].forEach((v) => {
             if (!targetedQueries.includes(v)) targetedQueries.push(v);
           });
         }
@@ -2142,6 +2171,29 @@ app.post('/api/ats/crawl', async (req, res) => {
           targetedQueries.push(`${cleanKeyword} ${normalizedLoc}`);
           if (roleExp.baseTitle && roleExp.baseTitle.toLowerCase() !== cleanKeyword.toLowerCase()) {
             targetedQueries.push(`${roleExp.baseTitle} ${normalizedLoc}`);
+          }
+        }
+      } else if (profileContext?.domain === 'Sales & Business Development' || /growth|sales|closer/i.test(profileContext?.targetRole || '')) {
+        [
+          'Head of Growth',
+          'Enterprise Account Executive',
+          'VP of Sales',
+          'Director of Sales',
+          'Head of Business Development',
+          'Go-To-Market Lead',
+          'B2B Sales Lead',
+          'Account Executive',
+        ].forEach((v) => {
+          if (!targetedQueries.includes(v)) targetedQueries.push(v);
+        });
+      }
+
+      if (normalizedLoc && normalizedLoc !== 'Remote') {
+        const topQueries = targetedQueries.slice(0, 4);
+        for (const tq of topQueries) {
+          const locCombo = `${tq} ${normalizedLoc}`;
+          if (!targetedQueries.includes(locCombo)) {
+            targetedQueries.push(locCombo);
           }
         }
       }
@@ -3420,7 +3472,8 @@ Instructions:
 4. Extract all core technical and domain skills into an array of strings (e.g. ["TypeScript", "React", "PostgreSQL", "AWS"]).
 5. Extract education entries (degree, institution, year).
 6. Extract certifications into an array of strings.
-7. Generate a comprehensive markdown master_profile_text that thoroughly summarizes the candidate's authentic career history and proof-of-work.
+7. Synthesize target_role (the primary role title), related_roles (4-6 high-demand ATS job titles matching their authentic experience), domain (e.g. "Sales & Business Development", "Technology & Software", "Product & Design", "Healthcare", "Mechanical Engineering"), and relocation_target (if the candidate explicitly notes relocation preferences, e.g. "Dubai / UAE").
+8. Generate a comprehensive markdown master_profile_text that thoroughly summarizes the candidate's authentic career history and proof-of-work.
 `;
 
     let contents: any;
@@ -3450,6 +3503,13 @@ Instructions:
             first_name: { type: Type.STRING },
             last_name: { type: Type.STRING },
             headline: { type: Type.STRING },
+            target_role: { type: Type.STRING },
+            related_roles: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+            },
+            domain: { type: Type.STRING },
+            relocation_target: { type: Type.STRING },
             email: { type: Type.STRING },
             phone: { type: Type.STRING },
             location: { type: Type.STRING },

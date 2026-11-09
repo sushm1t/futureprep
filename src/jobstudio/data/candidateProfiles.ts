@@ -274,6 +274,8 @@ export function setActiveProfileId(id: string) {
 export function profileRecordToResume(profile: CandidateProfileRecord): TailoredResumeData {
   return {
     full_name: profile.name,
+    headline: profile.headline,
+    target_role: profile.headline || (profile.experiences?.[0]?.title) || '',
     email: profile.email,
     phone: profile.phone,
     location: profile.location,

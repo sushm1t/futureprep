@@ -48,6 +48,7 @@ import {
   AlertOctagon,
   ClipboardCheck,
   XCircle,
+  Tag,
 } from 'lucide-react';
 import { AllFiltersModal, FilterState } from './AllFiltersModal';
 import { evaluateHardConstraints, HardConstraintReport } from '../utils/hardConstraints';
@@ -354,6 +355,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     return 'all';
   });
   const [atsCustomInput, setAtsCustomInput] = useState<string>('');
+  const [isBroadRoleMatch, setIsBroadRoleMatch] = useState<boolean>(false);
   const [atsKeyword, setAtsKeyword] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -582,7 +584,9 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     const currentSeniority = seniorityOverride || selectedSeniority;
     const currentWorkplace = workplaceOverride || selectedWorkplace;
     const currentLocation = locationOverride !== undefined ? locationOverride : (selectedAtsLocation || profileSearchContext.location || 'All');
-    const currentKeyword = keywordOverride !== undefined ? keywordOverride : (atsKeyword || profileSearchContext.targetRole);
+    const currentKeyword = keywordOverride !== undefined
+      ? keywordOverride
+      : (isBroadRoleMatch ? '' : (atsKeyword || profileSearchContext.targetRole));
 
     const mergedFilters = { ...advancedFilters, ...filtersOverride };
     const sourcesToSend = mergedFilters.sources && mergedFilters.sources.length > 0 ? mergedFilters.sources : undefined;
@@ -1171,9 +1175,11 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       // 4. Keyword search (tokenized):
       // When exploring "All Open Roles" or broad profile matching, show the full catalog unless user typed an ad-hoc query.
       // In "Best Matches", profileTerms scoring evaluates the candidate's actual qualifications against the entire catalog.
-      if (atsKeyword.trim()) {
+      if (atsKeyword.trim() && !isBroadRoleMatch) {
         const isDefaultProfileRole = hasProfile && (
+          atsKeyword === 'All Profile Roles' ||
           atsKeyword.toLowerCase().trim() === (profileSearchContext.targetRole || '').toLowerCase().trim() ||
+          (Array.isArray(profileSearchContext.relatedRoles) && profileSearchContext.relatedRoles.some((r) => r.toLowerCase().trim() === atsKeyword.toLowerCase().trim())) ||
           (profileSearchContext.targetRole && (profileSearchContext.targetRole.toLowerCase().includes(atsKeyword.toLowerCase().trim()) || atsKeyword.toLowerCase().trim().includes(profileSearchContext.targetRole.toLowerCase())))
         );
         if (!isDefaultProfileRole) {
@@ -1808,6 +1814,11 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 {profileSearchContext.location && (
                   <span className="text-subtle font-normal">· {profileSearchContext.location}</span>
                 )}
+                {profileSearchContext.relatedRoles && profileSearchContext.relatedRoles.length > 1 && (
+                  <span className="text-brand font-medium bg-brand/10 border border-brand/20 px-2 py-0.5 rounded-full text-[10.5px]">
+                    {profileSearchContext.relatedRoles.length} target role tracks
+                  </span>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -1828,10 +1839,11 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                     </>
                   )}
                 </button>
-                {atsKeyword !== profileSearchContext.targetRole && (
+                {(atsKeyword !== profileSearchContext.targetRole || isBroadRoleMatch) && (
                   <button
                     type="button"
                     onClick={() => {
+                      setIsBroadRoleMatch(false);
                       setAtsKeyword(profileSearchContext.targetRole);
                       handleCrawlAts(undefined, undefined, undefined, undefined, profileSearchContext.targetRole);
                     }}
@@ -1875,7 +1887,10 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
               <input
                 type="text"
                 value={atsKeyword}
-                onChange={(e) => setAtsKeyword(e.target.value)}
+                onChange={(e) => {
+                  setAtsKeyword(e.target.value);
+                  setIsBroadRoleMatch(false);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -1910,41 +1925,119 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             </div>
           </div>
 
-          {/* Smart Keyword Expansion & Related Role Suggestions */}
-          {(roleExpansions.suggestionChips.length > 0 || (roleExpansions.hasSeniorityPrefix && atsKeyword.trim())) && (
+          {/* Smart Multi-Role Matrix & Profile Keyword Expansion */}
+          {hasProfile && profileSearchContext.relatedRoles && profileSearchContext.relatedRoles.length > 0 ? (
             <div className="pt-2 border-t border-border/60 space-y-2">
-              {roleExpansions.hasSeniorityPrefix && atsKeyword.trim() && (
-                <div className="flex items-center gap-1.5 text-[11px] text-brand/90 bg-brand/10 border border-brand/20 px-2.5 py-1.5 rounded-xl">
-                  <Zap className="w-3.5 h-3.5 text-brand shrink-0" />
-                  <span>
-                    Auto-expanded search to include <strong>"{roleExpansions.baseTitle}"</strong> &amp; senior titles to maximize open positions.
-                  </span>
-                </div>
-              )}
-
-              {roleExpansions.suggestionChips.length > 0 && (
-                <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                  <span className="text-[11px] text-subtle font-medium flex items-center gap-1 shrink-0">
-                    <Sparkles className="w-3 h-3 text-brand" />
-                    <span>Suggested keywords:</span>
-                  </span>
-                  {roleExpansions.suggestionChips.map((chip) => (
+              {/* 1. Target Roles derived from Master Profile */}
+              <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                <span className="text-[11px] text-subtle font-semibold flex items-center gap-1 shrink-0">
+                  <Sparkles className="w-3.5 h-3.5 text-brand" />
+                  <span>Target Roles:</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsBroadRoleMatch(true);
+                    setAtsKeyword('');
+                    handleCrawlAts(undefined, undefined, undefined, undefined, '');
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 border ${
+                    isBroadRoleMatch || (!atsKeyword.trim() && !atsCustomInput.trim())
+                      ? 'bg-brand text-white border-brand shadow-xs'
+                      : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border-border/60'
+                  }`}
+                  title="Search across all matching roles and titles identified in your profile"
+                >
+                  <span>🎯 All Profile Roles ({profileSearchContext.relatedRoles.length})</span>
+                </button>
+                {profileSearchContext.relatedRoles.map((role) => {
+                  const isActive = !isBroadRoleMatch && atsKeyword.toLowerCase().trim() === role.toLowerCase().trim();
+                  return (
                     <button
-                      key={chip}
+                      key={role}
                       type="button"
                       onClick={() => {
-                        setAtsKeyword(chip);
-                        handleCrawlAts(undefined, undefined, undefined, undefined, chip);
+                        setIsBroadRoleMatch(false);
+                        setAtsKeyword(role);
+                        handleCrawlAts(undefined, undefined, undefined, undefined, role);
                       }}
-                      className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface text-subtle hover:text-foreground hover:bg-surface-2 hover:border-brand/40 border border-border/60 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
-                      title={`Search live openings for "${chip}"`}
+                      className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1 border ${
+                        isActive
+                          ? 'bg-brand text-white border-brand font-semibold shadow-xs'
+                          : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border-border/60'
+                      }`}
+                      title={`Search live openings for "${role}"`}
                     >
-                      <span>{chip}</span>
+                      <span>{role}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 2. Key Competency Skill Chips */}
+              {profileSearchContext.topSkillKeywords && profileSearchContext.topSkillKeywords.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                  <span className="text-[11px] text-subtle font-medium flex items-center gap-1 shrink-0">
+                    <Tag className="w-3 h-3 text-brand" />
+                    <span>Top Skills:</span>
+                  </span>
+                  {profileSearchContext.topSkillKeywords.map((skill) => (
+                    <button
+                      key={skill}
+                      type="button"
+                      onClick={() => {
+                        setIsBroadRoleMatch(false);
+                        const newKw = atsKeyword && !atsKeyword.toLowerCase().includes(skill.toLowerCase())
+                          ? `${atsKeyword} ${skill}`
+                          : skill;
+                        setAtsKeyword(newKw);
+                        handleCrawlAts(undefined, undefined, undefined, undefined, newKw);
+                      }}
+                      className="px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-surface-2/60 text-muted-foreground hover:text-foreground hover:border-brand/40 border border-border/40 transition-all cursor-pointer flex items-center gap-1"
+                      title={`Add "${skill}" to search keywords`}
+                    >
+                      <span>+{skill}</span>
                     </button>
                   ))}
                 </div>
               )}
             </div>
+          ) : (
+            (roleExpansions.suggestionChips.length > 0 || (roleExpansions.hasSeniorityPrefix && atsKeyword.trim())) && (
+              <div className="pt-2 border-t border-border/60 space-y-2">
+                {roleExpansions.hasSeniorityPrefix && atsKeyword.trim() && (
+                  <div className="flex items-center gap-1.5 text-[11px] text-brand/90 bg-brand/10 border border-brand/20 px-2.5 py-1.5 rounded-xl">
+                    <Zap className="w-3.5 h-3.5 text-brand shrink-0" />
+                    <span>
+                      Auto-expanded search to include <strong>"{roleExpansions.baseTitle}"</strong> &amp; senior titles to maximize open positions.
+                    </span>
+                  </div>
+                )}
+
+                {roleExpansions.suggestionChips.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                    <span className="text-[11px] text-subtle font-medium flex items-center gap-1 shrink-0">
+                      <Sparkles className="w-3 h-3 text-brand" />
+                      <span>Suggested keywords:</span>
+                    </span>
+                    {roleExpansions.suggestionChips.map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => {
+                          setAtsKeyword(chip);
+                          handleCrawlAts(undefined, undefined, undefined, undefined, chip);
+                        }}
+                        className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface text-subtle hover:text-foreground hover:bg-surface-2 hover:border-brand/40 border border-border/60 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
+                        title={`Search live openings for "${chip}"`}
+                      >
+                        <span>{chip}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
           )}
 
           {/* Refinement Filters Bar */}

@@ -23,6 +23,7 @@ export interface RoleExpansions {
   searchQueries: string[];
   suggestionChips: string[];
   isExpanded: boolean;
+  hasSeniorityPrefix?: boolean;
 }
 
 const SENIORITY_PREFIX_REGEX = /^(?:sr\.?|senior|lead|staff|principal|chief|head\s+of|jr\.?|junior|associate|mid-?level|entry-?level)\s+/i;
@@ -177,6 +178,66 @@ const RELATED_ROLE_MAP: Record<string, string[]> = {
     'Medical Technologist',
     'Pathology Technologist',
   ],
+  // Sales, Growth & Go-To-Market (B2B, Enterprise, Revenue)
+  'head of growth': [
+    'Enterprise Account Executive',
+    'VP of Sales',
+    'Director of Sales',
+    'Head of Business Development',
+    'Go-To-Market (GTM) Lead',
+    'B2B Sales Lead',
+  ],
+  'growth': [
+    'Head of Growth',
+    'Enterprise Account Executive',
+    'VP of Sales',
+    'Head of Business Development',
+    'Go-To-Market Lead',
+    'Growth Lead',
+  ],
+  'sales': [
+    'Enterprise Account Executive',
+    'VP of Sales',
+    'Director of Sales',
+    'Head of Business Development',
+    'Head of Growth',
+    'Sales Lead',
+  ],
+  'enterprise sales': [
+    'Enterprise Account Executive',
+    'VP of Sales',
+    'Head of Growth',
+    'Head of Business Development',
+    'Director of Sales',
+    'Strategic Account Lead',
+  ],
+  'account executive': [
+    'Enterprise Account Executive',
+    'Senior Account Executive',
+    'Head of Growth',
+    'VP of Sales',
+    'Strategic Account Lead',
+  ],
+  'business development': [
+    'Head of Business Development',
+    'Director of Business Development',
+    'Enterprise Sales Lead',
+    'Strategic Partnerships Lead',
+    'Head of Growth',
+  ],
+  'gtm': [
+    'Go-To-Market Lead',
+    'Head of Growth',
+    'VP of Sales',
+    'Enterprise Account Executive',
+    'Head of Business Development',
+  ],
+  'revops': [
+    'Revenue Operations Manager',
+    'Sales Operations Lead',
+    'Head of Business Development',
+    'Go-To-Market Lead',
+  ],
 };
 
 /**
@@ -196,6 +257,7 @@ export function getRoleKeywordExpansions(rawKeyword: string = '', domain?: strin
       searchQueries: [],
       suggestionChips: [],
       isExpanded: false,
+      hasSeniorityPrefix: false,
     };
   }
 
@@ -231,6 +293,8 @@ export function getRoleKeywordExpansions(rawKeyword: string = '', domain?: strin
       matchedSuggestions = ['Product Designer', 'UI/UX Designer', 'UX Researcher', 'Interaction Designer'];
     } else if (/product|pm/i.test(lowerBase)) {
       matchedSuggestions = ['Product Manager', 'Technical Product Manager', 'Product Operations', 'Associate PM'];
+    } else if (/sales|growth|closer|account\s+exec|business\s+dev|gtm/i.test(lowerBase) || domain === 'Sales & Business Development') {
+      matchedSuggestions = ['Head of Growth', 'Enterprise Account Executive', 'VP of Sales', 'Head of Business Development', 'Go-To-Market Lead'];
     }
   }
 
@@ -249,6 +313,7 @@ export function getRoleKeywordExpansions(rawKeyword: string = '', domain?: strin
     searchQueries: [...new Set(searchQueries)],
     suggestionChips: suggestionChips.slice(0, 5),
     isExpanded: norm.hasSeniorityPrefix || searchQueries.length > 1,
+    hasSeniorityPrefix: norm.hasSeniorityPrefix,
   };
 }
 

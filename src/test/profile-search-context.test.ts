@@ -184,5 +184,74 @@ describe('extractProfileSearchContext', () => {
     expect(ctx.searchQueries).toContain('Maintenance Engineer');
     expect(ctx.searchQueries).toContain('Production Engineer');
   });
+
+  it('correctly extracts Sales & Business Development domain, Dubai/UAE relocation, related roles, and top skills for Vishal Jayaprakash profile', () => {
+    const vishalResume: TailoredResumeData = {
+      full_name: 'Vishal Jayaprakash',
+      headline: 'B2B Enterprise Sales | AI-Driven Selling | Full-Cycle Closer',
+      target_role: 'Head of Growth',
+      contact_info: {
+        email: 'vishal@example.com',
+        phone: '+91 98765 00000',
+        location: 'Kochi, Kerala, India (Relocating to Dubai / UAE)',
+        linkedin: 'linkedin.com/in/vishal',
+      },
+      tailored_summary: '5+ years closing software & services deals with enterprise leaders including Google, Meta, and banking institutions. Proven track record in pipeline generation, outbound systems, and AI-driven selling.',
+      skills: [
+        'B2B Enterprise Software Sales',
+        'Deal Qualification',
+        'Pipeline Management',
+        'HubSpot',
+        'Apollo',
+        'Clay',
+        'Sales Navigator',
+        'AI SDR',
+        'Outbound Prospecting',
+        'Contract Negotiation',
+        'Solution Selling',
+        'Communication',
+        'Teamwork',
+      ],
+      experiences: [
+        {
+          title: 'Co-Founder & Head of Growth',
+          company: 'Torc Infotech',
+          date_range: '2021 – Present',
+          location: 'Kochi, India',
+          bullets: ['Scaled B2B revenue and managed full-cycle enterprise sales.'],
+        },
+      ],
+      education: [],
+      certifications: [],
+    };
+
+    const ctx = extractProfileSearchContext(vishalResume);
+    expect(ctx.targetRole).toBe('Head of Growth');
+    expect(ctx.domain).toBe('Sales & Business Development');
+    expect(ctx.location).toBe('United Arab Emirates (UAE)');
+    expect(ctx.targetRelocation).toBe('United Arab Emirates (UAE)');
+    expect(ctx.isNonTech).toBe(false);
+
+    // Verify rich related roles are synthesized
+    expect(ctx.relatedRoles).toContain('Head of Growth');
+    expect(ctx.relatedRoles).toContain('Enterprise Account Executive');
+    expect(ctx.relatedRoles).toContain('VP of Sales');
+    expect(ctx.relatedRoles).toContain('Head of Business Development');
+    expect(ctx.relatedRoles).toContain('Go-To-Market (GTM) Lead');
+    expect(ctx.relatedRoles).toContain('B2B Software Sales Lead');
+
+    // Verify generic skills are filtered out while high-signal skills are retained
+    expect(ctx.topSkillKeywords).toContain('B2B Enterprise Software Sales');
+    expect(ctx.topSkillKeywords).toContain('Deal Qualification');
+    expect(ctx.topSkillKeywords).toContain('Pipeline Management');
+    expect(ctx.topSkillKeywords).toContain('HubSpot');
+    expect(ctx.topSkillKeywords).not.toContain('Communication');
+    expect(ctx.topSkillKeywords).not.toContain('Teamwork');
+
+    // Verify searchQueries include the expanded cluster
+    expect(ctx.searchQueries).toContain('Head of Growth');
+    expect(ctx.searchQueries).toContain('Enterprise Account Executive');
+    expect(ctx.searchQueries).toContain('VP of Sales');
+  });
 });
 
