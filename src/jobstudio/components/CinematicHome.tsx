@@ -171,7 +171,6 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
               scrub: 0.35,
               pin: true,
               anticipatePin: 1,
-              invalidateOnRefresh: true,
             },
           });
           const steps = gsap.utils.toArray(`${sel} .cine-step`);
@@ -215,54 +214,54 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
         // Scene 1 — discover (4 steps)
         scene('.cine-s1', (tl, st) => {
           lightStep(tl, st, 0, 0, 1.0);
-          tl.from('.cine-s1 .cine-chip', { y: 20, opacity: 0, stagger: 0.12, duration: 0.5 }, 0);
+          tl.fromTo('.cine-s1 .cine-chip', { y: 14, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.1, duration: 0.45, ease: 'power2.out' }, 0);
 
           lightStep(tl, st, 1, 1.6, 1.0);
-          tl.from('.cine-s1 .cine-job', { y: 35, opacity: 0, stagger: 0.18, duration: 0.6 }, 1.6);
+          tl.fromTo('.cine-s1 .cine-job', { y: 18, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.14, duration: 0.55, ease: 'power2.out' }, 1.6);
 
           lightStep(tl, st, 2, 3.2, 1.0);
-          tl.to('.cine-s1 .cine-job.is-top', { borderColor: 'var(--brand)', backgroundColor: 'oklch(0.8 0.11 240 / 12%)', duration: 0.5 }, 3.2)
-            .to('.cine-s1 .cine-job:not(.is-top)', { opacity: 0.35, duration: 0.5 }, 3.2);
+          tl.to('.cine-s1 .cine-job.is-top', { borderColor: 'var(--brand)', backgroundColor: 'oklch(0.8 0.11 240 / 12%)', opacity: 1, duration: 0.5 }, 3.2)
+            .to('.cine-s1 .cine-job:not(.is-top)', { opacity: 0.45, duration: 0.5 }, 3.2);
 
           lightStep(tl, st, 3, 4.8, 1.2);
-          tl.from('.cine-s1 .cine-bar-fill', { scaleX: 0, stagger: 0.1, duration: 0.6 }, 4.8)
-            .from('.cine-s1 .cine-score', { opacity: 0, x: 10, stagger: 0.1, duration: 0.4 }, 5.0);
+          tl.fromTo('.cine-s1 .cine-bar-fill', { scaleX: 0 }, { scaleX: 1, stagger: 0.08, duration: 0.5, ease: 'power2.out' }, 4.8)
+            .fromTo('.cine-s1 .cine-score', { opacity: 0, x: 8 }, { opacity: 1, x: 0, stagger: 0.08, duration: 0.35, ease: 'power2.out' }, 5.0);
         }, 4);
 
         // Scene 2 — matching (5 steps)
         scene('.cine-s2', (tl, st) => {
           lightStep(tl, st, 0, 0, 0.9);
-          tl.from('.cine-s2 .cine-resume-line', { opacity: 0, x: -18, stagger: 0.08, duration: 0.45 }, 0);
+          tl.fromTo('.cine-s2 .cine-resume-line', { opacity: 0, x: -16 }, { opacity: 1, x: 0, stagger: 0.08, duration: 0.45, ease: 'power2.out' }, 0);
 
           lightStep(tl, st, 1, 1.4, 0.9);
-          tl.from('.cine-s2 .cine-req', { opacity: 0, x: 18, stagger: 0.08, duration: 0.45 }, 1.4);
+          tl.fromTo('.cine-s2 .cine-req', { opacity: 0, x: 16 }, { opacity: 1, x: 0, stagger: 0.08, duration: 0.45, ease: 'power2.out' }, 1.4);
 
           lightStep(tl, st, 2, 2.8, 0.9);
-          tl.to('.cine-s2 .cine-req.is-match', { backgroundColor: 'oklch(0.78 0.16 155 / 14%)', borderColor: 'var(--success)', color: 'var(--success)', stagger: 0.1, duration: 0.4 }, 2.8)
-            .from('.cine-s2 .cine-req.is-match .cine-ic', { scale: 0, stagger: 0.1, duration: 0.4 }, 2.8);
+          tl.to('.cine-s2 .cine-req.is-match', { backgroundColor: 'oklch(0.78 0.16 155 / 14%)', borderColor: 'var(--success)', color: 'var(--success)', stagger: 0.08, duration: 0.4 }, 2.8)
+            .fromTo('.cine-s2 .cine-req.is-match .cine-ic', { scale: 0 }, { scale: 1, stagger: 0.08, duration: 0.35 }, 2.8);
 
           lightStep(tl, st, 3, 4.2, 0.9);
-          tl.to('.cine-s2 .cine-req.is-miss', { backgroundColor: 'oklch(0.7 0.19 22 / 14%)', borderColor: 'var(--danger)', color: 'var(--danger)', duration: 0.4, stagger: 0.12 }, 4.2)
-            .from('.cine-s2 .cine-req.is-miss .cine-ic', { scale: 0, duration: 0.4 }, 4.2);
+          tl.to('.cine-s2 .cine-req.is-miss', { backgroundColor: 'oklch(0.7 0.19 22 / 14%)', borderColor: 'var(--danger)', color: 'var(--danger)', duration: 0.4, stagger: 0.1 }, 4.2)
+            .fromTo('.cine-s2 .cine-req.is-miss .cine-ic', { scale: 0 }, { scale: 1, duration: 0.35 }, 4.2);
 
           lightStep(tl, st, 4, 5.6, 1.4);
           const n = el.querySelector('.cine-s2 .cine-count'); const o = { v: 0 };
           tl.to('.cine-s2 .cine-ring', { strokeDashoffset: 100 - 82, duration: 1.0, ease: 'power3.out' }, 5.6)
             .to(o, { v: 82, duration: 1.0, ease: 'power3.out', onUpdate: () => { if (n) n.textContent = String(Math.round(o.v)); } }, 5.6)
-            .from('.cine-s2 .cine-verdict', { opacity: 0, y: 10, duration: 0.4 }, 6.2);
+            .fromTo('.cine-s2 .cine-verdict', { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.4 }, 6.2);
         }, 5);
 
         // Scene 3 — resume transformation (4 steps)
         scene('.cine-s3', (tl, st) => {
           lightStep(tl, st, 0, 0, 1.0);
-          tl.from('.cine-s3 .cine-doc', { opacity: 0, y: 35, rotate: -1.5, duration: 0.6 }, 0);
+          tl.fromTo('.cine-s3 .cine-doc', { opacity: 0, y: 24, rotate: -1.5 }, { opacity: 1, y: 0, rotate: 0, duration: 0.6, ease: 'power2.out' }, 0);
 
           lightStep(tl, st, 1, 1.6, 1.0);
-          tl.to('.cine-s3 .cine-scan', { top: '100%', duration: 1.0, ease: 'none' }, 1.6)
-            .from('.cine-s3 .cine-kw', { opacity: 0, scale: 0.8, stagger: 0.08, duration: 0.35 }, 1.8);
+          tl.fromTo('.cine-s3 .cine-scan', { top: '-10%' }, { top: '100%', duration: 1.0, ease: 'none' }, 1.6)
+            .fromTo('.cine-s3 .cine-kw', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, stagger: 0.08, duration: 0.35 }, 1.8);
 
           lightStep(tl, st, 2, 3.2, 1.0);
-          tl.from('.cine-s3 .cine-tip', { opacity: 0, x: 25, stagger: 0.12, duration: 0.5 }, 3.2);
+          tl.fromTo('.cine-s3 .cine-tip', { opacity: 0, x: 20 }, { opacity: 1, x: 0, stagger: 0.12, duration: 0.5, ease: 'power2.out' }, 3.2);
 
           lightStep(tl, st, 3, 4.8, 1.3);
           tl.to('.cine-s3 .cine-old', { opacity: 0, y: -6, stagger: 0.08, duration: 0.35 }, 4.8)
@@ -274,13 +273,13 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
         // Scene 4 — interview prep (4 steps)
         scene('.cine-s4', (tl, st) => {
           lightStep(tl, st, 0, 0, 1.0);
-          tl.from('.cine-s4 .cine-q', { opacity: 0, y: 35, rotateX: -20, stagger: 0.15, duration: 0.6, transformOrigin: 'top center' }, 0);
+          tl.fromTo('.cine-s4 .cine-q', { opacity: 0, y: 20, rotateX: -10 }, { opacity: 1, y: 0, rotateX: 0, stagger: 0.12, duration: 0.55, transformOrigin: 'top center', ease: 'power2.out' }, 0);
 
           lightStep(tl, st, 1, 1.6, 1.0);
-          tl.from('.cine-s4 .cine-tag', { opacity: 0, scale: 0.7, stagger: 0.08, duration: 0.35 }, 1.6);
+          tl.fromTo('.cine-s4 .cine-tag', { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, stagger: 0.08, duration: 0.35 }, 1.6);
 
           lightStep(tl, st, 2, 3.2, 1.0);
-          tl.from('.cine-s4 .cine-star-fill', { scaleX: 0, stagger: 0.15, duration: 0.5 }, 3.2);
+          tl.fromTo('.cine-s4 .cine-star-fill', { scaleX: 0 }, { scaleX: 1, stagger: 0.12, duration: 0.45 }, 3.2);
 
           lightStep(tl, st, 3, 4.8, 1.2);
           const n = el.querySelector('.cine-s4 .cine-prog'); const o = { v: 0 };
@@ -296,10 +295,9 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
             end: () => `+=${Math.max(1200, window.innerHeight * 1.4)}`,
             scrub: 0.35,
             pin: true,
-            invalidateOnRefresh: true,
           },
         })
-          .from('.cine-col', { opacity: 0, y: 40, stagger: 0.15, duration: 0.6 })
+          .fromTo('.cine-col', { opacity: 0, y: 30 }, { opacity: 1, y: 0, stagger: 0.12, duration: 0.5, ease: 'power2.out' })
           .to('.cine-move-a', { x: () => { const cols = el.querySelectorAll('.cine-col'); return cols[1].getBoundingClientRect().left - cols[0].getBoundingClientRect().left; }, duration: 1 }, '+=0.4')
           .to('.cine-move-b', { x: () => { const cols = el.querySelectorAll('.cine-col'); return cols[2].getBoundingClientRect().left - cols[0].getBoundingClientRect().left; }, duration: 1.2 }, '<0.3')
           .to('.cine-move-b', { borderColor: 'var(--success)', duration: 0.3 });
@@ -434,16 +432,16 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
                 <span key={i} className="cine-chip"><I className="w-3.5 h-3.5" />{t}</span>
               ))}
             </div>
-            <div className="mt-5 space-y-2.5">
+            <div className="mt-3.5 space-y-2">
               {JOBS.map((j, i) => (
                 <div key={i} className={`cine-job ${i < 2 ? 'is-top' : ''}`}>
-                  <div className="w-9 h-9 rounded-lg bg-surface-2 grid place-items-center text-xs font-semibold">{j.c[0]}</div>
+                  <div className="w-8 h-8 rounded-lg bg-surface-2 grid place-items-center text-xs font-semibold shrink-0">{j.c[0]}</div>
                   <div className="min-w-0 flex-1">
                     <div className="text-sm font-medium truncate">{j.t}</div>
                     <div className="text-[11px] text-subtle">{j.c} · {j.l}</div>
                   </div>
-                  <div className="w-24 hidden sm:block"><div className="cine-bar"><div className="cine-bar-fill" style={{ width: `${j.s}%` }} /></div></div>
-                  <div className={`cine-score w-10 text-right text-xs font-mono ${j.s > 80 ? 'text-success' : 'text-muted-foreground'}`}>{j.s}%</div>
+                  <div className="w-24 hidden sm:block shrink-0"><div className="cine-bar"><div className="cine-bar-fill" style={{ width: `${j.s}%` }} /></div></div>
+                  <div className={`cine-score w-10 text-right text-xs font-mono shrink-0 ${j.s > 80 ? 'text-success font-semibold' : 'text-muted-foreground'}`}>{j.s}%</div>
                 </div>
               ))}
             </div>
