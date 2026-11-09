@@ -1165,6 +1165,8 @@ export default function App() {
 
         {activeTab === 'evaluator' && (
           <JobEvaluatorView
+            resume={resume}
+            setResume={setResume}
             masterProfileText={masterProfileText}
             evaluation={evaluation}
             isEvaluationComplete={isEvaluationComplete}

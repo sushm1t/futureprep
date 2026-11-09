@@ -148,6 +148,14 @@ export function extractProfileSearchContext(
     }
   }
 
+  // If targetRole contains pipe or slash delimiters (e.g. from a raw headline), isolate the primary title
+  if (targetRole.includes('|') || targetRole.includes('/')) {
+    const segs = targetRole.split(/[|/•,]/).map((s) => cleanText(s)).filter(Boolean);
+    if (segs.length > 0) {
+      targetRole = segs[0];
+    }
+  }
+
   // If targetRole contains "Co-Founder & Head of Growth", simplify primary title to "Head of Growth" if desired
   if (/co-?founder\s*&\s*head\s+of\s+growth/i.test(targetRole)) {
     targetRole = 'Head of Growth';
@@ -193,39 +201,123 @@ export function extractProfileSearchContext(
     normalizedLocation = 'Remote';
   }
 
-  // 4. Determine Domain string & Non-Tech status
-  const checkText = `${targetRole} ${headline} ${resume?.skills?.join(' ') || ''} ${resume?.tailored_summary || ''} ${masterProfileText.slice(0, 3000)}`.toLowerCase();
-  const isNonTech = NON_TECH_KEYWORDS.some((kw) => checkText.includes(kw));
+  // 4. Determine Domain based strictly on the candidate's authentic titles, headline, and core skills
+  // (NEVER from arbitrary words in long body text or bullet points where client industries like "hospitals" appear)
+  const titlesText = `${targetRole} ${headline} ${resume?.experiences?.map((e) => e.title).join(' ') || ''}`.toLowerCase();
+  const skillsText = `${resume?.skills?.join(' ') || ''}`.toLowerCase();
+  const rawBodyText = masterProfileText.slice(0, 3000).toLowerCase();
 
   let domain = 'Technology & Software';
-  if (/medical|laboratory|pathology|hospital|nurse|phlebotomy|clinical|biochemistry|hematology|health/i.test(checkText)) {
-    domain = 'Healthcare & Life Sciences';
-  } else if (/mechanical|heavy\s+(machinery|equipment)|automotive|mining\s+machiner|production\s+engineer|plant\s+(engineer|maintenance)|jcb|excavator|erection\s+and\s+commissioning/i.test(checkText)) {
-    domain = 'Mechanical & Industrial Engineering';
-  } else if (
-    /sales|account\s+executive|business\s+development|\bcloser\b|pipeline\s+management|deal\s+closing|b2b\s+sales|deal\s+qualification|outbound\s+prospecting|solution\s+selling|sales\s+director|vp\s+of\s+sales|quota|revops/i.test(
-      checkText
+
+  // 1. Sales & Business Development (highest priority when titles indicate commercial/revenue role)
+  if (
+    /sales|account\s+executive|business\s+development|\bcloser\b|pipeline|growth|quota|outbound\s+prospecting|revops|bdr|sdr|deal\s+closing/i.test(
+      titlesText
     ) ||
-    (/growth/i.test(targetRole) && /sales|b2b|deal|closing|lead|crm/i.test(checkText))
+    (/b2b\s+sales|pipeline\s+management|deal\s+qualification|solution\s+selling|closing\s+deals/i.test(skillsText) &&
+      !/technologist|technician|nurse|physician|piping/i.test(titlesText))
   ) {
     domain = 'Sales & Business Development';
-  } else if (/fintech|payment|dispute|chargeback|card operation|reconciliation|billing|merchant/i.test(checkText)) {
+  }
+  // 2. Healthcare & Clinical (MUST have clinical/medical titles or specialized clinical lab skills, NEVER from stray words like "hospitals")
+  else if (
+    /\b(medical\s+laboratory|laboratory\s+technol|pathology\s+technol|phlebotom|nurse|nursing|physician|doctor|pharmacist|clinical\s+specialist|radiolog|surgeon|dentist|paramedic|histotechnol)\b/i.test(
+      titlesText
+    ) ||
+    (/\b(phlebotomy|blood\s+bank|apheresis|hematology|biochemistry|transfusion\s+medicine)\b/i.test(skillsText) &&
+      !/software|developer|sales|marketing/i.test(titlesText))
+  ) {
+    domain = 'Healthcare & Life Sciences';
+  }
+  // 3. Mechanical & Industrial Engineering
+  else if (
+    /\b(mechanical\s+engineer|piping\s+designer|pipeline\s+engineer|production\s+engineer|maintenance\s+engineer|heavy\s+(?:machinery|equipment)|service\s+manager\s+heavy|jcb|excavator|plant\s+engineer)\b/i.test(
+      titlesText
+    ) ||
+    (/\b(jcb|excavator|heavy\s+machinery|plant\s+maintenance|piping\s+design)\b/i.test(skillsText) &&
+      !/software|developer/i.test(titlesText))
+  ) {
+    domain = 'Mechanical & Industrial Engineering';
+  }
+  // 4. Fintech & Payment Operations
+  else if (
+    /\b(payment\s+operations|fintech\s+operations|card\s+disputes|real[- ]time\s+analyst|dispute\s+specialist|chargeback)\b/i.test(
+      titlesText
+    ) ||
+    /\b(card\s+payments|visa\s+and\s+mastercard\s+disputes|chargebacks|payment\s+operations)\b/i.test(skillsText)
+  ) {
     domain = 'Fintech & Payment Operations';
-  } else if (/finance|accounting|audit|banking|tax|payroll/i.test(checkText)) {
-    domain = 'Finance & Banking';
-  } else if (/\b(ux|ui|ux\/ui|product designer|visual design|graphic design|figma|interaction design|design systems|ux researcher)\b/i.test(checkText)) {
+  }
+  // 5. Product & Design
+  else if (
+    /\b(product\s+designer|ui\/ux|ux\s+designer|ux\s+researcher|visual\s+designer|interaction\s+designer|design\s+systems\s+lead)\b/i.test(
+      titlesText
+    )
+  ) {
     domain = 'Product & Design';
-  } else if (/supply chain|logistics|warehouse|operations|procurement/i.test(checkText)) {
+  }
+  // 6. Product Management
+  else if (
+    /\b(product\s+manager|technical\s+pm|group\s+pm|product\s+lead|\btpm\b)\b/i.test(titlesText)
+  ) {
+    domain = 'Product Management';
+  }
+  // 7. Finance & Banking
+  else if (
+    /\b(financial\s+analyst|accounting|auditor|investment\s+banker|tax\s+specialist|payroll)\b/i.test(
+      titlesText
+    )
+  ) {
+    domain = 'Finance & Banking';
+  }
+  // 8. Operations & Logistics
+  else if (
+    /\b(operations\s+manager|supply\s+chain|logistics\s+coordinator|procurement\s+manager|warehouse\s+manager)\b/i.test(
+      titlesText
+    )
+  ) {
     domain = 'Operations & Logistics';
   }
+  // 9. Fallback if titles were sparse, inspect raw body text with strict domain phrases
+  else if (/\bmedical\s+laboratory\s+technologist\b|\bphlebotomy\s+specialist\b/i.test(rawBodyText)) {
+    domain = 'Healthcare & Life Sciences';
+  } else if (/\bmechanical\s+engineering\b|\bheavy\s+machinery\s+maintenance\b/i.test(rawBodyText)) {
+    domain = 'Mechanical & Industrial Engineering';
+  } else if (/\bcard\s+disputes\b|\bpayment\s+operations\b/i.test(rawBodyText)) {
+    domain = 'Fintech & Payment Operations';
+  }
 
-  // 5. Synthesize Alternative & Related Roles from Entire Profile
+  const isNonTech = domain === 'Healthcare & Life Sciences' || domain === 'Mechanical & Industrial Engineering' || domain === 'Operations & Logistics';
+
+  // Discipline Isolation Guard: rejects any title belonging to an alien/incompatible discipline
+  const isCompatibleWithCandidateDomain = (roleTitle: string): boolean => {
+    const r = (roleTitle || '').toLowerCase().trim();
+    if (!r) return false;
+    if (domain === 'Sales & Business Development') {
+      return !/medical|laboratory|technologist|technician|nurse|doctor|phlebotom|piping|mechanical|excavator|cad\s+designer/i.test(r);
+    }
+    if (domain === 'Healthcare & Life Sciences') {
+      return !/sales|growth|closer|account\s+executive|piping|mechanical|software/i.test(r);
+    }
+    if (domain === 'Mechanical & Industrial Engineering') {
+      return !/medical|laboratory|nurse|doctor|sales|closer|fintech/i.test(r);
+    }
+    if (domain === 'Fintech & Payment Operations') {
+      return !/medical|laboratory|nurse|piping|mechanical|heavy\s+equipment/i.test(r);
+    }
+    if (domain === 'Technology & Software') {
+      return !/medical|laboratory|nurse|heavy\s+machinery|excavator/i.test(r);
+    }
+    return true;
+  };
+
+  // 5. Synthesize Alternative & Related Roles strictly from the candidate's authentic profile
   const candidateRolesSet = new Set<string>();
-  if (targetRole) {
+  if (targetRole && isCompatibleWithCandidateDomain(targetRole)) {
     candidateRolesSet.add(targetRole);
   }
 
-  // Extract from headline segments (e.g. "B2B Enterprise Sales | AI-Driven Selling | Full-Cycle Closer")
+  // Extract authentic title segments from headline (e.g. "B2B Enterprise Sales | AI-Driven Selling | Full-Cycle Closer")
   const rawHeadline = headline || resume?.headline || '';
   if (rawHeadline) {
     const headSegments = rawHeadline.split(/[|/•,–—]/).map((s) => s.trim()).filter((s) => s.length >= 3 && s.length <= 40);
@@ -245,7 +337,7 @@ export function extractProfileSearchContext(
     }
   }
 
-  // Extract from experiences titles
+  // Extract authentic past job titles from candidate experiences
   if (Array.isArray(resume?.experiences)) {
     for (const exp of resume.experiences) {
       if (exp.title) {
@@ -258,11 +350,11 @@ export function extractProfileSearchContext(
     }
   }
 
-  // Domain-level curated role cluster injection
+  // Domain-specific adjacent ATS titles matching the candidate's authentic discipline
   if (domain === 'Sales & Business Development') {
     const salesCluster = [
-      'Head of Growth',
       'Enterprise Account Executive',
+      'Head of Growth',
       'VP of Sales',
       'Director of Sales',
       'Head of Business Development',
@@ -271,88 +363,55 @@ export function extractProfileSearchContext(
       'Strategic Account Executive',
     ];
     for (const r of salesCluster) {
-      if (!candidateRolesSet.has(r)) {
-        candidateRolesSet.add(r);
-      }
+      if (!candidateRolesSet.has(r)) candidateRolesSet.add(r);
     }
-  } else if (domain === 'Mechanical & Industrial Engineering' || /mechanical|heavy\s+(machinery|equipment)|plant\s+(maintenance|engineer)|production\s+engineer|jcb|excavator/i.test(checkText)) {
-    const mechanicalCluster = [
-      'Mechanical Engineer',
-      'Service Engineer Heavy Machinery',
-      'Service Manager Heavy Equipment',
-      'Maintenance Engineer',
-      'Production Engineer',
-      'Field Service Engineer',
-      'Plant Operations Engineer',
-    ];
-    for (const r of mechanicalCluster) {
-      if (!candidateRolesSet.has(r)) {
-        candidateRolesSet.add(r);
-      }
-    }
-  } else if (domain === 'Fintech & Payment Operations' || /payment|fintech|dispute|chargeback|card operation|reconciliation/i.test(targetRole)) {
-    const fintechCluster = [
-      'Payment Operations',
-      'Fintech Operations',
-      'Card Disputes Specialist',
-      'Real-Time Analyst',
-      'Incident Coordinator',
-      'Operations Analyst',
-      'Customer Operations',
-    ];
-    for (const r of fintechCluster) {
-      if (!candidateRolesSet.has(r)) {
-        candidateRolesSet.add(r);
-      }
-    }
-  } else if (domain === 'Healthcare & Life Sciences' || /medical laboratory/i.test(targetRole)) {
-    const healthcareCluster = [
+  } else if (domain === 'Healthcare & Life Sciences' && /medical\s+laboratory|laboratory\s+technol|patholog/i.test(titlesText + ' ' + skillsText)) {
+    const labCluster = [
       'Medical Laboratory Technologist',
       'Medical Laboratory Technician',
       'Clinical Laboratory Scientist',
       'Medical Technologist',
       'Laboratory Technologist',
     ];
-    for (const r of healthcareCluster) {
-      if (!candidateRolesSet.has(r)) {
-        candidateRolesSet.add(r);
-      }
+    for (const r of labCluster) {
+      if (!candidateRolesSet.has(r)) candidateRolesSet.add(r);
     }
-  } else if (/pipe|pipeline|piping/i.test(targetRole)) {
-    const pipingCluster = [
-      'Piping Designer',
-      'Pipeline Engineer',
-      'Piping Design Engineer',
-      'Piping Engineer',
-      'Senior Piping Designer',
-      'Mechanical Piping Designer',
-      'Plant Layout Designer',
-    ];
-    for (const r of pipingCluster) {
-      if (!candidateRolesSet.has(r)) {
-        candidateRolesSet.add(r);
-      }
+  } else if (domain === 'Mechanical & Industrial Engineering') {
+    const mechContext = `${titlesText} ${skillsText} ${resume?.experiences?.map((e) => `${e.title} ${e.company}`).join(' ') || ''} ${resume?.tailored_summary || ''}`.toLowerCase();
+    if (/heavy|machin|jcb|excavator/i.test(mechContext)) {
+      [
+        'Service Engineer Heavy Machinery',
+        'Service Manager Heavy Equipment',
+        'Maintenance Engineer',
+        'Production Engineer',
+        'Mechanical Engineer',
+      ].forEach((r) => candidateRolesSet.add(r));
+    } else if (/pipe|pipeline|piping/i.test(mechContext)) {
+      ['Piping Designer', 'Pipeline Engineer', 'Piping Design Engineer', 'Mechanical Piping Designer'].forEach((r) =>
+        candidateRolesSet.add(r)
+      );
+    } else {
+      ['Mechanical Engineer', 'Maintenance Engineer', 'Production Engineer', 'Field Service Engineer'].forEach((r) =>
+        candidateRolesSet.add(r)
+      );
     }
+  } else if (domain === 'Fintech & Payment Operations') {
+    ['Payment Operations', 'Fintech Operations', 'Card Disputes Specialist', 'Real-Time Analyst', 'Operations Analyst'].forEach(
+      (r) => candidateRolesSet.add(r)
+    );
   } else if (domain === 'Product & Design') {
-    const designCluster = [
-      'Product Designer',
-      'UI/UX Designer',
-      'Product Design Lead',
-      'UX Researcher',
-      'Interaction Designer',
-      'Design Systems Lead',
-    ];
-    for (const r of designCluster) {
-      if (!candidateRolesSet.has(r)) {
-        candidateRolesSet.add(r);
-      }
-    }
+    ['Product Designer', 'UI/UX Designer', 'Product Design Lead', 'UX Researcher', 'Interaction Designer'].forEach((r) =>
+      candidateRolesSet.add(r)
+    );
   }
 
-  // Ensure targetRole is first in the list
-  const relatedRoles: string[] = [targetRole];
+  // Filter and sort: candidate targetRole first, followed strictly by compatible roles
+  const relatedRoles: string[] = [];
+  if (targetRole && isCompatibleWithCandidateDomain(targetRole)) {
+    relatedRoles.push(targetRole);
+  }
   for (const r of candidateRolesSet) {
-    if (r && r.toLowerCase() !== targetRole.toLowerCase() && !relatedRoles.includes(r)) {
+    if (r && isCompatibleWithCandidateDomain(r) && !relatedRoles.some((existing) => existing.toLowerCase() === r.toLowerCase())) {
       relatedRoles.push(r);
     }
   }
