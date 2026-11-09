@@ -33,10 +33,6 @@ const QUESTIONS = [
   { k: 'Role-specific', q: 'Which latency thresholds and reliability SLAs would you establish in your first 30 days?' },
 ];
 
-function SampleTag() {
-  return <span className="cine-sample">Sample data · illustrative</span>;
-}
-
 function Window({ title, children, className = '' }) {
   return (
     <div className={`cine-window ${className}`}>
@@ -317,7 +313,6 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
           </Window>
           <div className="cine-float cine-float-a hidden sm:flex"><Globe className="w-4 h-4 text-brand" /> Live from company job boards</div>
           <div className="cine-float cine-float-b hidden sm:flex"><ShieldCheck className="w-4 h-4 text-brand" /> AUTHENTIC RESUME GROUNDING</div>
-          <div className="mt-4 text-center"><SampleTag /></div>
         </div>
         <a href="#cine-story" className="cine-scroll-hint" aria-label="Scroll to story"><ChevronDown className="w-4 h-4" /></a>
       </section>
@@ -351,7 +346,6 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
               </div>
             ))}
           </div>
-          <div className="mt-4"><SampleTag /></div>
         </Window>
       </section>
 
@@ -386,7 +380,6 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
               <div className="cine-verdict mt-3 text-xs text-success font-medium">Apply · close 2 gaps</div>
             </div>
           </div>
-          <div className="mt-5"><SampleTag /></div>
         </Window>
       </section>
 
@@ -425,7 +418,6 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
             {['Quantify payment volume & scale', 'Highlight automated SLA workflows', 'Put operational impact first'].map((t, i) => (
               <div key={i} className="cine-tip"><Sparkles className="w-3.5 h-3.5 text-brand shrink-0" />{t}</div>
             ))}
-            <SampleTag />
           </div>
         </div>
       </section>
@@ -466,7 +458,6 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
               <div className="mt-2 text-[11px] uppercase tracking-widest text-subtle">Ready</div>
             </div>
           </div>
-          <div className="mt-4"><SampleTag /></div>
         </Window>
       </section>
 
@@ -493,7 +484,6 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
               </div>
             ))}
           </div>
-          <div className="mt-4"><SampleTag /></div>
         </div>
         <div className="mt-10 text-center"><button onClick={() => onNavigateToTab('applied')} className="cine-link">Open my applications <ArrowRight className="w-4 h-4" /></button></div>
       </section>

@@ -374,7 +374,6 @@ html.lenis, html.lenis body { height: auto; }
 .cine-window { position: relative; border-radius: 18px; border: 1px solid var(--border); background: linear-gradient(180deg, oklch(0.2 0.012 265 / 92%), oklch(0.16 0.01 265 / 92%)); box-shadow: 0 1px 0 0 oklch(1 0 0 / 7%) inset, 0 40px 80px -30px oklch(0 0 0 / 80%); }
 .cine-window-bar { display: flex; align-items: center; gap: 6px; padding: 0.7rem 1rem; border-bottom: 1px solid var(--border); }
 .cine-dot { width: 9px; height: 9px; border-radius: 99px; background: oklch(1 0 0 / 14%); }
-.cine-sample { display: inline-block; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--subtle); border: 1px dashed oklch(1 0 0 / 14%); border-radius: 6px; padding: 2px 8px; }
 .cine-label { font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--subtle); margin-bottom: 0.6rem; }
 
 /* scenes */
