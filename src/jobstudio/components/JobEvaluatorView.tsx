@@ -33,7 +33,6 @@ import {
   UserCheck,
   ChevronDown,
   ChevronUp,
-  BarChart3,
   Plus,
   X,
   RotateCcw,
@@ -71,7 +70,6 @@ import {
 } from '../data/defaultData';
 import { buildProfileTerms, scoreJobAgainstProfile, PROFILE_MATCH_THRESHOLD, quickFitTier } from '../utils/profileMatch';
 import { extractProfileSearchContext } from '../utils/profileSearchContext';
-import { MarketIntelligenceModal } from './MarketIntelligenceModal';
 import { resolveAtsFromUrl } from '../utils/atsUrlResolver';
 import { getRoleKeywordExpansions, normalizeRoleTitle } from '../utils/roleExpansion';
 import { findSkillAdjacency } from '../utils/skillAdjacency';
@@ -552,7 +550,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   // Freehire 55+ ATS & Multi-Filter States
   const [isAllFiltersOpen, setIsAllFiltersOpen] = useState<boolean>(false);
-  const [isMarketIntelOpen, setIsMarketIntelOpen] = useState<boolean>(false);
 
   // Freehire ATS Auto-Resolver
   const detectedAts = useMemo(() => {
@@ -2243,17 +2240,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   {activeFiltersBadgeCount}
                 </span>
               )}
-            </button>
-
-            {/* Freehire Market Intelligence & Salary Radar Trigger */}
-            <button
-              type="button"
-              onClick={() => setIsMarketIntelOpen(true)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface hover:bg-surface-2 text-foreground border border-border/80 font-medium rounded-xl text-xs transition-all cursor-pointer shadow-2xs hover:border-brand/40"
-              title="Real-time salary percentiles, skill momentum, and hiring velocity radar"
-            >
-              <BarChart3 className="w-3.5 h-3.5 text-brand" />
-              <span className="font-semibold">Market Intel</span>
             </button>
 
             {/* Seniority */}
@@ -4605,14 +4591,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           candidateProfileContext={profileSearchContext}
         />
       )}
-
-      {/* Freehire Market Intelligence & Salary Radar Modal */}
-      <MarketIntelligenceModal
-        isOpen={isMarketIntelOpen}
-        onClose={() => setIsMarketIntelOpen(false)}
-        defaultRole={profileSearchContext.targetRole}
-        defaultLocation={selectedAtsLocation}
-      />
 
       {/* ATS Application Dossier Modal */}
       <AtsDossierModal

@@ -2,7 +2,7 @@ import React from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { CandidateProfileModal } from '@/jobstudio/components/CandidateProfileModal';
-import { MarketIntelligenceModal } from '@/jobstudio/components/MarketIntelligenceModal';
+import { AllFiltersModal } from '@/jobstudio/components/AllFiltersModal';
 import { ReportBugModal } from '@/jobstudio/components/ReportBugModal';
 import { CareerRoadmapsView } from '@/jobstudio/components/CareerRoadmapsView';
 import { JobEvaluatorView } from '@/jobstudio/components/JobEvaluatorView';
@@ -37,16 +37,43 @@ describe('Mobile & Tablet Responsive Audit', () => {
     expect(contactGrid).toBeInTheDocument();
   });
 
-  it('MarketIntelligenceModal includes mobile-dialog-panel and horizontal scroll tabs', () => {
+  it('AllFiltersModal includes mobile-dialog-panel for mobile viewport constraint', () => {
     const { container } = render(
-      <MarketIntelligenceModal isOpen={true} onClose={vi.fn()} />
+      <AllFiltersModal
+        isOpen={true}
+        onClose={vi.fn()}
+        filters={{
+          sources: [],
+          sourceType: 'all',
+          specializations: [],
+          seniority: 'All',
+          minExperienceYears: 0,
+          peopleManagerOnly: false,
+          includeNoLevelStated: true,
+          includeNoExperienceStated: true,
+          applyLimitOnlyNoLevel: false,
+          workplace: 'All',
+          employmentType: 'all',
+          location: 'All',
+          postedWithin: 'all',
+          industries: [],
+          companyTypes: [],
+          collections: [],
+          skills: [],
+          minSalary: undefined,
+          benefits: [],
+          languages: [],
+          relocation: [],
+          strictness: 'any',
+        }}
+        onApplyFilters={vi.fn()}
+        onResetFilters={vi.fn()}
+        totalCatalogueJobs={5000}
+      />
     );
 
     const dialogPanel = container.querySelector('.mobile-dialog-panel');
     expect(dialogPanel).toBeInTheDocument();
-
-    const tabsContainer = container.querySelector('.overflow-x-auto');
-    expect(tabsContainer).toBeInTheDocument();
   });
 
   it('ReportBugModal includes mobile-dialog-panel for mobile viewport constraint', () => {
