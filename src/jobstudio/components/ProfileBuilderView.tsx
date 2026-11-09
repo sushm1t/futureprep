@@ -801,30 +801,7 @@ ${certText}
     <div className="workspace-profile space-y-6 max-w-5xl mx-auto pb-20">
       <BusyIndicator active={isReadingFile} label="Reading resume file" />
 
-      {/* Landing-Inspired Showcase Header Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-b from-card via-card/95 to-surface/90 rounded-3xl border border-border/80 p-6 sm:p-8 shadow-elevated">
-        <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
-        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-2 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand/10 text-brand text-xs font-semibold tracking-widest uppercase font-mono border border-brand/20 shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              <span>MASTER PROFILE VAULT · SINGLE SOURCE OF TRUTH</span>
-            </div>
-            <h1 className="text-3xl sm:text-4xl font-display font-bold tracking-tight text-foreground leading-[1.1]">
-              Master Profile
-            </h1>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Curate your career experience, accomplishments, and skills. Every tailored resume and ATS application grounds directly into this verified profile.
-            </p>
-          </div>
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <span className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium font-mono bg-surface/90 border border-border/80 text-foreground shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-              <span>{isLoggedIn ? 'Cloud Synced' : 'Guest Mode (Local)'}</span>
-            </span>
-          </div>
-        </div>
-      </div>
+
 
       {/* Guest Mode Notice */}
       {!isLoggedIn && (
@@ -1249,6 +1226,10 @@ TypeScript, JavaScript, React, Next.js, Node.js, Express, PostgreSQL, MongoDB, R
                   <span className="text-[11px] font-mono text-success bg-success/10 px-2.5 py-0.5 rounded-full font-semibold">
                     ● Master Profile Active
                   </span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-surface border border-border text-subtle">
+                    <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
+                    <span>{isLoggedIn ? 'Cloud Synced' : 'Guest Mode (Local)'}</span>
+                  </span>
                 </div>
                 <p className="text-xs sm:text-sm text-muted-foreground font-medium">
                   {selectedProfile.headline || 'Professional Candidate'}
@@ -1311,81 +1292,213 @@ TypeScript, JavaScript, React, Next.js, Node.js, Express, PostgreSQL, MongoDB, R
             </div>
           )}
 
-          {/* 4 Summary Cards corresponding to the 4 Guided Steps */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
-            {/* Step 1: Contact & Identity */}
-            <div className="p-4 bg-surface rounded-2xl border border-border space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-semibold uppercase tracking-wider text-[10px]">1. Basic Identity</span>
-                <User className="w-3.5 h-3.5 text-brand" />
+          {/* 1. Core Experience (Full Uncollapsed Timeline & Bullets) */}
+          <div className="space-y-4 pt-2 border-t border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-4 h-4 text-brand" />
+                <h4 className="font-display text-sm sm:text-base font-bold text-foreground uppercase tracking-wide">
+                  Work Experience
+                </h4>
+                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-brand/10 text-brand font-semibold">
+                  {selectedProfile.experiences.length} Position{selectedProfile.experiences.length === 1 ? '' : 's'}
+                </span>
               </div>
-              <p className="text-sm font-bold text-foreground truncate">{selectedProfile.name}</p>
-              <p className="text-xs text-subtle truncate">{selectedProfile.headline}</p>
             </div>
 
-            {/* Step 2: Core Experience */}
-            <div className="p-4 bg-surface rounded-2xl border border-border space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-semibold uppercase tracking-wider text-[10px]">2. Core Experience</span>
-                <Briefcase className="w-3.5 h-3.5 text-brand" />
-              </div>
-              <p className="text-sm font-bold text-foreground">
-                {selectedProfile.experiences.length} Position{selectedProfile.experiences.length === 1 ? '' : 's'}
-              </p>
-              <p className="text-xs text-subtle truncate">
-                {selectedProfile.experiences[0]
-                  ? `${selectedProfile.experiences[0].title} @ ${selectedProfile.experiences[0].company}`
-                  : 'No positions added yet'}
-              </p>
-            </div>
+            {selectedProfile.experiences.length === 0 ? (
+              <p className="text-xs text-subtle italic">No work experience listed yet.</p>
+            ) : (
+              <div className="space-y-4">
+                {selectedProfile.experiences.map((exp, idx) => (
+                  <div
+                    key={idx}
+                    className="p-4 sm:p-5 rounded-2xl bg-surface/70 border border-border/80 space-y-2.5 transition-all hover:border-brand/30"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-1">
+                      <div>
+                        <h5 className="font-display text-sm sm:text-base font-bold text-foreground">
+                          {exp.title}
+                        </h5>
+                        <p className="text-xs sm:text-sm font-semibold text-brand">
+                          {exp.company}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] sm:text-xs text-muted-foreground font-mono">
+                        {exp.date_range && <span>{exp.date_range}</span>}
+                        {exp.date_range && exp.location && <span>·</span>}
+                        {exp.location && <span>{exp.location}</span>}
+                      </div>
+                    </div>
 
-            {/* Step 3: Key Skills & Projects */}
-            <div className="p-4 bg-surface rounded-2xl border border-border space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-semibold uppercase tracking-wider text-[10px]">3. Skills &amp; Projects</span>
-                <Layers className="w-3.5 h-3.5 text-brand" />
-              </div>
-              <p className="text-sm font-bold text-foreground">
-                {selectedProfile.skills.length} Skills · {(selectedProfile.projects || []).length} Projects
-              </p>
-              <div className="flex flex-wrap gap-1">
-                {selectedProfile.skills.slice(0, 3).map((s, idx) => (
-                  <span key={idx} className="text-[10px] px-2 py-0.5 bg-card rounded-md font-medium text-foreground">
-                    {s}
-                  </span>
+                    {exp.bullets && exp.bullets.length > 0 && (
+                      <ul className="space-y-1.5 pt-1 text-xs sm:text-[13px] text-foreground/90 leading-relaxed list-disc list-outside pl-4">
+                        {exp.bullets.map((b, bIdx) => (
+                          <li key={bIdx} className="pl-1">
+                            {b}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 ))}
-                {selectedProfile.skills.length > 3 && (
-                  <span className="text-[10px] px-1.5 py-0.5 text-subtle">+{selectedProfile.skills.length - 3}</span>
-                )}
               </div>
-            </div>
-
-            {/* Step 4: Education & Certifications */}
-            <div className="p-4 bg-surface rounded-2xl border border-border space-y-2">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-semibold uppercase tracking-wider text-[10px]">4. Education &amp; Certs</span>
-                <GraduationCap className="w-3.5 h-3.5 text-brand" />
-              </div>
-              <p className="text-sm font-bold text-foreground">
-                {selectedProfile.education.length} Degrees · {selectedProfile.certifications.length} Certs
-              </p>
-              <p className="text-xs text-subtle truncate">
-                {selectedProfile.education[0] ? selectedProfile.education[0].degree : selectedProfile.certifications[0] || 'No credentials added'}
-              </p>
-            </div>
+            )}
           </div>
 
-          {/* Bottom overview callout */}
-          <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border">
+          {/* 2. Skills & Competencies (Full Uncollapsed Grid) */}
+          <div className="space-y-3 pt-2 border-t border-border">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-brand" />
+              <h4 className="font-display text-sm sm:text-base font-bold text-foreground uppercase tracking-wide">
+                Core Competencies &amp; Technical Skills
+              </h4>
+              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-brand/10 text-brand font-semibold">
+                {selectedProfile.skills.length} Skills
+              </span>
+            </div>
+
+            {selectedProfile.skills.length === 0 ? (
+              <p className="text-xs text-subtle italic">No skills listed yet.</p>
+            ) : (
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                {selectedProfile.skills.map((skill, sIdx) => (
+                  <span
+                    key={sIdx}
+                    className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-surface border border-border/80 text-foreground shadow-2xs hover:border-brand/40 transition-colors"
+                  >
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 3. Education (Full Uncollapsed Degrees & Institutions) */}
+          <div className="space-y-3 pt-2 border-t border-border">
+            <div className="flex items-center gap-2">
+              <GraduationCap className="w-4 h-4 text-brand" />
+              <h4 className="font-display text-sm sm:text-base font-bold text-foreground uppercase tracking-wide">
+                Education
+              </h4>
+              <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-brand/10 text-brand font-semibold">
+                {selectedProfile.education.length} Degrees
+              </span>
+            </div>
+
+            {selectedProfile.education.length === 0 ? (
+              <p className="text-xs text-subtle italic">No education credentials listed.</p>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {selectedProfile.education.map((edu, eIdx) => (
+                  <div
+                    key={eIdx}
+                    className="p-3.5 rounded-xl bg-surface/70 border border-border/80 space-y-1"
+                  >
+                    <p className="text-xs sm:text-sm font-bold text-foreground">
+                      {edu.degree}
+                    </p>
+                    <p className="text-xs text-muted-foreground font-medium">
+                      {edu.institution}
+                    </p>
+                    {edu.year && (
+                      <p className="text-[11px] text-subtle font-mono">
+                        {edu.year}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 4. Certifications & Credentials */}
+          {selectedProfile.certifications && selectedProfile.certifications.length > 0 && (
+            <div className="space-y-3 pt-2 border-t border-border">
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-brand" />
+                <h4 className="font-display text-sm sm:text-base font-bold text-foreground uppercase tracking-wide">
+                  Certifications &amp; Credentials
+                </h4>
+                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-brand/10 text-brand font-semibold">
+                  {selectedProfile.certifications.length} Certs
+                </span>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                {selectedProfile.certifications.map((cert, cIdx) => (
+                  <div
+                    key={cIdx}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface/70 border border-border text-xs font-medium text-foreground"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-success shrink-0" />
+                    <span>{typeof cert === 'string' ? cert : (cert as any).name || (cert as any).title}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 5. Featured Projects (if any) */}
+          {selectedProfile.projects && selectedProfile.projects.length > 0 && (
+            <div className="space-y-3 pt-2 border-t border-border">
+              <div className="flex items-center gap-2">
+                <FolderGit2 className="w-4 h-4 text-brand" />
+                <h4 className="font-display text-sm sm:text-base font-bold text-foreground uppercase tracking-wide">
+                  Featured Projects
+                </h4>
+                <span className="text-xs font-mono px-2 py-0.5 rounded-full bg-brand/10 text-brand font-semibold">
+                  {selectedProfile.projects.length} Projects
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                {selectedProfile.projects.map((proj, pIdx) => (
+                  <div
+                    key={pIdx}
+                    className="p-3.5 rounded-xl bg-surface/70 border border-border/80 space-y-1.5"
+                  >
+                    <div className="flex items-baseline justify-between gap-2">
+                      <p className="text-xs sm:text-sm font-bold text-foreground">
+                        {proj.name || (proj as any).title}
+                      </p>
+                      {proj.url && (
+                        <a
+                          href={proj.url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[11px] text-brand hover:underline inline-flex items-center gap-0.5"
+                        >
+                          <span>Link</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                    {proj.role && (
+                      <p className="text-xs text-brand font-medium">{proj.role}</p>
+                    )}
+                    {proj.description && (
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        {proj.description}
+                      </p>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Bottom Action Bar */}
+          <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-border">
             <span className="text-xs text-muted-foreground">
-              Manual input fields are collapsed. Click <strong>Edit Profile</strong> to modify any section in the guided 4-step editor.
+              Master Profile is fully verified and active for all ATS tailoring.
             </span>
             <Button
               onClick={() => {
                 setIsEditingProfile(true);
                 setActiveStudioTab('builder');
               }}
-              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-semibold bg-primary text-primary-foreground rounded-full shadow-xs cursor-pointer"
+              className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 text-xs font-semibold bg-primary text-primary-foreground rounded-full shadow-xs cursor-pointer hover:bg-primary/90"
             >
               <Pencil className="w-3.5 h-3.5" />
               <span>Edit Profile Details</span>
