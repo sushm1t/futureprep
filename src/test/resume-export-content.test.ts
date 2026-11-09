@@ -149,9 +149,10 @@ describe('resume project content', () => {
       certifications: [],
     };
 
-    // Full Page mode (comfortable requested): must auto-calibrate density so 100% of data fits on 1 single page!
-    const docFullPage = generateVectorResumePdf(multiRoleCandidate, { density: 'comfortable', forceSinglePage: true });
-    expect(docFullPage.internal.getNumberOfPages()).toBe(1);
+    // Full Page mode (comfortable requested): preserves spacious Harvard/Stanford executive typography,
+    // flowing cleanly into Page 2 for multi-role candidates so details are never crammed or truncated!
+    const docFullPage = generateVectorResumePdf(multiRoleCandidate, { density: 'comfortable' });
+    expect(docFullPage.internal.getNumberOfPages()).toBe(2);
 
     const pdfOutput = docFullPage.output();
     expect(pdfOutput).toContain('EDUCATION');
@@ -159,10 +160,12 @@ describe('resume project content', () => {
     expect(pdfOutput).toContain('Bachelor of Travel and Tourism');
     expect(pdfOutput).toContain('Front Desk Operator');
 
-    // Compact mode: also fits on 1 page and retains education
+    // Compact mode: high-density packing fits 100% of content and education onto 1 single page
     const docCompact = generateVectorResumePdf(multiRoleCandidate, { density: 'compact', forceSinglePage: true });
     expect(docCompact.internal.getNumberOfPages()).toBe(1);
+    expect(docCompact.output()).toContain('EDUCATION');
     expect(docCompact.output()).toContain('Master of Tourism and Travel Management');
+    expect(docCompact.output()).toContain('Front Desk Operator');
   });
 
   it('safely page-breaks rather than dropping sections if content volume exceeds 1 page', () => {

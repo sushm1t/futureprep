@@ -343,41 +343,50 @@ export function generateVectorResumePdf(
 
   let m: DensityMetrics;
 
-  if (forceSinglePage) {
-    // In single-page mode, evaluate candidates starting from the requested or preferred density,
-    // stepping down gracefully until all content (including Education) fits within pageHeight - marginBottom.
-    const requested = options.density;
-    const presetsToTry: DensityMetrics[] = [];
-
-    if (requested === 'comfortable') {
-      presetsToTry.push(comfortableMetrics, balancedMetrics, compactMetrics, ultraCompactMetrics);
-    } else if (requested === 'balanced') {
-      presetsToTry.push(balancedMetrics, compactMetrics, ultraCompactMetrics);
-    } else if (requested === 'compact') {
-      presetsToTry.push(compactMetrics, ultraCompactMetrics);
-    } else {
-      // Auto-mode (no density specified): pick the roomiest preset that fits
-      presetsToTry.push(comfortableMetrics, balancedMetrics, compactMetrics, ultraCompactMetrics);
-    }
-
-    let selected = presetsToTry[presetsToTry.length - 1]; // fallback to most compact
-    for (const preset of presetsToTry) {
-      const cWidth = pageWidth - preset.marginX * 2;
-      const estimatedH = estimatePdfResumeHeight(doc, resume, preset, cWidth);
-      if (estimatedH <= pageHeight - preset.marginBottom) {
-        selected = preset;
-        break;
+  if (options.density === 'comfortable') {
+    // Full Page Executive (Harvard/Stanford standard):
+    // Preserves spacious, prestigious typography (10.5pt titles, 9.2pt bullets, 1.36 line height, 4.5pt bullet gaps).
+    // If the candidate has extensive history (4+ roles, 14+ bullets), it flows naturally onto
+    // Page 2 rather than cramming text or creating cognitive overload for recruiters.
+    m = comfortableMetrics;
+  } else if (options.density === 'compact') {
+    // Compact: high-density packing to fit 100% of roles and education onto 1 single page
+    if (forceSinglePage) {
+      const cWidth = pageWidth - compactMetrics.marginX * 2;
+      const estimatedH = estimatePdfResumeHeight(doc, resume, compactMetrics, cWidth);
+      if (estimatedH <= pageHeight - compactMetrics.marginBottom) {
+        m = compactMetrics;
+      } else {
+        m = ultraCompactMetrics;
       }
-    }
-    m = selected;
-  } else {
-    // Multi-page mode: directly use requested density
-    if (options.density === 'comfortable') {
-      m = comfortableMetrics;
-    } else if (options.density === 'compact') {
+    } else {
       m = compactMetrics;
+    }
+  } else if (options.density === 'balanced') {
+    if (forceSinglePage) {
+      const cWidth = pageWidth - balancedMetrics.marginX * 2;
+      const estimatedH = estimatePdfResumeHeight(doc, resume, balancedMetrics, cWidth);
+      if (estimatedH <= pageHeight - balancedMetrics.marginBottom) {
+        m = balancedMetrics;
+      } else if (estimatePdfResumeHeight(doc, resume, compactMetrics, pageWidth - compactMetrics.marginX * 2) <= pageHeight - compactMetrics.marginBottom) {
+        m = compactMetrics;
+      } else {
+        m = ultraCompactMetrics;
+      }
     } else {
       m = balancedMetrics;
+    }
+  } else {
+    // Auto mode: evaluate from comfortable down to compact for single-page fit
+    const cWidth = pageWidth - comfortableMetrics.marginX * 2;
+    if (estimatePdfResumeHeight(doc, resume, comfortableMetrics, cWidth) <= pageHeight - comfortableMetrics.marginBottom) {
+      m = comfortableMetrics;
+    } else if (estimatePdfResumeHeight(doc, resume, balancedMetrics, pageWidth - balancedMetrics.marginX * 2) <= pageHeight - balancedMetrics.marginBottom) {
+      m = balancedMetrics;
+    } else if (estimatePdfResumeHeight(doc, resume, compactMetrics, pageWidth - compactMetrics.marginX * 2) <= pageHeight - compactMetrics.marginBottom) {
+      m = compactMetrics;
+    } else {
+      m = ultraCompactMetrics;
     }
   }
 
