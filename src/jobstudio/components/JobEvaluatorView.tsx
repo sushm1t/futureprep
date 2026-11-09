@@ -807,7 +807,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     const url = buildShareUrl();
     const locationText = selectedAtsLocation && selectedAtsLocation !== 'All' ? ` in ${selectedAtsLocation}` : '';
     const header = `🎯 Live Roles on JobStudio (${filteredAtsJobs.length} positions)\nSearch: ${searchRoleLabel}${locationText}\n`;
-    const items = filteredAtsJobs.slice(0, 25).map((job, index) => {
+    const items = filteredAtsJobs.map((job, index) => {
       const loc = job.location ? ` | ${job.location}` : '';
       const wp = job.workplaceType ? ` (${job.workplaceType})` : '';
       const link = job.applyUrl ? `\n   Apply: ${job.applyUrl}` : '';
@@ -4323,16 +4323,17 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                       ? 'bg-success/15 border-success/40 text-success'
                       : 'border-border bg-surface hover:bg-surface-2 text-foreground'
                   }`}
+                  aria-label={`Copy List (${filteredAtsJobs.length} roles for WhatsApp / Slack)`}
                 >
                   {isListCopied ? (
                     <>
                       <Check className="w-4 h-4 text-success" />
-                      <span className="font-semibold">Text List Copied!</span>
+                      <span className="font-semibold">All {filteredAtsJobs.length} Roles Copied!</span>
                     </>
                   ) : (
                     <>
                       <FileText className="w-4 h-4 text-brand" />
-                      <span>Copy List (for WhatsApp / Slack)</span>
+                      <span>Copy List ({filteredAtsJobs.length} roles for WhatsApp / Slack)</span>
                     </>
                   )}
                 </button>
@@ -4364,7 +4365,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 </div>
 
                 <div className="max-h-56 overflow-y-auto space-y-2 pr-1 rounded-xl">
-                  {filteredAtsJobs.slice(0, 15).map((job) => (
+                  {filteredAtsJobs.map((job) => (
                     <div
                       key={job.id}
                       className="p-2.5 rounded-xl border border-border bg-surface/60 text-xs flex items-center justify-between gap-3"
@@ -4390,11 +4391,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                       )}
                     </div>
                   ))}
-                  {filteredAtsJobs.length > 15 && (
-                    <div className="text-center py-1 text-[11px] text-subtle">
-                      + {filteredAtsJobs.length - 15} more positions included in the link
-                    </div>
-                  )}
                 </div>
               </div>
             </div>

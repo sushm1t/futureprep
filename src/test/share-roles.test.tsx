@@ -138,7 +138,7 @@ describe('JobEvaluatorView - Share Fetched Roles Feature', () => {
     expect(screen.getByText(/Share \d+ live positions/i)).toBeInTheDocument();
 
     // Copy List button
-    const copyListBtn = screen.getByRole('button', { name: /Copy List \(for WhatsApp \/ Slack\)/i });
+    const copyListBtn = screen.getByRole('button', { name: /Copy List.*WhatsApp.*Slack/i });
     expect(copyListBtn).toBeInTheDocument();
 
     fireEvent.click(copyListBtn);
@@ -154,6 +154,71 @@ describe('JobEvaluatorView - Share Fetched Roles Feature', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
+  });
+
+  it('copies all roles without capping at 25 when candidate has 55 matching positions', async () => {
+    // Generate 55 mock positions at Anthropic matching software engineer profile
+    const fiftyFiveJobs = Array.from({ length: 55 }, (_, i) => ({
+      id: `gh-${i + 1}`,
+      title: `Staff Software Engineer Role ${i + 1}`,
+      company: 'Anthropic',
+      location: 'San Francisco, CA',
+      department: 'Engineering',
+      platform: 'Greenhouse',
+      applyUrl: `https://boards.greenhouse.io/anthropic/jobs/${i + 1}`,
+      rawDescription: `Build distributed systems with React, TypeScript, and Go at scale for role ${i + 1}.`,
+      isRemote: false,
+      workplaceType: 'Hybrid',
+      seniority: 'Lead / Staff / Director',
+    }));
+
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        success: true,
+        company: 'Anthropic',
+        slug: 'anthropic',
+        ats: 'Greenhouse',
+        jobs: fiftyFiveJobs,
+        totalAvailableInCatalogue: 120000,
+      }),
+    })));
+
+    render(
+      <JobEvaluatorView
+        {...mockProps}
+        masterProfileText="Staff Software Engineer with deep expertise in React, TypeScript, and distributed systems."
+      />
+    );
+
+    const fetchBtn = screen.getByRole('button', { name: /Fetch Live Roles/i });
+    fireEvent.click(fetchBtn);
+
+    await waitFor(() => {
+      expect(screen.getByText('Staff Software Engineer Role 1')).toBeInTheDocument();
+    });
+
+    // Open share modal
+    const shareBtn = screen.getByRole('button', { name: /Share fetched roles/i });
+    fireEvent.click(shareBtn);
+
+    // Verify modal displays 55 positions
+    expect(screen.getByRole('dialog', { name: /Share Fetched Roles/i })).toBeInTheDocument();
+    expect(screen.getByText(/Positions Included \(55\)/i)).toBeInTheDocument();
+
+    // Click Copy List
+    const copyListBtn = screen.getByRole('button', { name: /Copy List.*55.*roles/i });
+    fireEvent.click(copyListBtn);
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalled();
+    const copiedText = (navigator.clipboard.writeText as any).mock.calls.at(-1)[0];
+
+    // Assert that role 1, role 25, role 26, AND role 55 are all in the copied text
+    expect(copiedText).toContain('1. Staff Software Engineer Role 1');
+    expect(copiedText).toContain('25. Staff Software Engineer Role 25');
+    expect(copiedText).toContain('26. Staff Software Engineer Role 26');
+    expect(copiedText).toContain('55. Staff Software Engineer Role 55');
+    expect(copiedText).toContain('🎯 Live Roles on JobStudio (55 positions)');
   });
 
   it('automatically triggers ATS crawl with shared parameters when URL search params are present', async () => {
