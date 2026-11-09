@@ -66,6 +66,7 @@ function SceneCopy({ idx, eyebrow, title, steps, cta, onCta }) {
 export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> = ({ onNavigateToTab }) => {
   const root = useRef<HTMLDivElement>(null);
   const [showFloatingSkip, setShowFloatingSkip] = useState(false);
+  const [activeChapter, setActiveChapter] = useState('');
 
   useEffect(() => {
     const el = root.current;
@@ -80,8 +81,11 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
     if (reduce) { el.classList.add('cine-static'); return; }
 
     const lenis = new Lenis({
-      duration: 0.7,
+      duration: 1.15,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      wheelMultiplier: 0.95,
+      touchMultiplier: 1.5,
     });
     lenis.on('scroll', ScrollTrigger.update);
     const tick = (time) => lenis.raf(time * 1000);
@@ -89,6 +93,44 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
     gsap.ticker.lagSmoothing(0);
 
     const ctx = gsap.context(() => {
+      // Top global scroll progress bar across the entire landing story
+      gsap.to('.cine-progress-bar', {
+        scaleX: 1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top top',
+          end: 'bottom bottom',
+          scrub: 0.2,
+        },
+      });
+
+      // Active chapter detector for floating HUD
+      const chapters = [
+        { sel: '.cine-s1', label: '01 Discover · Live Job Feed' },
+        { sel: '.cine-s2', label: '02 Match · 82% Fit Score' },
+        { sel: '.cine-s3', label: '03 Tailor · ATS Calibration' },
+        { sel: '.cine-s4', label: '04 Prepare · STAR Intelligence' },
+        { sel: '.cine-track', label: '05 Track · Pipeline Kanban' },
+      ];
+
+      chapters.forEach(({ sel, label }) => {
+        ScrollTrigger.create({
+          trigger: sel,
+          start: 'top 55%',
+          end: 'bottom 45%',
+          onEnter: () => setActiveChapter(label),
+          onEnterBack: () => setActiveChapter(label),
+        });
+      });
+
+      ScrollTrigger.create({
+        trigger: '.cine-hero',
+        start: 'top top',
+        end: 'bottom 50%',
+        onEnterBack: () => setActiveChapter(''),
+      });
+
       // ---------- Hero entrance ----------
       const intro = gsap.timeline({ defaults: { ease: 'expo.out' } });
       intro
@@ -123,7 +165,7 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
               trigger,
               start: pinStart(trigger),
               end: () => `+=${Math.min(len, Math.max(650, window.innerHeight * 1.25))}`,
-              scrub: 0.35,
+              scrub: 0.75,
               pin: true,
               anticipatePin: 1,
               invalidateOnRefresh: true,
@@ -134,7 +176,33 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
           return tl;
         };
         const lightStep = (tl, steps, i, at) => {
-          tl.to(steps[i], { opacity: 1, duration: 0.3 }, at).fromTo(steps[i].querySelector('.cine-step-fill'), { scaleX: 0 }, { scaleX: 1, duration: 1 }, at);
+          tl.to(
+            steps[i],
+            {
+              opacity: 1,
+              duration: 0.35,
+              onStart: () => {
+                steps.forEach((s, idx) => {
+                  if (idx === i) s.classList.add('is-active');
+                  else s.classList.remove('is-active');
+                });
+              },
+              onReverseComplete: () => {
+                if (i > 0) {
+                  steps[i].classList.remove('is-active');
+                  steps[i - 1].classList.add('is-active');
+                } else {
+                  steps[i].classList.remove('is-active');
+                }
+              },
+            },
+            at
+          ).fromTo(
+            steps[i].querySelector('.cine-step-fill'),
+            { scaleX: 0 },
+            { scaleX: 1, duration: 1 },
+            at
+          );
         };
 
         gsap.set(['.cine-s2 .cine-ring', '.cine-s4 .cine-prog-ring'], { strokeDashoffset: 100 });
@@ -256,6 +324,17 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
 
   return (
     <div ref={root} className="cine">
+      {/* Top Global Scroll Progress Bar */}
+      <div className="cine-progress-bar" aria-hidden />
+
+      {/* Floating Story Chapter Indicator */}
+      {activeChapter && (
+        <div className="cine-chapter-hud animate-in fade-in slide-in-from-top-2 duration-300">
+          <span className="cine-chapter-dot" />
+          <span>{activeChapter}</span>
+        </div>
+      )}
+
       {/* ================= HERO ================= */}
       <section className="cine-hero">
         <div className="cine-planet" aria-hidden />
@@ -314,7 +393,11 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
           <div className="cine-float cine-float-a hidden sm:flex"><Globe className="w-4 h-4 text-brand" /> Live from company job boards</div>
           <div className="cine-float cine-float-b hidden sm:flex"><ShieldCheck className="w-4 h-4 text-brand" /> AUTHENTIC RESUME GROUNDING</div>
         </div>
-        <a href="#cine-story" className="cine-scroll-hint" aria-label="Scroll to story"><ChevronDown className="w-4 h-4" /></a>
+        <a href="#cine-story" className="cine-scroll-pill" aria-label="Scroll to explore interactive story">
+          <span className="cine-scroll-mouse"><span className="cine-scroll-wheel" /></span>
+          <span className="cine-scroll-label">Scroll to explore</span>
+          <ChevronDown className="w-3.5 h-3.5 cine-scroll-arrow" />
+        </a>
       </section>
 
       <div id="cine-story" className="cine-intro cine-reveal">
@@ -327,26 +410,29 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
         <SceneCopy idx={1} eyebrow="Discover" title="Every live role, read for you."
           steps={['Set what you want', 'Live jobs from company boards', 'The right ones rise to the top', 'Every role gets a match score']}
           cta="Open the Job Evaluator" onCta={() => onNavigateToTab('evaluator')} />
-        <Window title="Live job search" className="cine-stage">
-          <div className="flex flex-wrap gap-2">
-            {[[Briefcase, 'Operations Analyst'], [MapPin, 'Remote · EU'], [Zap, 'Fintech'], [Target, 'Mid–Senior']].map(([I, t], i) => (
-              <span key={i} className="cine-chip"><I className="w-3.5 h-3.5" />{t}</span>
-            ))}
-          </div>
-          <div className="mt-5 space-y-2.5">
-            {JOBS.map((j, i) => (
-              <div key={i} className={`cine-job ${i < 2 ? 'is-top' : ''}`}>
-                <div className="w-9 h-9 rounded-lg bg-surface-2 grid place-items-center text-xs font-semibold">{j.c[0]}</div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium truncate">{j.t}</div>
-                  <div className="text-[11px] text-subtle">{j.c} · {j.l}</div>
+        <div className="relative">
+          <div className="cine-ambient-glow cine-glow-blue" aria-hidden />
+          <Window title="Live job search" className="cine-stage">
+            <div className="flex flex-wrap gap-2">
+              {[[Briefcase, 'Operations Analyst'], [MapPin, 'Remote · EU'], [Zap, 'Fintech'], [Target, 'Mid–Senior']].map(([I, t], i) => (
+                <span key={i} className="cine-chip"><I className="w-3.5 h-3.5" />{t}</span>
+              ))}
+            </div>
+            <div className="mt-5 space-y-2.5">
+              {JOBS.map((j, i) => (
+                <div key={i} className={`cine-job ${i < 2 ? 'is-top' : ''}`}>
+                  <div className="w-9 h-9 rounded-lg bg-surface-2 grid place-items-center text-xs font-semibold">{j.c[0]}</div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-medium truncate">{j.t}</div>
+                    <div className="text-[11px] text-subtle">{j.c} · {j.l}</div>
+                  </div>
+                  <div className="w-24 hidden sm:block"><div className="cine-bar"><div className="cine-bar-fill" style={{ width: `${j.s}%` }} /></div></div>
+                  <div className={`cine-score w-10 text-right text-xs font-mono ${j.s > 80 ? 'text-success' : 'text-muted-foreground'}`}>{j.s}%</div>
                 </div>
-                <div className="w-24 hidden sm:block"><div className="cine-bar"><div className="cine-bar-fill" style={{ width: `${j.s}%` }} /></div></div>
-                <div className={`cine-score w-10 text-right text-xs font-mono ${j.s > 80 ? 'text-success' : 'text-muted-foreground'}`}>{j.s}%</div>
-              </div>
-            ))}
-          </div>
-        </Window>
+              ))}
+            </div>
+          </Window>
+        </div>
       </section>
 
       {/* ================= SCENE 2 ================= */}
@@ -354,33 +440,36 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
         <SceneCopy idx={2} eyebrow="Match" title="Know if it's worth applying before you apply."
           steps={['Reads your real experience', 'Pulls out what the job needs', 'Shows the skills you have', 'Flags what you are missing', 'Gives a clear match score']}
           cta="Score a job now" onCta={() => onNavigateToTab('evaluator')} />
-        <Window title="Match analysis · Stripe · Senior Operations Analyst" className="cine-stage">
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_150px] gap-4 items-start">
-            <div>
-              <div className="cine-label">Your resume</div>
-              {['5+ years in fintech operations', 'Financial modeling & SQL analytics', 'Cross-border payment flows', 'Cross-functional stakeholder coordination', 'Incident & SLA management'].map((t, i) => (
-                <div key={i} className="cine-resume-line">{t}</div>
-              ))}
-            </div>
-            <div>
-              <div className="cine-label">Job needs</div>
-              <div className="flex flex-wrap gap-2">
-                {MATCH.map((m) => <span key={m} className="cine-req is-match"><CheckCircle2 className="cine-ic w-3.5 h-3.5" />{m}</span>)}
-                {MISS.map((m) => <span key={m} className="cine-req is-miss"><XCircle className="cine-ic w-3.5 h-3.5" />{m}</span>)}
+        <div className="relative">
+          <div className="cine-ambient-glow cine-glow-emerald" aria-hidden />
+          <Window title="Match analysis · Stripe · Senior Operations Analyst" className="cine-stage">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_150px] gap-4 items-start">
+              <div>
+                <div className="cine-label">Your resume</div>
+                {['5+ years in fintech operations', 'Financial modeling & SQL analytics', 'Cross-border payment flows', 'Cross-functional stakeholder coordination', 'Incident & SLA management'].map((t, i) => (
+                  <div key={i} className="cine-resume-line">{t}</div>
+                ))}
+              </div>
+              <div>
+                <div className="cine-label">Job needs</div>
+                <div className="flex flex-wrap gap-2">
+                  {MATCH.map((m) => <span key={m} className="cine-req is-match"><CheckCircle2 className="cine-ic w-3.5 h-3.5" />{m}</span>)}
+                  {MISS.map((m) => <span key={m} className="cine-req is-miss"><XCircle className="cine-ic w-3.5 h-3.5" />{m}</span>)}
+                </div>
+              </div>
+              <div className="flex flex-col items-center">
+                <div className="relative w-32 h-32">
+                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                    <circle cx="18" cy="18" r="15.9" pathLength="100" className="cine-ring-bg" />
+                    <circle cx="18" cy="18" r="15.9" pathLength="100" className="cine-ring-fg cine-ring" strokeDasharray="100" strokeDashoffset="18" />
+                  </svg>
+                  <div className="absolute inset-0 grid place-items-center text-3xl font-semibold"><span className="cine-count">82</span></div>
+                </div>
+                <div className="cine-verdict mt-3 text-xs text-success font-medium">Apply · close 2 gaps</div>
               </div>
             </div>
-            <div className="flex flex-col items-center">
-              <div className="relative w-32 h-32">
-                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                  <circle cx="18" cy="18" r="15.9" pathLength="100" className="cine-ring-bg" />
-                  <circle cx="18" cy="18" r="15.9" pathLength="100" className="cine-ring-fg cine-ring" strokeDasharray="100" strokeDashoffset="18" />
-                </svg>
-                <div className="absolute inset-0 grid place-items-center text-3xl font-semibold"><span className="cine-count">82</span></div>
-              </div>
-              <div className="cine-verdict mt-3 text-xs text-success font-medium">Apply · close 2 gaps</div>
-            </div>
-          </div>
-        </Window>
+          </Window>
+        </div>
       </section>
 
       {/* ================= SCENE 3 ================= */}
@@ -388,36 +477,39 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
         <SceneCopy idx={3} eyebrow="Tailor" title="Your resume, rewritten for this exact job."
           steps={['Starts from your real resume', 'Reads the job description', 'Suggests honest improvements', 'Builds a one-page resume ready for ATS checks']}
           cta="Tailor my resume" onCta={() => onNavigateToTab('resume')} />
-        <div className="cine-stage grid grid-cols-1 sm:grid-cols-[1fr_200px] gap-4">
-          <div className="cine-doc paper relative overflow-hidden">
-            <div className="cine-scan" aria-hidden />
-            <div className="text-[13px] font-bold tracking-wide">ALEX RIVERA</div>
-            <div className="text-[10px] opacity-60 mb-3">Senior Product &amp; Operations Lead · Fintech &amp; Payments</div>
-            <div className="text-[10px] font-semibold tracking-widest opacity-70 mb-1.5">EXPERIENCE</div>
-            {[
-              ['Handled payment reconciliation and queries.', 'Reduced payment settlement reconciliation latency by 42% across EMEA cross-border corridors.'],
-              ['Created operational dashboards in SQL.', 'Built automated Looker/SQL dashboards monitoring $120M+ monthly merchant volume and SLA adherence.'],
-              ['Coordinated payment exception handling.', 'Redesigned cross-border dispute workflows, cutting chargeback resolution times from 5 days to 18 hours.'],
-            ].map(([o, n], i) => (
-              <div key={i} className="relative min-h-[34px] text-[11px] leading-snug mb-1.5 pl-3">
-                <span className="absolute left-0 top-1.5 w-1 h-1 rounded-full bg-current opacity-60" />
-                <span className="cine-old absolute inset-0 pl-3">{o}</span>
-                <span className="cine-new block opacity-0">{n}</span>
+        <div className="relative">
+          <div className="cine-ambient-glow cine-glow-violet" aria-hidden />
+          <div className="cine-stage grid grid-cols-1 sm:grid-cols-[1fr_200px] gap-4">
+            <div className="cine-doc paper relative overflow-hidden">
+              <div className="cine-scan" aria-hidden />
+              <div className="text-[13px] font-bold tracking-wide">ALEX RIVERA</div>
+              <div className="text-[10px] opacity-60 mb-3">Senior Product &amp; Operations Lead · Fintech &amp; Payments</div>
+              <div className="text-[10px] font-semibold tracking-widest opacity-70 mb-1.5">EXPERIENCE</div>
+              {[
+                ['Handled payment reconciliation and queries.', 'Reduced payment settlement reconciliation latency by 42% across EMEA cross-border corridors.'],
+                ['Created operational dashboards in SQL.', 'Built automated Looker/SQL dashboards monitoring $120M+ monthly merchant volume and SLA adherence.'],
+                ['Coordinated payment exception handling.', 'Redesigned cross-border dispute workflows, cutting chargeback resolution times from 5 days to 18 hours.'],
+              ].map(([o, n], i) => (
+                <div key={i} className="relative min-h-[34px] text-[11px] leading-snug mb-1.5 pl-3">
+                  <span className="absolute left-0 top-1.5 w-1 h-1 rounded-full bg-current opacity-60" />
+                  <span className="cine-old absolute inset-0 pl-3">{o}</span>
+                  <span className="cine-new block opacity-0">{n}</span>
+                </div>
+              ))}
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {['SQL', 'Cross-Border Payments', 'Financial Modeling', 'SLA Operations', 'Process Automation'].map((k) => <span key={k} className="cine-kw">{k}</span>)}
               </div>
-            ))}
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {['SQL', 'Cross-Border Payments', 'Financial Modeling', 'SLA Operations', 'Process Automation'].map((k) => <span key={k} className="cine-kw">{k}</span>)}
             </div>
-          </div>
-          <div className="space-y-3">
-            <div className="cine-window p-4">
-              <div className="cine-label">ATS check</div>
-              <div className="cine-bar h-2"><div className="cine-ats-fill" /></div>
-              <div className="cine-ats-badge mt-3 inline-flex items-center gap-1.5 text-xs text-success"><ShieldCheck className="w-3.5 h-3.5" /> 98 / 100 · 1 page</div>
+            <div className="space-y-3">
+              <div className="cine-window p-4">
+                <div className="cine-label">ATS check</div>
+                <div className="cine-bar h-2"><div className="cine-ats-fill" /></div>
+                <div className="cine-ats-badge mt-3 inline-flex items-center gap-1.5 text-xs text-success"><ShieldCheck className="w-3.5 h-3.5" /> 98 / 100 · 1 page</div>
+              </div>
+              {['Quantify payment volume & scale', 'Highlight automated SLA workflows', 'Put operational impact first'].map((t, i) => (
+                <div key={i} className="cine-tip"><Sparkles className="w-3.5 h-3.5 text-brand shrink-0" />{t}</div>
+              ))}
             </div>
-            {['Quantify payment volume & scale', 'Highlight automated SLA workflows', 'Put operational impact first'].map((t, i) => (
-              <div key={i} className="cine-tip"><Sparkles className="w-3.5 h-3.5 text-brand shrink-0" />{t}</div>
-            ))}
           </div>
         </div>
       </section>
@@ -427,38 +519,41 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
         <SceneCopy idx={4} eyebrow="Prepare" title="Walk in ready for every tough question."
           steps={['Targeted questions modeled on this role', 'Behavioural and technical scenarios, sorted', 'Answers laid out in STAR format', 'Track how ready you are']}
           cta="Practise interviews" onCta={() => onNavigateToTab('screening')} />
-        <Window title="Interview prep · Stripe" className="cine-stage">
-          <div className="grid grid-cols-1 sm:grid-cols-[1fr_140px] gap-4">
-            <div className="space-y-2.5 [perspective:800px]">
-              {QUESTIONS.map((q, i) => (
-                <div key={i} className="cine-q">
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <span className={`cine-tag ${q.k === 'Technical' ? 'text-info border-info/30' : q.k === 'Role-specific' ? 'text-warning border-warning/30' : 'text-brand border-brand/30'}`}>{q.k}</span>
-                    <MessageSquare className="w-3.5 h-3.5 text-subtle ml-auto" />
-                  </div>
-                  <div className="text-sm">{q.q}</div>
-                  {i === 0 && (
-                    <div className="mt-3 grid grid-cols-4 gap-1.5">
-                      {['Situation', 'Task', 'Action', 'Result'].map((s) => (
-                        <div key={s}><div className="cine-bar h-1"><div className="cine-star-fill" /></div><div className="mt-1 text-[10px] text-subtle">{s}</div></div>
-                      ))}
+        <div className="relative">
+          <div className="cine-ambient-glow cine-glow-amber" aria-hidden />
+          <Window title="Interview prep · Stripe" className="cine-stage">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_140px] gap-4">
+              <div className="space-y-2.5 [perspective:800px]">
+                {QUESTIONS.map((q, i) => (
+                  <div key={i} className="cine-q">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className={`cine-tag ${q.k === 'Technical' ? 'text-info border-info/30' : q.k === 'Role-specific' ? 'text-warning border-warning/30' : 'text-brand border-brand/30'}`}>{q.k}</span>
+                      <MessageSquare className="w-3.5 h-3.5 text-subtle ml-auto" />
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-            <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface/60 p-4">
-              <div className="relative w-24 h-24">
-                <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
-                  <circle cx="18" cy="18" r="15.9" pathLength="100" className="cine-ring-bg" />
-                  <circle cx="18" cy="18" r="15.9" pathLength="100" className="cine-ring-fg cine-prog-ring" strokeDasharray="100" strokeDashoffset="25" />
-                </svg>
-                <div className="absolute inset-0 grid place-items-center text-lg font-semibold"><span className="cine-prog">75%</span></div>
+                    <div className="text-sm">{q.q}</div>
+                    {i === 0 && (
+                      <div className="mt-3 grid grid-cols-4 gap-1.5">
+                        {['Situation', 'Task', 'Action', 'Result'].map((s) => (
+                          <div key={s}><div className="cine-bar h-1"><div className="cine-star-fill" /></div><div className="mt-1 text-[10px] text-subtle">{s}</div></div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-              <div className="mt-2 text-[11px] uppercase tracking-widest text-subtle">Ready</div>
+              <div className="flex flex-col items-center justify-center rounded-xl border border-border bg-surface/60 p-4">
+                <div className="relative w-24 h-24">
+                  <svg viewBox="0 0 36 36" className="w-full h-full -rotate-90">
+                    <circle cx="18" cy="18" r="15.9" pathLength="100" className="cine-ring-bg" />
+                    <circle cx="18" cy="18" r="15.9" pathLength="100" className="cine-ring-fg cine-prog-ring" strokeDasharray="100" strokeDashoffset="25" />
+                  </svg>
+                  <div className="absolute inset-0 grid place-items-center text-lg font-semibold"><span className="cine-prog">75%</span></div>
+                </div>
+                <div className="mt-2 text-[11px] uppercase tracking-widest text-subtle">Ready</div>
+              </div>
             </div>
-          </div>
-        </Window>
+          </Window>
+        </div>
       </section>
 
       {/* ================= TRACKING ================= */}
@@ -468,21 +563,24 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
           <h2 className="cine-h2 mt-3">Every application, always in view.</h2>
           <p className="mt-4 text-muted-foreground">See which resume went where, and move each job from applied to offer.</p>
         </div>
-        <div className="cine-window mt-12 max-w-5xl mx-auto p-4 sm:p-5">
-          <div className="relative grid grid-cols-3 gap-4">
-            {['Applied', 'Interviewing', 'Offer'].map((c, ci) => (
-              <div key={c} className="cine-col">
-                <div className="flex items-center justify-between mb-3"><span className="text-xs uppercase tracking-widest text-subtle">{c}</span><span className="text-[11px] font-mono text-subtle">{[3, 1, 0][ci]}</span></div>
-                <div className="space-y-2 min-h-[150px]">
-                  {ci === 0 && (<>
-                    <div className="cine-kcard cine-move-b"><FileText className="w-3.5 h-3.5 text-brand" /> Stripe · Staff Backend Engineer</div>
-                    <div className="cine-kcard cine-move-a"><FileText className="w-3.5 h-3.5 text-brand" /> Linear · Distributed Systems Engineer</div>
-                    <div className="cine-kcard"><FileText className="w-3.5 h-3.5 text-subtle" /> Figma · Principal Platform Architect</div>
-                  </>)}
-                  {ci === 1 && <div className="cine-kcard"><FileText className="w-3.5 h-3.5 text-subtle" /> Notion · Lead Cloud Engineer</div>}
+        <div className="relative max-w-5xl mx-auto mt-12 w-full">
+          <div className="cine-ambient-glow cine-glow-emerald" aria-hidden />
+          <div className="cine-window p-4 sm:p-5">
+            <div className="relative grid grid-cols-3 gap-4">
+              {['Applied', 'Interviewing', 'Offer'].map((c, ci) => (
+                <div key={c} className="cine-col">
+                  <div className="flex items-center justify-between mb-3"><span className="text-xs uppercase tracking-widest text-subtle">{c}</span><span className="text-[11px] font-mono text-subtle">{[3, 1, 0][ci]}</span></div>
+                  <div className="space-y-2 min-h-[150px]">
+                    {ci === 0 && (<>
+                      <div className="cine-kcard cine-move-b"><FileText className="w-3.5 h-3.5 text-brand" /> Stripe · Staff Backend Engineer</div>
+                      <div className="cine-kcard cine-move-a"><FileText className="w-3.5 h-3.5 text-brand" /> Linear · Distributed Systems Engineer</div>
+                      <div className="cine-kcard"><FileText className="w-3.5 h-3.5 text-subtle" /> Figma · Principal Platform Architect</div>
+                    </>)}
+                    {ci === 1 && <div className="cine-kcard"><FileText className="w-3.5 h-3.5 text-subtle" /> Notion · Lead Cloud Engineer</div>}
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
         <div className="mt-10 text-center"><button onClick={() => onNavigateToTab('applied')} className="cine-link">Open my applications <ArrowRight className="w-4 h-4" /></button></div>
