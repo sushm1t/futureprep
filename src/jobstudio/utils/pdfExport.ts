@@ -87,123 +87,299 @@ export function generateVectorResumePdf(
   const pageWidth = doc.internal.pageSize.getWidth(); // 612 pt
   const pageHeight = doc.internal.pageSize.getHeight(); // 792 pt
 
-  // Analyze content density to scale typography gracefully and fill a 1-page document
-  const totalExp = (resume.experiences || []).length;
-  const totalExpBullets = (resume.experiences || []).reduce((acc, e) => acc + (e.bullets?.length || 0), 0);
-  const totalProjBullets = (resume.projects || []).reduce((acc, p) => acc + (p.bullets?.length || 0), 0);
-  const totalBullets = totalExpBullets + totalProjBullets;
+  interface DensityMetrics {
+    nameSize: number;
+    nameGap: number;
+    contactSize: number;
+    headerRuleGap: number;
+    headerAfterGap: number;
+    sectionHeaderSize: number;
+    sectionHeaderUnderlineGap: number;
+    sectionHeadingAfterGap: number;
+    sectionBottomGap: number;
+    summarySize: number;
+    summaryLineHeight: number;
+    skillsSize: number;
+    skillsLineHeight: number;
+    expTitleSize: number;
+    expMetaSize: number;
+    expCompanySize: number;
+    expTitleGap: number;
+    expCompanyGap: number;
+    bulletSize: number;
+    bulletLineHeight: number;
+    bulletGap: number;
+    expBottomGap: number;
+    eduDegreeSize: number;
+    eduInstSize: number;
+    eduYearSize: number;
+    eduGap: number;
+    eduInstGap: number;
+    eduItemBottom: number;
+    certSize: number;
+    certGap: number;
+    marginX: number;
+    marginTop: number;
+    marginBottom: number;
+  }
 
-  const effectiveDensity: 'comfortable' | 'balanced' | 'compact' = options.density || (
-    totalExp <= 2 && totalBullets <= 12 ? 'comfortable' : totalExp >= 4 || totalBullets >= 18 ? 'compact' : 'balanced'
-  );
+  const comfortableMetrics: DensityMetrics = {
+    nameSize: 21,
+    nameGap: 16,
+    contactSize: 9,
+    headerRuleGap: 11,
+    headerAfterGap: 14,
+    sectionHeaderSize: 10.5,
+    sectionHeaderUnderlineGap: 4,
+    sectionHeadingAfterGap: 11,
+    sectionBottomGap: 13,
+    summarySize: 9.5,
+    summaryLineHeight: 1.4,
+    skillsSize: 9,
+    skillsLineHeight: 1.36,
+    expTitleSize: 10.5,
+    expMetaSize: 9,
+    expCompanySize: 9.5,
+    expTitleGap: 12,
+    expCompanyGap: 11,
+    bulletSize: 9.2,
+    bulletLineHeight: 1.36,
+    bulletGap: 4.5,
+    expBottomGap: 10,
+    eduDegreeSize: 9.5,
+    eduInstSize: 9,
+    eduYearSize: 9,
+    eduGap: 12,
+    eduInstGap: 11,
+    eduItemBottom: 6,
+    certSize: 9,
+    certGap: 12,
+    marginX: 36,
+    marginTop: 40,
+    marginBottom: 40,
+  };
 
-  const m = effectiveDensity === 'comfortable'
-    ? {
-        nameSize: 21,
-        nameGap: 16,
-        contactSize: 9,
-        headerRuleGap: 11,
-        headerAfterGap: 14,
-        sectionHeaderSize: 10.5,
-        sectionHeaderUnderlineGap: 4,
-        sectionHeadingAfterGap: 11,
-        sectionBottomGap: 13,
-        summarySize: 9.5,
-        summaryLineHeight: 1.4,
-        skillsSize: 9,
-        skillsLineHeight: 1.36,
-        expTitleSize: 10.5,
-        expMetaSize: 9,
-        expCompanySize: 9.5,
-        expTitleGap: 12,
-        expCompanyGap: 11,
-        bulletSize: 9.2,
-        bulletLineHeight: 1.36,
-        bulletGap: 4.5,
-        expBottomGap: 10,
-        eduDegreeSize: 9.5,
-        eduInstSize: 9,
-        eduYearSize: 9,
-        eduGap: 12,
-        eduInstGap: 11,
-        eduItemBottom: 6,
-        certSize: 9,
-        certGap: 12,
-        marginX: 36,
-        marginTop: 40,
-        marginBottom: 40,
+  const balancedMetrics: DensityMetrics = {
+    nameSize: 19.5,
+    nameGap: 15,
+    contactSize: 8.5,
+    headerRuleGap: 10,
+    headerAfterGap: 12,
+    sectionHeaderSize: 9.8,
+    sectionHeaderUnderlineGap: 3.5,
+    sectionHeadingAfterGap: 9,
+    sectionBottomGap: 9.5,
+    summarySize: 8.8,
+    summaryLineHeight: 1.34,
+    skillsSize: 8.6,
+    skillsLineHeight: 1.32,
+    expTitleSize: 9.8,
+    expMetaSize: 8.5,
+    expCompanySize: 9,
+    expTitleGap: 11,
+    expCompanyGap: 10,
+    bulletSize: 8.5,
+    bulletLineHeight: 1.32,
+    bulletGap: 3,
+    expBottomGap: 6,
+    eduDegreeSize: 8.8,
+    eduInstSize: 8.5,
+    eduYearSize: 8.5,
+    eduGap: 10.5,
+    eduInstGap: 10.5,
+    eduItemBottom: 4.5,
+    certSize: 8.5,
+    certGap: 10.5,
+    marginX: 36,
+    marginTop: 36,
+    marginBottom: 36,
+  };
+
+  const compactMetrics: DensityMetrics = {
+    nameSize: 18,
+    nameGap: 14,
+    contactSize: 8,
+    headerRuleGap: 9,
+    headerAfterGap: 10,
+    sectionHeaderSize: 9.2,
+    sectionHeaderUnderlineGap: 3,
+    sectionHeadingAfterGap: 7.5,
+    sectionBottomGap: 7,
+    summarySize: 8.2,
+    summaryLineHeight: 1.28,
+    skillsSize: 8.2,
+    skillsLineHeight: 1.28,
+    expTitleSize: 9.2,
+    expMetaSize: 8,
+    expCompanySize: 8.5,
+    expTitleGap: 10,
+    expCompanyGap: 9,
+    bulletSize: 8,
+    bulletLineHeight: 1.26,
+    bulletGap: 2,
+    expBottomGap: 4,
+    eduDegreeSize: 8.2,
+    eduInstSize: 8,
+    eduYearSize: 8,
+    eduGap: 9.5,
+    eduInstGap: 9.5,
+    eduItemBottom: 3,
+    certSize: 8,
+    certGap: 9.5,
+    marginX: 36,
+    marginTop: 32,
+    marginBottom: 32,
+  };
+
+  const ultraCompactMetrics: DensityMetrics = {
+    nameSize: 17,
+    nameGap: 12,
+    contactSize: 7.8,
+    headerRuleGap: 8,
+    headerAfterGap: 9,
+    sectionHeaderSize: 8.8,
+    sectionHeaderUnderlineGap: 2.5,
+    sectionHeadingAfterGap: 6.5,
+    sectionBottomGap: 5.5,
+    summarySize: 7.8,
+    summaryLineHeight: 1.24,
+    skillsSize: 7.8,
+    skillsLineHeight: 1.24,
+    expTitleSize: 8.8,
+    expMetaSize: 7.8,
+    expCompanySize: 8.2,
+    expTitleGap: 9,
+    expCompanyGap: 8,
+    bulletSize: 7.6,
+    bulletLineHeight: 1.22,
+    bulletGap: 1.5,
+    expBottomGap: 3,
+    eduDegreeSize: 8,
+    eduInstSize: 7.6,
+    eduYearSize: 7.6,
+    eduGap: 8.5,
+    eduInstGap: 8.5,
+    eduItemBottom: 2.5,
+    certSize: 7.8,
+    certGap: 8.5,
+    marginX: 34,
+    marginTop: 28,
+    marginBottom: 28,
+  };
+
+  // Helper to pre-calculate total document height and select the optimal 1-page density
+  function estimatePdfResumeHeight(
+    pdfDoc: jsPDF,
+    r: TailoredResumeData,
+    metrics: DensityMetrics,
+    cWidth: number
+  ): number {
+    let h = metrics.marginTop;
+    h += metrics.nameGap + metrics.headerRuleGap + metrics.headerAfterGap;
+
+    if (r.tailored_summary) {
+      const summaryLines = pdfDoc.splitTextToSize(cleanPdfText(r.tailored_summary), cWidth);
+      h += (metrics.sectionHeaderUnderlineGap + metrics.sectionHeadingAfterGap + 12) +
+        summaryLines.length * (metrics.summarySize * metrics.summaryLineHeight) +
+        metrics.sectionBottomGap;
+    }
+
+    if (r.skills && r.skills.length > 0) {
+      const skillsText = r.skills.map(cleanPdfText).join('  •  ');
+      const skillLines = pdfDoc.splitTextToSize(skillsText, cWidth);
+      h += (metrics.sectionHeaderUnderlineGap + metrics.sectionHeadingAfterGap + 12) +
+        skillLines.length * (metrics.skillsSize * metrics.skillsLineHeight) +
+        metrics.sectionBottomGap;
+    }
+
+    if (r.experiences && r.experiences.length > 0) {
+      h += (metrics.sectionHeaderUnderlineGap + metrics.sectionHeadingAfterGap + 12);
+      const bW = cWidth - 14;
+      r.experiences.forEach((exp) => {
+        h += metrics.expTitleGap + metrics.expCompanyGap;
+        (exp.bullets || []).forEach((b) => {
+          const bLines = pdfDoc.splitTextToSize(cleanPdfText(b), bW);
+          h += bLines.length * (metrics.bulletSize * metrics.bulletLineHeight) + metrics.bulletGap;
+        });
+        h += metrics.expBottomGap;
+      });
+    }
+
+    if (r.projects && r.projects.length > 0) {
+      h += (metrics.sectionHeaderUnderlineGap + metrics.sectionHeadingAfterGap + 12);
+      const bW = cWidth - 14;
+      r.projects.forEach((proj) => {
+        h += metrics.expTitleGap;
+        if (proj.description) {
+          const dLines = pdfDoc.splitTextToSize(cleanPdfText(proj.description), cWidth);
+          h += dLines.length * (metrics.bulletSize * metrics.bulletLineHeight) + metrics.bulletGap;
+        }
+        (proj.bullets || []).forEach((b) => {
+          const bLines = pdfDoc.splitTextToSize(cleanPdfText(b), bW);
+          h += bLines.length * (metrics.bulletSize * metrics.bulletLineHeight) + metrics.bulletGap;
+        });
+        h += metrics.expBottomGap;
+      });
+    }
+
+    if (r.education && r.education.length > 0) {
+      h += (metrics.sectionHeaderUnderlineGap + metrics.sectionHeadingAfterGap + 12);
+      r.education.forEach(() => {
+        h += metrics.eduGap + metrics.eduInstGap;
+      });
+      h += metrics.eduItemBottom;
+    }
+
+    if (r.certifications && r.certifications.length > 0) {
+      h += (metrics.sectionHeaderUnderlineGap + metrics.sectionHeadingAfterGap + 12);
+      const certsToShow = r.certifications.slice(0, 4);
+      certsToShow.forEach(() => {
+        h += metrics.certGap;
+      });
+    }
+
+    return h;
+  }
+
+  let m: DensityMetrics;
+
+  if (forceSinglePage) {
+    // In single-page mode, evaluate candidates starting from the requested or preferred density,
+    // stepping down gracefully until all content (including Education) fits within pageHeight - marginBottom.
+    const requested = options.density;
+    const presetsToTry: DensityMetrics[] = [];
+
+    if (requested === 'comfortable') {
+      presetsToTry.push(comfortableMetrics, balancedMetrics, compactMetrics, ultraCompactMetrics);
+    } else if (requested === 'balanced') {
+      presetsToTry.push(balancedMetrics, compactMetrics, ultraCompactMetrics);
+    } else if (requested === 'compact') {
+      presetsToTry.push(compactMetrics, ultraCompactMetrics);
+    } else {
+      // Auto-mode (no density specified): pick the roomiest preset that fits
+      presetsToTry.push(comfortableMetrics, balancedMetrics, compactMetrics, ultraCompactMetrics);
+    }
+
+    let selected = presetsToTry[presetsToTry.length - 1]; // fallback to most compact
+    for (const preset of presetsToTry) {
+      const cWidth = pageWidth - preset.marginX * 2;
+      const estimatedH = estimatePdfResumeHeight(doc, resume, preset, cWidth);
+      if (estimatedH <= pageHeight - preset.marginBottom) {
+        selected = preset;
+        break;
       }
-    : effectiveDensity === 'compact'
-    ? {
-        nameSize: 18,
-        nameGap: 14,
-        contactSize: 8,
-        headerRuleGap: 9,
-        headerAfterGap: 10,
-        sectionHeaderSize: 9.2,
-        sectionHeaderUnderlineGap: 3,
-        sectionHeadingAfterGap: 7.5,
-        sectionBottomGap: 7,
-        summarySize: 8.2,
-        summaryLineHeight: 1.28,
-        skillsSize: 8.2,
-        skillsLineHeight: 1.28,
-        expTitleSize: 9.2,
-        expMetaSize: 8,
-        expCompanySize: 8.5,
-        expTitleGap: 10,
-        expCompanyGap: 9,
-        bulletSize: 8,
-        bulletLineHeight: 1.26,
-        bulletGap: 2,
-        expBottomGap: 4,
-        eduDegreeSize: 8.2,
-        eduInstSize: 8,
-        eduYearSize: 8,
-        eduGap: 9.5,
-        eduInstGap: 9.5,
-        eduItemBottom: 3,
-        certSize: 8,
-        certGap: 9.5,
-        marginX: 36,
-        marginTop: 32,
-        marginBottom: 32,
-      }
-    : {
-        nameSize: 19.5,
-        nameGap: 15,
-        contactSize: 8.5,
-        headerRuleGap: 10,
-        headerAfterGap: 12,
-        sectionHeaderSize: 9.8,
-        sectionHeaderUnderlineGap: 3.5,
-        sectionHeadingAfterGap: 9,
-        sectionBottomGap: 9.5,
-        summarySize: 8.8,
-        summaryLineHeight: 1.34,
-        skillsSize: 8.6,
-        skillsLineHeight: 1.32,
-        expTitleSize: 9.8,
-        expMetaSize: 8.5,
-        expCompanySize: 9,
-        expTitleGap: 11,
-        expCompanyGap: 10,
-        bulletSize: 8.5,
-        bulletLineHeight: 1.32,
-        bulletGap: 3,
-        expBottomGap: 6,
-        eduDegreeSize: 8.8,
-        eduInstSize: 8.5,
-        eduYearSize: 8.5,
-        eduGap: 10.5,
-        eduInstGap: 10.5,
-        eduItemBottom: 4.5,
-        certSize: 8.5,
-        certGap: 10.5,
-        marginX: 36,
-        marginTop: 36,
-        marginBottom: 36,
-      };
+    }
+    m = selected;
+  } else {
+    // Multi-page mode: directly use requested density
+    if (options.density === 'comfortable') {
+      m = comfortableMetrics;
+    } else if (options.density === 'compact') {
+      m = compactMetrics;
+    } else {
+      m = balancedMetrics;
+    }
+  }
 
   const marginX = m.marginX;
   const marginTop = m.marginTop;
@@ -213,9 +389,9 @@ export function generateVectorResumePdf(
 
   let y = marginTop;
 
-  // Page break helper for multi-page documents
+  // Page break helper for documents: ensures text NEVER renders past maxY into invisible void
   function checkPageBreak(neededHeight: number): boolean {
-    if (!forceSinglePage && y + neededHeight > maxY) {
+    if (y + neededHeight > maxY) {
       doc.addPage();
       y = marginTop;
       return true;

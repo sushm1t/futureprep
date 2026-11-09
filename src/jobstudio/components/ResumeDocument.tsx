@@ -326,24 +326,66 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
     }));
   };
 
+  // Content volume metrics for dynamic Full Page calibration
+  const totalExpCount = (resume.experiences || []).length;
+  const totalBulletCount =
+    (resume.experiences || []).reduce((acc, e) => acc + (e.bullets?.length || 0), 0) +
+    (resume.projects || []).reduce((acc, p) => acc + (p.bullets?.length || 0), 0);
+
   // Layout styles calibrated for 1-Page ATS Fit across densities
+  // When 'comfortable' ("Full Page") is active, adapt dynamically so high-volume resumes (4+ roles or 14+ bullets)
+  // still fit 100% of their sections (including Education) on 1 page without clipping.
   const densityPresets = {
-    comfortable: {
-      containerPadding: 'p-7 sm:px-12 sm:py-10',
-      headerMargin: 'pb-3 mb-5',
-      sectionMargin: 'mb-5',
-      sectionHeadingMargin: 'pb-1.5 mb-3',
-      headingText: 'text-xs sm:text-[13.5px] font-bold uppercase tracking-wider',
-      summaryText: 'text-[13px] sm:text-[13.5px] leading-relaxed',
-      skillsText: 'text-[12px] sm:text-[12.5px] leading-relaxed',
-      expTitle: 'text-[13.5px] sm:text-[14px]',
-      expMeta: 'text-[12px] sm:text-[12.5px]',
-      expSpacing: 'space-y-4',
-      bulletSpacing: 'space-y-2',
-      bulletText: 'text-[12.5px] sm:text-[13px] leading-relaxed',
-      eduSpacing: 'space-y-2.5',
-      eduText: 'text-[12.5px] sm:text-[13px]',
-    },
+    comfortable: (totalExpCount >= 4 || totalBulletCount >= 14)
+      ? {
+          containerPadding: 'p-5 sm:px-8 sm:py-6',
+          headerMargin: 'pb-2 mb-2.5',
+          sectionMargin: 'mb-2.5',
+          sectionHeadingMargin: 'pb-0.5 mb-1.5',
+          headingText: 'text-[11.5px] sm:text-xs font-bold uppercase tracking-wider',
+          summaryText: 'text-[11.5px] sm:text-[12px] leading-snug',
+          skillsText: 'text-[11px] sm:text-[11.5px] leading-snug',
+          expTitle: 'text-[12.5px] sm:text-[13px]',
+          expMeta: 'text-[11px] sm:text-[11.5px]',
+          expSpacing: 'space-y-2.5',
+          bulletSpacing: 'space-y-0.5',
+          bulletText: 'text-[11.5px] sm:text-[12px] leading-tight',
+          eduSpacing: 'space-y-1',
+          eduText: 'text-[11.5px] sm:text-[12px]',
+        }
+      : (totalExpCount === 3 || totalBulletCount >= 10)
+      ? {
+          containerPadding: 'p-6 sm:px-10 sm:py-8',
+          headerMargin: 'pb-2.5 mb-3.5',
+          sectionMargin: 'mb-3.5',
+          sectionHeadingMargin: 'pb-1 mb-2',
+          headingText: 'text-xs sm:text-[13px] font-bold uppercase tracking-wider',
+          summaryText: 'text-[12.5px] sm:text-[13px] leading-normal',
+          skillsText: 'text-[11.5px] sm:text-[12px] leading-normal',
+          expTitle: 'text-[13px] sm:text-[13.5px]',
+          expMeta: 'text-[11.5px] sm:text-[12px]',
+          expSpacing: 'space-y-3',
+          bulletSpacing: 'space-y-1',
+          bulletText: 'text-[12px] sm:text-[12.5px] leading-normal',
+          eduSpacing: 'space-y-1.5',
+          eduText: 'text-[12px] sm:text-[12.5px]',
+        }
+      : {
+          containerPadding: 'p-7 sm:px-12 sm:py-10',
+          headerMargin: 'pb-3 mb-5',
+          sectionMargin: 'mb-5',
+          sectionHeadingMargin: 'pb-1.5 mb-3',
+          headingText: 'text-xs sm:text-[13.5px] font-bold uppercase tracking-wider',
+          summaryText: 'text-[13px] sm:text-[13.5px] leading-relaxed',
+          skillsText: 'text-[12px] sm:text-[12.5px] leading-relaxed',
+          expTitle: 'text-[13.5px] sm:text-[14px]',
+          expMeta: 'text-[12px] sm:text-[12.5px]',
+          expSpacing: 'space-y-4',
+          bulletSpacing: 'space-y-2',
+          bulletText: 'text-[12.5px] sm:text-[13px] leading-relaxed',
+          eduSpacing: 'space-y-2.5',
+          eduText: 'text-[12.5px] sm:text-[13px]',
+        },
     balanced: {
       containerPadding: 'p-6 sm:px-10 sm:py-8',
       headerMargin: 'pb-2.5 mb-3.5',
@@ -489,7 +531,7 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
                   ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
-              title="Full Page Comfort: Ideal for 1-2 roles. Uses 10pt font and relaxed line-height to fill a full single page elegantly."
+              title="Full Page: Smartly fits 100% of your career content (including Education) onto a single page, auto-calibrating spacing to avoid truncation."
             >
               Full Page
             </button>
