@@ -4465,15 +4465,17 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       )}
 
       {/* All Filters Deep Modal */}
-      <AllFiltersModal
-        isOpen={isAllFiltersOpen}
-        onClose={() => setIsAllFiltersOpen(false)}
-        filters={advancedFilters}
-        onApplyFilters={handleApplyAllFilters}
-        onResetFilters={handleResetAllFilters}
-        totalCatalogueJobs={totalInCatalogue}
-        candidateProfileContext={profileSearchContext}
-      />
+      {isAllFiltersOpen && (
+        <AllFiltersModal
+          isOpen={isAllFiltersOpen}
+          onClose={() => setIsAllFiltersOpen(false)}
+          filters={advancedFilters}
+          onApplyFilters={handleApplyAllFilters}
+          onResetFilters={handleResetAllFilters}
+          totalCatalogueJobs={totalInCatalogue}
+          candidateProfileContext={profileSearchContext}
+        />
+      )}
 
       {/* Freehire Market Intelligence & Salary Radar Modal */}
       <MarketIntelligenceModal

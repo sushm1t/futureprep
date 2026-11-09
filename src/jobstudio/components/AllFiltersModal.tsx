@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import {
   X,
   Search,
@@ -123,7 +123,21 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
     product_management: true,
   });
 
-  if (!isOpen) return null;
+  // Keep draftFilters synchronized whenever modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setDraftFilters({
+        ...initialFilters,
+        companyTypes: initialFilters.companyTypes || [],
+        benefits: initialFilters.benefits || [],
+        languages: initialFilters.languages || [],
+        relocation: initialFilters.relocation || [],
+        strictness: initialFilters.strictness || 'any',
+        includeNoLevelStated: initialFilters.includeNoLevelStated !== false,
+        includeNoExperienceStated: initialFilters.includeNoExperienceStated !== false,
+      });
+    }
+  }, [isOpen, initialFilters]);
 
   // Toggle helpers
   const toggleSpecialization = (specId: string) => {
@@ -273,6 +287,8 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
     setDraftFilters(empty);
     onResetFilters();
   };
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
