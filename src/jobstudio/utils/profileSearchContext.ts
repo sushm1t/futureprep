@@ -193,12 +193,24 @@ export function extractProfileSearchContext(
     if (!targetRelocation) targetRelocation = 'United Arab Emirates (UAE)';
   } else if (lowLoc.includes('india') || lowLoc.includes('kerala') || lowLoc.includes('calicut') || lowLoc.includes('bengaluru') || lowLoc.includes('mumbai') || lowLoc.includes('delhi')) {
     normalizedLocation = 'India';
+  } else if (lowLoc.includes('saudi') || lowLoc.includes('ksa') || lowLoc.includes('riyadh') || lowLoc.includes('khobar') || lowLoc.includes('jeddah')) {
+    normalizedLocation = 'Saudi Arabia';
+  } else if (lowLoc.includes('qatar') || lowLoc.includes('doha')) {
+    normalizedLocation = 'Qatar';
+  } else if (lowLoc.includes('singapore')) {
+    normalizedLocation = 'Singapore';
+  } else if (lowLoc.includes('canada') || lowLoc.includes('toronto') || lowLoc.includes('vancouver')) {
+    normalizedLocation = 'Canada';
+  } else if (lowLoc.includes('australia') || lowLoc.includes('sydney') || lowLoc.includes('melbourne')) {
+    normalizedLocation = 'Australia';
   } else if (lowLoc.includes('united states') || lowLoc.includes('usa') || lowLoc.includes(', us') || /\b(ca|ny|tx|fl|wa|il|ma|co|nc|ga)\b/.test(lowLoc)) {
     normalizedLocation = 'United States';
   } else if (lowLoc.includes('europe') || lowLoc.includes('uk') || lowLoc.includes('london') || lowLoc.includes('germany') || lowLoc.includes('france')) {
     normalizedLocation = 'Europe';
   } else if (lowLoc.includes('remote')) {
     normalizedLocation = 'Remote';
+  } else {
+    normalizedLocation = location;
   }
 
   // 4. Determine Domain based strictly on the candidate's authentic titles, headline, and core skills
@@ -209,8 +221,17 @@ export function extractProfileSearchContext(
 
   let domain = 'Technology & Software';
 
-  // 1. Sales & Business Development (highest priority when titles indicate commercial/revenue role)
+  // 1. Corporate Travel, Tourism & Hospitality Operations (highest priority when titles indicate travel management/coordination)
   if (
+    /\b(corporate\s+travel|travel\s+coordinator|travel\s+consultant|travel\s+operations|business\s+travel|travel\s+desk|gds\b|galileo\b|amadeus\b|sabre\b|airline\s+reservations?|hotel\s+reservations?|itinerary\s+planning|tourism\s+and\s+travel|travel\s+management)\b/i.test(
+      titlesText
+    ) ||
+    /\b(corporate\s+travel|business\s+travel|gds\s+ticketing|galileo|airline\s+reservations|hotel\s+reservations|travel\s+policy)\b/i.test(skillsText)
+  ) {
+    domain = 'Corporate Travel & Hospitality Operations';
+  }
+  // 2. Sales & Business Development (highest priority when titles indicate commercial/revenue role)
+  else if (
     /sales|account\s+executive|business\s+development|\bcloser\b|pipeline|growth|quota|outbound\s+prospecting|revops|bdr|sdr|deal\s+closing/i.test(
       titlesText
     ) ||
@@ -219,7 +240,7 @@ export function extractProfileSearchContext(
   ) {
     domain = 'Sales & Business Development';
   }
-  // 2. Healthcare & Clinical (MUST have clinical/medical titles or specialized clinical lab skills, NEVER from stray words like "hospitals")
+  // 3. Healthcare & Clinical (MUST have clinical/medical titles or specialized clinical lab skills, NEVER from stray words like "hospitals")
   else if (
     /\b(medical\s+laboratory|laboratory\s+technol|pathology\s+technol|phlebotom|nurse|nursing|physician|doctor|pharmacist|clinical\s+specialist|radiolog|surgeon|dentist|paramedic|histotechnol)\b/i.test(
       titlesText
@@ -229,7 +250,7 @@ export function extractProfileSearchContext(
   ) {
     domain = 'Healthcare & Life Sciences';
   }
-  // 3. Mechanical & Industrial Engineering
+  // 4. Mechanical & Industrial Engineering
   else if (
     /\b(mechanical\s+engineer|piping\s+designer|pipeline\s+engineer|production\s+engineer|maintenance\s+engineer|heavy\s+(?:machinery|equipment)|service\s+manager\s+heavy|jcb|excavator|plant\s+engineer)\b/i.test(
       titlesText
@@ -239,7 +260,7 @@ export function extractProfileSearchContext(
   ) {
     domain = 'Mechanical & Industrial Engineering';
   }
-  // 4. Fintech & Payment Operations
+  // 5. Fintech & Payment Operations
   else if (
     /\b(payment\s+operations|fintech\s+operations|card\s+disputes|real[- ]time\s+analyst|dispute\s+specialist|chargeback)\b/i.test(
       titlesText
@@ -248,7 +269,7 @@ export function extractProfileSearchContext(
   ) {
     domain = 'Fintech & Payment Operations';
   }
-  // 5. Product & Design
+  // 6. Product & Design
   else if (
     /\b(product\s+designer|ui\/ux|ux\s+designer|ux\s+researcher|visual\s+designer|interaction\s+designer|design\s+systems\s+lead)\b/i.test(
       titlesText
@@ -256,13 +277,13 @@ export function extractProfileSearchContext(
   ) {
     domain = 'Product & Design';
   }
-  // 6. Product Management
+  // 7. Product Management
   else if (
     /\b(product\s+manager|technical\s+pm|group\s+pm|product\s+lead|\btpm\b)\b/i.test(titlesText)
   ) {
     domain = 'Product Management';
   }
-  // 7. Finance & Banking
+  // 8. Finance & Banking
   else if (
     /\b(financial\s+analyst|accounting|auditor|investment\s+banker|tax\s+specialist|payroll)\b/i.test(
       titlesText
@@ -270,7 +291,7 @@ export function extractProfileSearchContext(
   ) {
     domain = 'Finance & Banking';
   }
-  // 8. Operations & Logistics
+  // 9. Operations & Logistics
   else if (
     /\b(operations\s+manager|supply\s+chain|logistics\s+coordinator|procurement\s+manager|warehouse\s+manager)\b/i.test(
       titlesText
@@ -278,7 +299,7 @@ export function extractProfileSearchContext(
   ) {
     domain = 'Operations & Logistics';
   }
-  // 9. Fallback if titles were sparse, inspect raw body text with strict domain phrases
+  // 10. Fallback if titles were sparse, inspect raw body text with strict domain phrases
   else if (/\bmedical\s+laboratory\s+technologist\b|\bphlebotomy\s+specialist\b/i.test(rawBodyText)) {
     domain = 'Healthcare & Life Sciences';
   } else if (/\bmechanical\s+engineering\b|\bheavy\s+machinery\s+maintenance\b/i.test(rawBodyText)) {
@@ -287,12 +308,30 @@ export function extractProfileSearchContext(
     domain = 'Fintech & Payment Operations';
   }
 
-  const isNonTech = domain === 'Healthcare & Life Sciences' || domain === 'Mechanical & Industrial Engineering' || domain === 'Operations & Logistics';
+  const isNonTech =
+    domain === 'Healthcare & Life Sciences' ||
+    domain === 'Mechanical & Industrial Engineering' ||
+    domain === 'Operations & Logistics' ||
+    domain === 'Corporate Travel & Hospitality Operations';
+
+  // Determine if candidate has genuine executive/director career history or explicitly targets a leadership role
+  const hasExecutiveTitle = /\b(vp\b|vice\s+president|director\b|head\s+of\b|chief\b|co-?founder\b|cxo\b|principal\b|partner\b|general\s+manager\b)/i.test(
+    `${targetRole} ${headline} ${resume?.experiences?.map((e) => e.title).join(' ') || ''}`
+  );
 
   // Discipline Isolation Guard: rejects any title belonging to an alien/incompatible discipline
   const isCompatibleWithCandidateDomain = (roleTitle: string): boolean => {
     const r = (roleTitle || '').toLowerCase().trim();
     if (!r) return false;
+
+    // Strict Seniority & Leadership Guard: non-executive candidates must NEVER receive VP, Director, or Head-of roles
+    if (!hasExecutiveTitle && /\b(vp\b|vice\s+president|director\s+of|head\s+of\s+(?:sales|growth|marketing|engineering|operations|finance|product|business))\b/i.test(r)) {
+      return false;
+    }
+
+    if (domain === 'Corporate Travel & Hospitality Operations') {
+      return !/medical|laboratory|nurse|doctor|piping|mechanical|excavator|software\s+engineer|vp\s+of|director\s+of|head\s+of/i.test(r);
+    }
     if (domain === 'Sales & Business Development') {
       return !/medical|laboratory|technologist|technician|nurse|doctor|phlebotom|piping|mechanical|excavator|cad\s+designer/i.test(r);
     }
@@ -351,19 +390,51 @@ export function extractProfileSearchContext(
   }
 
   // Domain-specific adjacent ATS titles matching the candidate's authentic discipline
-  if (domain === 'Sales & Business Development') {
-    const salesCluster = [
-      'Enterprise Account Executive',
-      'Head of Growth',
-      'VP of Sales',
-      'Director of Sales',
-      'Head of Business Development',
-      'Go-To-Market (GTM) Lead',
-      'B2B Software Sales Lead',
-      'Strategic Account Executive',
+  if (domain === 'Corporate Travel & Hospitality Operations') {
+    const travelCluster = [
+      'Corporate Travel Coordinator',
+      'Travel Coordinator',
+      'Travel Consultant',
+      'Business Travel Consultant',
+      'Corporate Travel Desk Executive',
+      'Travel Operations Specialist',
+      'Reservation Specialist',
+      'Client Relationship Executive',
+      'Travel Operations Coordinator',
+      'Corporate Travel Specialist',
     ];
-    for (const r of salesCluster) {
+    for (const r of travelCluster) {
       if (!candidateRolesSet.has(r)) candidateRolesSet.add(r);
+    }
+  } else if (domain === 'Sales & Business Development') {
+    if (hasExecutiveTitle) {
+      const executiveSalesCluster = [
+        'Head of Growth',
+        'Enterprise Account Executive',
+        'VP of Sales',
+        'Director of Sales',
+        'Head of Business Development',
+        'Go-To-Market (GTM) Lead',
+        'B2B Software Sales Lead',
+        'Strategic Account Executive',
+      ];
+      for (const r of executiveSalesCluster) {
+        if (!candidateRolesSet.has(r)) candidateRolesSet.add(r);
+      }
+    } else {
+      const midJuniorSalesCluster = [
+        'Account Executive',
+        'Enterprise Account Executive',
+        'Sales Development Representative',
+        'Business Development Representative',
+        'Client Relationship Executive',
+        'Inside Sales Specialist',
+        'Account Manager',
+        'Sales Executive',
+      ];
+      for (const r of midJuniorSalesCluster) {
+        if (!candidateRolesSet.has(r)) candidateRolesSet.add(r);
+      }
     }
   } else if (domain === 'Healthcare & Life Sciences' && /medical\s+laboratory|laboratory\s+technol|patholog/i.test(titlesText + ' ' + skillsText)) {
     const labCluster = [

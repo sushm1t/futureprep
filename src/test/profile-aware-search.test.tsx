@@ -319,7 +319,7 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
       expect(capturedCrawlBody).not.toBeNull();
     });
 
-    expect(capturedCrawlBody.keyword).toBe('Enterprise Account Executive');
+    expect(capturedCrawlBody.keyword).toContain('Enterprise Account Executive');
     expect(capturedCrawlBody.location).toBe('United Arab Emirates (UAE)');
     expect(capturedCrawlBody.profileContext.relatedRoles).toContain('Enterprise Account Executive');
     expect(capturedCrawlBody.profileContext.relatedRoles).toContain('Head of Growth');
@@ -336,6 +336,99 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
     expect(capturedCrawlBody.keyword).toBe('');
     expect(capturedCrawlBody.profileContext.relatedRoles).toContain('Head of Growth');
     expect(capturedCrawlBody.profileContext.relatedRoles).toContain('VP of Sales');
+  });
+
+  it('allows multi-selecting multiple target roles simultaneously and updating crawl queries', async () => {
+    const travelResume: TailoredResumeData = {
+      full_name: 'Shri Hari S',
+      headline: 'Corporate Travel Coordinator | Travel Consultant | Business Travel',
+      target_role: 'Corporate Travel Coordinator',
+      contact_info: {
+        email: 'shrihari07ks@gmail.com',
+        phone: '+966 564470069',
+        location: 'Al Khobar, Saudi Arabia',
+        linkedin: '',
+      },
+      tailored_summary: 'Corporate Travel Coordinator with 3+ years experience.',
+      skills: ['GDS Ticketing', 'Galileo Travelport', 'Airline Reservations', 'Hotel Reservations'],
+      experiences: [
+        {
+          title: 'Travel Coordinator',
+          company: 'Barghash Joint Stock',
+          date_range: '2025 – Present',
+          location: 'Saudi Arabia',
+          bullets: ['Flight bookings and GDS management.'],
+        },
+      ],
+      education: [],
+      certifications: [],
+    };
+
+    let capturedCrawlBody: any = null;
+    vi.stubGlobal('fetch', vi.fn(async (url: string, opts: any) => {
+      if (url === '/api/ats/crawl') {
+        capturedCrawlBody = JSON.parse(opts.body);
+        return {
+          ok: true,
+          json: async () => ({
+            success: true,
+            jobs: [],
+            totalAvailableInCatalogue: 50,
+          }),
+        };
+      }
+      return { ok: true, json: async () => ({ success: true }) };
+    }));
+
+    render(
+      <JobEvaluatorView
+        evaluation={{ ...EMPTY_EVALUATION, job_title: '', company_name: '' }}
+        isEvaluationComplete={false}
+        opportunities={[]}
+        selectedJobId=""
+        customJobText=""
+        setCustomJobText={vi.fn()}
+        customUrl=""
+        setCustomUrl={vi.fn()}
+        onEvaluate={vi.fn()}
+        isLoading={false}
+        onProceedToResume={vi.fn()}
+        onSelectPreset={vi.fn()}
+        resume={travelResume}
+        masterProfileText={JSON.stringify(travelResume)}
+      />
+    );
+
+    // Initial state: primary role pill is active
+    const coordPill = screen.getByRole('button', { name: /Corporate Travel Coordinator/i });
+    expect(coordPill).toHaveAttribute('aria-pressed', 'true');
+
+    // Click a second role: Travel Consultant (should multi-select both!)
+    const consultantPill = screen.getByRole('button', { name: /^Travel Consultant$/i });
+    fireEvent.click(consultantPill);
+
+    await waitFor(() => {
+      expect(capturedCrawlBody).not.toBeNull();
+    });
+
+    // Both pills should now be active
+    expect(coordPill).toHaveAttribute('aria-pressed', 'true');
+    expect(consultantPill).toHaveAttribute('aria-pressed', 'true');
+    expect(capturedCrawlBody.keyword).toContain('Corporate Travel Coordinator');
+    expect(capturedCrawlBody.keyword).toContain('Travel Consultant');
+
+    // Click Corporate Travel Coordinator again to unselect it
+    capturedCrawlBody = null;
+    fireEvent.click(coordPill);
+
+    await waitFor(() => {
+      expect(capturedCrawlBody).not.toBeNull();
+    });
+
+    // Only Travel Consultant remains active
+    expect(coordPill).toHaveAttribute('aria-pressed', 'false');
+    expect(consultantPill).toHaveAttribute('aria-pressed', 'true');
+    expect(capturedCrawlBody.keyword).toBe('Travel Consultant');
   });
 });
 

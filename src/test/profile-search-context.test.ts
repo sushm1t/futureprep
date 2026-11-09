@@ -253,5 +253,150 @@ describe('extractProfileSearchContext', () => {
     expect(ctx.searchQueries).toContain('Enterprise Account Executive');
     expect(ctx.searchQueries).toContain('VP of Sales');
   });
+
+  it('correctly extracts Corporate Travel & Hospitality Operations domain and isolates non-executive candidate from VP/Director roles for Shri Hari S profile', () => {
+    const shriHariResume: TailoredResumeData = {
+      full_name: 'Shri Hari S',
+      headline: 'Corporate Travel Coordinator | Travel Consultant | Business Travel',
+      target_role: 'Corporate Travel Coordinator',
+      contact_info: {
+        email: 'shrihari07ks@gmail.com',
+        phone: '+966 564470069',
+        location: 'Al Khobar, Saudi Arabia',
+        linkedin: 'linkedin.com/in/shrihari007',
+      },
+      tailored_summary: 'Corporate Travel Coordinator with 3+ years of international experience across Saudi Arabia, the UAE, and India supporting corporate travel operations, airline ticketing, hotel reservations, vendor coordination, CRM administration, and travel policy compliance.',
+      skills: [
+        'Vendor Negotiation',
+        'Business Travel',
+        'GDS Ticketing',
+        'Travel Policy Compliance',
+        'Galileo Travelport Smart point',
+        'CRM',
+        'Airline Reservations',
+        'Vendor Management',
+        'Hotel Reservations',
+        'Cost Optimization',
+        'Itinerary Planning & Travel Management',
+        'Problem Solving',
+        'Customer Relationship Management',
+        'Client Service',
+      ],
+      experiences: [
+        {
+          title: 'Travel Coordinator',
+          company: 'M.AL – Barghash Company Simplified Joint Stock',
+          date_range: '29 September 2025 – Present',
+          location: 'Al Khobar, Saudi Arabia',
+          bullets: ['Manage 150+ international and domestic flight bookings monthly using Galileo Travelport Smart point.'],
+        },
+        {
+          title: 'Executive – Client Relationship',
+          company: 'Axis stay Private Limited',
+          date_range: '01 July 2025',
+          location: 'Bengaluru, Karnataka, India',
+          bullets: ['Managed 120+ monthly hotel reservations for corporate employees.'],
+        },
+        {
+          title: 'Marketing Representative – South India',
+          company: 'Centurion Luxury Travels',
+          date_range: '10 February 2025',
+          location: 'Dubai, UAE',
+          bullets: ['Designed customized UAE travel itineraries based on client preferences.'],
+        },
+        {
+          title: 'Sales Executive – UAE Travel Packages',
+          company: 'Rayna Tours Pvt. Ltd.',
+          date_range: '01 September 2023',
+          location: 'Pune, Maharashtra, India',
+          bullets: ['Conducted market research and competitor analysis to identify emerging travel trends.'],
+        },
+        {
+          title: 'Front Desk Operator',
+          company: 'Hotel Sumi Yashshree',
+          date_range: '01 February – 02 March 2020',
+          location: 'Darjeeling, West Bengal, India',
+          bullets: ['Managed front-desk operations including guest check-in and check-out.'],
+        },
+      ],
+      education: [
+        {
+          degree: 'Master of Tourism and Travel Management',
+          institution: 'Goa University',
+          year: '2021',
+        },
+        {
+          degree: 'Bachelor of Travel and Tourism',
+          institution: 'Sri Sri University',
+          year: '2023',
+        },
+      ],
+      certifications: [],
+    };
+
+    const ctx = extractProfileSearchContext(shriHariResume);
+    expect(ctx.targetRole).toBe('Corporate Travel Coordinator');
+    expect(ctx.domain).toBe('Corporate Travel & Hospitality Operations');
+    expect(ctx.location).toBe('Saudi Arabia');
+    expect(ctx.isNonTech).toBe(true);
+
+    // Verify relevant corporate travel and hospitality roles are present
+    expect(ctx.relatedRoles).toContain('Corporate Travel Coordinator');
+    expect(ctx.relatedRoles).toContain('Travel Coordinator');
+    expect(ctx.relatedRoles).toContain('Travel Consultant');
+    expect(ctx.relatedRoles).toContain('Business Travel Consultant');
+    expect(ctx.relatedRoles).toContain('Corporate Travel Desk Executive');
+    expect(ctx.relatedRoles).toContain('Travel Operations Specialist');
+
+    // Strict seniority isolation: junior/mid non-executive candidate must NEVER have VP or Director roles
+    expect(ctx.relatedRoles).not.toContain('VP of Sales');
+    expect(ctx.relatedRoles).not.toContain('Director of Sales');
+    expect(ctx.relatedRoles).not.toContain('Head of Growth');
+
+    // Verify skills
+    expect(ctx.topSkillKeywords).toContain('GDS Ticketing');
+    expect(ctx.topSkillKeywords).toContain('Travel Policy Compliance');
+    expect(ctx.topSkillKeywords).toContain('Galileo Travelport Smart point');
+    expect(ctx.topSkillKeywords).toContain('Airline Reservations');
+  });
+
+  it('prevents junior sales development representatives from receiving executive VP and Director roles', () => {
+    const sdrResume: TailoredResumeData = {
+      full_name: 'Rahul Sharma',
+      headline: 'Sales Development Representative | Outbound Prospecting',
+      target_role: 'Sales Development Representative',
+      contact_info: {
+        email: 'rahul@example.com',
+        phone: '+91 98765 11111',
+        location: 'Bengaluru, Karnataka, India',
+        linkedin: '',
+      },
+      tailored_summary: 'Energetic SDR with 1.5 years experience in outbound cold calling, email sequencing, and booking qualified sales discovery meetings.',
+      skills: ['Cold Calling', 'Outbound Prospecting', 'SalesLoft', 'ZoomInfo', 'CRM', 'Lead Qualification'],
+      experiences: [
+        {
+          title: 'Sales Development Representative',
+          company: 'SaaSify Inc',
+          date_range: '2024 – Present',
+          location: 'Bengaluru, India',
+          bullets: ['Booked 25+ SQLs per month via multi-touch outreach.'],
+        },
+      ],
+      education: [],
+      certifications: [],
+    };
+
+    const ctx = extractProfileSearchContext(sdrResume);
+    expect(ctx.targetRole).toBe('Sales Development Representative');
+    expect(ctx.domain).toBe('Sales & Business Development');
+
+    // SDR should receive peer and progression roles, NOT VP/Director
+    expect(ctx.relatedRoles).toContain('Sales Development Representative');
+    expect(ctx.relatedRoles).toContain('Business Development Representative');
+    expect(ctx.relatedRoles).toContain('Account Executive');
+    expect(ctx.relatedRoles).not.toContain('VP of Sales');
+    expect(ctx.relatedRoles).not.toContain('Director of Sales');
+    expect(ctx.relatedRoles).not.toContain('Head of Growth');
+  });
 });
 

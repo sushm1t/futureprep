@@ -356,6 +356,18 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
   });
   const [atsCustomInput, setAtsCustomInput] = useState<string>('');
   const [isBroadRoleMatch, setIsBroadRoleMatch] = useState<boolean>(false);
+  const [selectedTargetRoles, setSelectedTargetRoles] = useState<string[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        const k = p.get('keyword') || p.get('q');
+        if (k) {
+          return k.split(/[,\-–—|•]/).map((s) => s.trim()).filter(Boolean);
+        }
+      } catch { /* ignore */ }
+    }
+    return profileSearchContext.targetRole ? [profileSearchContext.targetRole] : [];
+  });
   const [atsKeyword, setAtsKeyword] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       try {
@@ -405,12 +417,44 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       lastProfileRoleRef.current = profileSearchContext.targetRole;
       if (!atsKeyword || atsKeyword === prev) {
         setAtsKeyword(profileSearchContext.targetRole);
+        setSelectedTargetRoles([profileSearchContext.targetRole]);
       }
       if (profileSearchContext.location && (selectedAtsLocation === 'All' || selectedAtsLocation === '')) {
         setSelectedAtsLocation(profileSearchContext.location);
       }
     }
   }, [profileSearchContext.targetRole, profileSearchContext.location]);
+
+  const handleToggleTargetRole = (role: string) => {
+    const isAlreadyActive = !isBroadRoleMatch && selectedTargetRoles.some(
+      (r) => r.toLowerCase().trim() === role.toLowerCase().trim()
+    );
+
+    let nextRoles: string[];
+    if (isBroadRoleMatch) {
+      nextRoles = [role];
+      setIsBroadRoleMatch(false);
+    } else if (isAlreadyActive) {
+      nextRoles = selectedTargetRoles.filter(
+        (r) => r.toLowerCase().trim() !== role.toLowerCase().trim()
+      );
+    } else {
+      nextRoles = [...selectedTargetRoles, role];
+    }
+
+    if (nextRoles.length === 0) {
+      setIsBroadRoleMatch(true);
+      setSelectedTargetRoles([]);
+      setAtsKeyword('');
+      handleCrawlAts(undefined, undefined, undefined, undefined, '');
+    } else {
+      setIsBroadRoleMatch(false);
+      setSelectedTargetRoles(nextRoles);
+      const combinedKeyword = nextRoles.join(', ');
+      setAtsKeyword(combinedKeyword);
+      handleCrawlAts(undefined, undefined, undefined, undefined, combinedKeyword);
+    }
+  };
 
   const searchRoleLabel = (atsKeyword || profileSearchContext.targetRole || '').trim()
     ? `${(atsKeyword || profileSearchContext.targetRole).trim()} roles`
@@ -1178,6 +1222,10 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       if (atsKeyword.trim() && !isBroadRoleMatch) {
         const isDefaultProfileRole = hasProfile && (
           atsKeyword === 'All Profile Roles' ||
+          (selectedTargetRoles.length > 0 && selectedTargetRoles.every((sr) =>
+            Array.isArray(profileSearchContext.relatedRoles) &&
+            profileSearchContext.relatedRoles.some((r) => r.toLowerCase().trim() === sr.toLowerCase().trim())
+          )) ||
           atsKeyword.toLowerCase().trim() === (profileSearchContext.targetRole || '').toLowerCase().trim() ||
           (Array.isArray(profileSearchContext.relatedRoles) && profileSearchContext.relatedRoles.some((r) => r.toLowerCase().trim() === atsKeyword.toLowerCase().trim())) ||
           (profileSearchContext.targetRole && (profileSearchContext.targetRole.toLowerCase().includes(atsKeyword.toLowerCase().trim()) || atsKeyword.toLowerCase().trim().includes(profileSearchContext.targetRole.toLowerCase())))
@@ -1888,8 +1936,15 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 type="text"
                 value={atsKeyword}
                 onChange={(e) => {
-                  setAtsKeyword(e.target.value);
+                  const val = e.target.value;
+                  setAtsKeyword(val);
                   setIsBroadRoleMatch(false);
+                  if (!val.trim()) {
+                    setSelectedTargetRoles([]);
+                  } else {
+                    const parts = val.split(/[,\-–—|•]/).map((s) => s.trim()).filter(Boolean);
+                    setSelectedTargetRoles(parts);
+                  }
                 }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
@@ -1938,11 +1993,12 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   type="button"
                   onClick={() => {
                     setIsBroadRoleMatch(true);
+                    setSelectedTargetRoles([]);
                     setAtsKeyword('');
                     handleCrawlAts(undefined, undefined, undefined, undefined, '');
                   }}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 border ${
-                    isBroadRoleMatch || (!atsKeyword.trim() && !atsCustomInput.trim())
+                    isBroadRoleMatch || selectedTargetRoles.length === 0 || (!atsKeyword.trim() && !atsCustomInput.trim())
                       ? 'bg-brand text-white border-brand shadow-xs'
                       : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border-border/60'
                   }`}
@@ -1951,23 +2007,21 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   <span>🎯 All Profile Roles ({profileSearchContext.relatedRoles.length})</span>
                 </button>
                 {profileSearchContext.relatedRoles.map((role) => {
-                  const isActive = !isBroadRoleMatch && atsKeyword.toLowerCase().trim() === role.toLowerCase().trim();
+                  const isActive = !isBroadRoleMatch && selectedTargetRoles.some((r) => r.toLowerCase().trim() === role.toLowerCase().trim());
                   return (
                     <button
                       key={role}
                       type="button"
-                      onClick={() => {
-                        setIsBroadRoleMatch(false);
-                        setAtsKeyword(role);
-                        handleCrawlAts(undefined, undefined, undefined, undefined, role);
-                      }}
+                      onClick={() => handleToggleTargetRole(role)}
                       className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1 border ${
                         isActive
                           ? 'bg-brand text-white border-brand font-semibold shadow-xs'
                           : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border-border/60'
                       }`}
-                      title={`Search live openings for "${role}"`}
+                      title={isActive ? `Click to remove "${role}" from active role search` : `Click to add "${role}" to active role search`}
+                      aria-pressed={isActive}
                     >
+                      {isActive && <Check className="w-3 h-3 text-white shrink-0" />}
                       <span>{role}</span>
                     </button>
                   );

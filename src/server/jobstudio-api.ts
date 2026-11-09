@@ -2142,18 +2142,50 @@ app.post('/api/ats/crawl', async (req, res) => {
             if (!targetedQueries.includes(v)) targetedQueries.push(v);
           });
         }
-        if (/growth|sales|account executive|business development|gtm|closer|revenue/i.test(cleanKeyword) || profileContext?.domain === 'Sales & Business Development') {
+        if (/travel|tourism|hospitality|coordinator|ticketing|gds|flight|hotel\s+reservation/i.test(cleanKeyword) || profileContext?.domain === 'Corporate Travel & Hospitality Operations') {
           [
-            'Head of Growth',
-            'Enterprise Account Executive',
-            'VP of Sales',
-            'Director of Sales',
-            'Head of Business Development',
-            'Go-To-Market Lead',
-            'B2B Sales Lead',
-            'Strategic Account Executive',
-            'Account Executive',
+            'Corporate Travel Coordinator',
+            'Travel Coordinator',
+            'Travel Consultant',
+            'Business Travel Consultant',
+            'Corporate Travel Desk',
+            'Travel Operations Specialist',
+            'Reservation Specialist',
+            'Client Relationship Executive',
+            'Travel Operations Coordinator',
           ].forEach((v) => {
+            if (!targetedQueries.includes(v)) targetedQueries.push(v);
+          });
+        }
+        if (
+          (/growth|sales|account executive|business development|gtm|closer|revenue/i.test(cleanKeyword) || profileContext?.domain === 'Sales & Business Development') &&
+          !/travel|tourism|coordinator|ticketing|gds/i.test(cleanKeyword) &&
+          profileContext?.domain !== 'Corporate Travel & Hospitality Operations'
+        ) {
+          const isLeadershipQuery = /head\s+of|vp\b|director|chief/i.test(cleanKeyword) || /head\s+of|vp\b|director/i.test(profileContext?.targetRole || '');
+          const salesList = isLeadershipQuery
+            ? [
+                'Head of Growth',
+                'Enterprise Account Executive',
+                'VP of Sales',
+                'Director of Sales',
+                'Head of Business Development',
+                'Go-To-Market Lead',
+                'B2B Sales Lead',
+                'Strategic Account Executive',
+                'Account Executive',
+              ]
+            : [
+                'Account Executive',
+                'Enterprise Account Executive',
+                'Sales Development Representative',
+                'Business Development Representative',
+                'Inside Sales Representative',
+                'Client Relationship Executive',
+                'Sales Executive',
+                'Account Manager',
+              ];
+          salesList.forEach((v) => {
             if (!targetedQueries.includes(v)) targetedQueries.push(v);
           });
         }
