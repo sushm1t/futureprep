@@ -211,6 +211,8 @@ export interface ATSJobListing {
   workplaceType?: 'Remote' | 'Hybrid' | 'On-site';
   seniority?: 'Early / Junior' | 'Mid-Level' | 'Senior' | 'Lead / Staff / Director';
   salarySnippet?: string;
+  salaryMin?: number;
+  salaryMax?: number;
   skills?: string[];
   matchScore?: number;
   matchHighlight?: string;

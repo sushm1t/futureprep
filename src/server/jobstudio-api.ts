@@ -1751,6 +1751,8 @@ async function fetchLiveAtsCatalogueJobs(
               : 'Mid-Level')
           : extractSeniorityLevel(title, desc),
         salarySnippet: salary || undefined,
+        salaryMin: typeof item.salary_min === 'number' ? item.salary_min : undefined,
+        salaryMax: typeof item.salary_max === 'number' ? item.salary_max : undefined,
         skills: extractedSkills,
         matchScore: score,
         matchHighlight: highlight,
@@ -1942,6 +1944,7 @@ app.post('/api/ats/crawl', async (req, res) => {
       category,
       domain,
       collection,
+      postedWithin,
     } = req.body;
 
     const fetchHeaders = {
@@ -2939,6 +2942,25 @@ app.post('/api/ats/crawl', async (req, res) => {
       }
       if (activeListings.length > 0) {
         filtered = activeListings;
+      }
+    }
+
+    // Filter by posted date window if specified
+    if (postedWithin && postedWithin !== 'all') {
+      const maxHours =
+        postedWithin === '24h' ? 24 :
+        postedWithin === '3d' ? 72 :
+        postedWithin === '7d' ? 168 :
+        postedWithin === '14d' ? 336 :
+        postedWithin === '30d' ? 720 : 0;
+      if (maxHours > 0) {
+        filtered = filtered.filter((j) => {
+          const rawDate = j.publishedAt || j.postedAt || j.createdAt;
+          if (!rawDate) return true;
+          const t = new Date(rawDate).getTime();
+          if (isNaN(t)) return true;
+          return (Date.now() - t) <= maxHours * 60 * 60 * 1000;
+        });
       }
     }
 

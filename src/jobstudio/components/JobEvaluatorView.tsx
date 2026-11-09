@@ -657,6 +657,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           languages: mergedFilters.languages?.length ? mergedFilters.languages.join(',') : undefined,
           relocation: mergedFilters.relocation?.length ? mergedFilters.relocation.join(',') : undefined,
           minSalary: mergedFilters.minSalary,
+          postedWithin: mergedFilters.postedWithin && mergedFilters.postedWithin !== 'all' ? mergedFilters.postedWithin : undefined,
         }),
       });
       const data = await res.json();
@@ -744,13 +745,13 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   const handleApplyAllFilters = (newFilters: FilterState) => {
     setAdvancedFilters(newFilters);
-    if (newFilters.seniority && newFilters.seniority !== 'All') {
+    if (newFilters.seniority) {
       setSelectedSeniority(newFilters.seniority as SeniorityFilter);
     }
-    if (newFilters.workplace && newFilters.workplace !== 'All') {
+    if (newFilters.workplace) {
       setSelectedWorkplace(newFilters.workplace as WorkplaceFilter);
     }
-    if (newFilters.location && newFilters.location !== 'All') {
+    if (newFilters.location) {
       setSelectedAtsLocation(newFilters.location);
     }
     handleCrawlAts(
@@ -1175,6 +1176,15 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             combined.includes('cork') ||
             combined.includes('galway');
           if (!isIe) return false;
+        } else if (lq.includes('france') || lq.includes('français')) {
+          const isFr =
+            combined.includes('france') ||
+            combined.includes('paris') ||
+            combined.includes('lyon') ||
+            combined.includes('marseille') ||
+            combined.includes('bordeaux') ||
+            combined.includes('toulouse');
+          if (!isFr) return false;
         } else if (lq.includes('qatar')) {
           const isQa =
             combined.includes('qatar') ||
@@ -1255,25 +1265,104 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         if (!matchesSource) return false;
       }
 
+      // 6b. Posted Date Filter
+      if (advancedFilters.postedWithin && advancedFilters.postedWithin !== 'all') {
+        const rawDate = job.publishedAt || (job as any).postedAt || (job as any).datePosted || (job as any).createdAt || job.verifiedAt;
+        if (rawDate) {
+          const timestamp = new Date(rawDate).getTime();
+          if (!isNaN(timestamp)) {
+            const ageHours = (Date.now() - timestamp) / (1000 * 60 * 60);
+            if (advancedFilters.postedWithin === '24h' && ageHours > 24) return false;
+            if (advancedFilters.postedWithin === '3d' && ageHours > 3 * 24) return false;
+            if (advancedFilters.postedWithin === '7d' && ageHours > 7 * 24) return false;
+            if (advancedFilters.postedWithin === '14d' && ageHours > 14 * 24) return false;
+            if (advancedFilters.postedWithin === '30d' && ageHours > 30 * 24) return false;
+          }
+        }
+      }
+
       // 7. Specializations Filter (Role Specialization)
       if (advancedFilters.specializations && advancedFilters.specializations.length > 0) {
         const specMatches = advancedFilters.specializations.some((spec) => {
           const s = spec.toLowerCase().replace(/_/g, ' ');
           if (combinedJobText.includes(s)) return true;
+          // Engineering
           if (spec === 'software_engineering' && /software\s*engine|software\s*develop/i.test(combinedJobText)) return true;
           if (spec === 'backend' && /back\s*end|server\s*side|node|golang|python|java\s*engine/i.test(combinedJobText)) return true;
           if (spec === 'frontend' && /front\s*end|react|vue|angular|web\s*develop/i.test(combinedJobText)) return true;
           if (spec === 'fullstack' && /full\s*stack/i.test(combinedJobText)) return true;
           if (spec === 'mobile' && /ios|android|swift|kotlin|react\s*native|flutter|mobile/i.test(combinedJobText)) return true;
           if (spec === 'devops' && /devops|infra|sre|platform|cloud\s*engine|terraform|k8s|kubernetes/i.test(combinedJobText)) return true;
+          if (spec === 'sre' && /\bsre\b|site\s*reliability/i.test(combinedJobText)) return true;
+          if (spec === 'network_engineering' && /network|cisco|routing|switching|lan|wan|firewall/i.test(combinedJobText)) return true;
+          if (spec === 'it_support' && /it\s*support|help\s*desk|service\s*desk|desktop\s*support/i.test(combinedJobText)) return true;
+          if (spec === 'hardware' && /hardware|circuit|pcb|fpga|asic|silicon/i.test(combinedJobText)) return true;
+          if (spec === 'embedded' && /embedded|firmware|microcontroller|rtos|iot|c\+\+|arm/i.test(combinedJobText)) return true;
+          if (spec === 'blockchain' && /blockchain|web3|crypto|solidity|smart\s*contract|ethereum/i.test(combinedJobText)) return true;
+          if (spec === 'architecture' && /architect|enterprise\s*architect|cloud\s*architect|solutions?\s*architect/i.test(combinedJobText)) return true;
+          if (spec === 'industrial_engineering' && /industrial\s*engineer|manufacturing|process\s*engineer|plant|quality\s*engineer/i.test(combinedJobText)) return true;
+          if (spec === 'science_lab' && /scientist|laboratory|research\s*associate|chemist|biologist|lab\s*tech/i.test(combinedJobText)) return true;
+
+          // Data & AI
           if (spec === 'data_engineering' && /data\s*engine|etl|pipeline|spark|dbt|bigquery|snowflake/i.test(combinedJobText)) return true;
           if (spec === 'data_science' && /data\s*scien|machine\s*learn|statistician/i.test(combinedJobText)) return true;
+          if (spec === 'data_analytics' && /data\s*anal|business\s*intelligence|\bbi\b\s*analyst|tableau|power\s*bi/i.test(combinedJobText)) return true;
+          if ((spec === 'ml_ai' || spec === 'ai_engineering') && /machine\s*learn|\bml\b|\bai\b|deep\s*learning|nlp|computer\s*vision|llm|pytorch|tensorflow/i.test(combinedJobText)) return true;
+
+          // AI Specialization
+          if (spec === 'rag_builder' && /rag|retrieval\s*augmented|vector|langchain|llamaindex|embedding/i.test(combinedJobText)) return true;
+          if (spec === 'agent_builder' && /agent|agentic|autonomous|multi-agent|autogen|crewai/i.test(combinedJobText)) return true;
+          if (spec === 'cloud_ml_platform' && /ml\s*platform|mlops|vertex\s*ai|sagemaker|databricks|model\s*serving/i.test(combinedJobText)) return true;
+          if (spec === 'ml_trainer' && /model\s*training|pre-training|fine-tuning|rlhf|research\s*scientist/i.test(combinedJobText)) return true;
+          if (spec === 'fullstack_ai' && /full\s*stack|ai\s*engineer|genai|llm\s*app/i.test(combinedJobText)) return true;
+          if (spec === 'devops_ai_infra' && /ai\s*infra|gpu\s*cluster|triton|vllm|cuda|ray/i.test(combinedJobText)) return true;
+
+          // Quality & Security
+          if (spec === 'qa' && /qa|test|quality\s*assur|sdet|automation\s*test/i.test(combinedJobText)) return true;
+          if (spec === 'security' && /security|infosec|cyber|soc\s*analyst|appsec/i.test(combinedJobText)) return true;
+          if (spec === 'hse' && /hse|health\s*and\s*safety|safety\s*officer|occupational\s*safety|ehs/i.test(combinedJobText)) return true;
+
+          // Design & Creative
+          if (spec === 'design' && /design|designer|ui|ux|product\s*design|visual\s*design|figma/i.test(combinedJobText)) return true;
+          if (spec === 'creative' && /creative|art\s*director|video|copywriter|content\s*creator|animator/i.test(combinedJobText)) return true;
+          if (spec === 'engineering_design' && /cad|mechanical\s*design|solidworks|hardware\s*design|pcb/i.test(combinedJobText)) return true;
+
+          // Product & Management
           if (spec === 'product_manager' && /product\s*manag|group\s*pm|\bpm\b|technical\s*pm/i.test(combinedJobText)) return true;
           if (spec === 'technical_pm' && /technical\s*product\s*manag|technical\s*pm|\btpm\b/i.test(combinedJobText)) return true;
           if (spec === 'ai_pm' && /ai\s*product|machine\s*learning\s*product/i.test(combinedJobText)) return true;
           if (spec === 'growth_pm' && /growth\s*product|growth\s*pm/i.test(combinedJobText)) return true;
-          if (spec === 'qa' && /qa|test|quality\s*assur|sdet|automation\s*test/i.test(combinedJobText)) return true;
-          if (spec === 'security' && /security|infosec|cyber|soc\s*analyst|appsec/i.test(combinedJobText)) return true;
+          if (spec === 'senior_pm' && /senior\s*product\s*manag|sr\.?\s*pm/i.test(combinedJobText)) return true;
+          if (spec === 'group_pm' && /group\s*product|director\s*of\s*product|vp\s*product/i.test(combinedJobText)) return true;
+          if (spec === 'associate_pm' && /associate\s*product|apm|junior\s*product/i.test(combinedJobText)) return true;
+          if (spec === 'program_manager' && /program\s*manager|project\s*manager/i.test(combinedJobText)) return true;
+          if (spec === 'product_operations' && /product\s*ops|product\s*operations/i.test(combinedJobText)) return true;
+          if (spec === 'scrum_master' && /scrum\s*master|agile\s*coach/i.test(combinedJobText)) return true;
+
+          // Go-To-Market & Support
+          if (spec === 'sales_rep' && /sales|account\s*exec|\bae\b|\bsdr\b|\bbdr\b|business\s*development|client\s*exec/i.test(combinedJobText)) return true;
+          if (spec === 'customer_success' && /customer\s*success|\bcsm\b|client\s*success|account\s*manager|customer\s*partner/i.test(combinedJobText)) return true;
+          if (spec === 'solutions_engineer' && /solutions?\s*(?:architect|engineer)|presales|pre-sales|sales\s*engineer/i.test(combinedJobText)) return true;
+          if (spec === 'customer_support' && /customer\s*support|support\s*engineer|customer\s*service|technical\s*support|help\s*desk/i.test(combinedJobText)) return true;
+          if (spec === 'marketing' && /marketing|growth|content|seo|brand|demand\s*gen|product\s*market|pmm/i.test(combinedJobText)) return true;
+
+          // People & HR
+          if (spec === 'recruiter' && /recruiter|recruitment|talent\s*acq|sourcer|talent\s*partner/i.test(combinedJobText)) return true;
+          if (spec === 'hr_business_partner' && /hr\s*business|hrbp|human\s*resources|people\s*partner/i.test(combinedJobText)) return true;
+          if (spec === 'people_ops' && /people\s*ops|people\s*operations|talent\s*ops|hr\s*ops/i.test(combinedJobText)) return true;
+
+          // Business & Legal
+          if (spec === 'finance_accounting' && /finance|financial|accountant|accounting|controller|payroll|tax|auditor|fp&a/i.test(combinedJobText)) return true;
+          if (spec === 'legal_counsel' && /legal|counsel|attorney|lawyer|compliance|regulatory|contracts/i.test(combinedJobText)) return true;
+          if (spec === 'operations_sme' && /operations|bizops|business\s*operations|real-time|operations\s*manager|sme/i.test(combinedJobText)) return true;
+          if (spec === 'strategy_bizops' && /strategy|bizops|chief\s*of\s*staff|corporate\s*development|strategic/i.test(combinedJobText)) return true;
+
+          // Consumer & Services
+          if (spec === 'healthcare_clinical' && /healthcare|clinical|medical|nurse|phlebotomy|laboratory|hospital|pathology|biomedical/i.test(combinedJobText)) return true;
+          if (spec === 'logistics_transport' && /logistics|transport|supply\s*chain|freight|warehouse|fleet|delivery|courier|dispatch/i.test(combinedJobText)) return true;
+          if (spec === 'hospitality' && /hospitality|travel|hotel|reservations|tourism|guest\s*services|flight|concierge/i.test(combinedJobText)) return true;
+          if (spec === 'skilled_trades' && /trade|electrician|plumber|welder|hvac|mechanic|carpenter|technician|mason|fabricator/i.test(combinedJobText)) return true;
+
           return false;
         });
         if (!specMatches) return false;
@@ -1317,6 +1406,18 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           if (indClean === 'devtools' && /devtools|developer\s*tools|infra|cloud|saas/i.test(combinedJobText)) return true;
           if (indClean === 'cybersecurity' && /security|cyber|soc|threat/i.test(combinedJobText)) return true;
           if (indClean === 'ai' && /ai|machine\s*learning|llm|deep\s*learning/i.test(combinedJobText)) return true;
+          if (indClean === 'travel' && /travel|hospitality|hotel|tourism|flight|airline|booking/i.test(combinedJobText)) return true;
+          if (indClean === 'crypto' && /crypto|blockchain|web3|defi|bitcoin|ethereum|token/i.test(combinedJobText)) return true;
+          if (indClean === 'gamedev' && /game|gaming|unity|unreal|gameplay/i.test(combinedJobText)) return true;
+          if (indClean === 'media' && /media|streaming|content|entertainment|publishing|broadcasting/i.test(combinedJobText)) return true;
+          if (indClean === 'edtech' && /edtech|education|learning|school|university|academic|tutor/i.test(combinedJobText)) return true;
+          if (indClean === 'govtech' && /govtech|government|public\s*sector|defense|defense\s*tech|aerospace/i.test(combinedJobText)) return true;
+          if (indClean === 'logistics' && /logistics|freight|supply\s*chain|warehouse|transport|shipping|courier/i.test(combinedJobText)) return true;
+          if (indClean === 'climatetech' && /climatetech|climate|clean\s*energy|solar|renewable|sustainability|carbon/i.test(combinedJobText)) return true;
+          if (indClean === 'hrtech' && /hrtech|recruiting|staffing|human\s*capital|workforce/i.test(combinedJobText)) return true;
+          if (indClean === 'adtech' && /adtech|advertising|marketing\s*tech|martech|programmatic/i.test(combinedJobText)) return true;
+          if (indClean === 'proptech' && /proptech|real\s*estate|property|mortgage|tenant/i.test(combinedJobText)) return true;
+          if (indClean === 'mobility' && /mobility|automotive|ev|electric\s*vehicle|autonomous\s*vehicle|transportation/i.test(combinedJobText)) return true;
           return false;
         });
         if (!matchesIndustry) return false;
@@ -1331,6 +1432,8 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           if (c === 'agency' && /agency|consultancy|digital\s*agency/i.test(combinedJobText)) return true;
           if (c === 'government' && /government|public\s*sector|defense|ministry/i.test(combinedJobText)) return true;
           if (c === 'inhouse' && !/agency|outsource/i.test(combinedJobText)) return true;
+          if (c === 'outsource' && /outsource|service\s*company|services|software\s*services|consulting/i.test(combinedJobText)) return true;
+          if (c === 'outstaff' && /outstaff|staff\s*augmentation|contractor/i.test(combinedJobText)) return true;
           return false;
         });
         if (!matchesCompanyType) return false;
@@ -1344,6 +1447,11 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           if (c.includes('sequoia') && /sequoia/i.test(combinedJobText)) return true;
           if (c.includes('a16z') && /a16z|andreessen/i.test(combinedJobText)) return true;
           if (c.includes('techstars') && /techstars/i.test(combinedJobText)) return true;
+          if (c.includes('accel') && /accel/i.test(combinedJobText)) return true;
+          if (c.includes('greylock') && /greylock/i.test(combinedJobText)) return true;
+          if (c.includes('usv') && /union\s*square|usv/i.test(combinedJobText)) return true;
+          if (c.includes('bond') && /bond\s*cap/i.test(combinedJobText)) return true;
+          if (c.includes('fortune') && /fortune\s*500|enterprise|global\s*2000/i.test(combinedJobText)) return true;
           return combinedJobText.includes(c);
         });
         if (!matchesCol) return false;
@@ -1351,8 +1459,23 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
       // 14. Salary Minimum Filter
       if (advancedFilters.minSalary && advancedFilters.minSalary > 0) {
-        if (job.salaryMax && job.salaryMax < advancedFilters.minSalary) return false;
-        if (job.salaryMin && job.salaryMin < advancedFilters.minSalary && !job.salaryMax) return false;
+        const sMin = (job as any).salaryMin;
+        const sMax = (job as any).salaryMax;
+        if (sMin || sMax) {
+          if (sMax && sMax < advancedFilters.minSalary) return false;
+          if (sMin && sMin < advancedFilters.minSalary && !sMax) return false;
+        } else if (job.salarySnippet) {
+          const numbers = (job.salarySnippet.match(/\$?(\d+)(?:,(\d{3}))?(?:\s*k)?/gi) || []).map((str) => {
+            const clean = str.replace(/[$,]/g, '').toLowerCase();
+            if (clean.endsWith('k')) return parseFloat(clean) * 1000;
+            const val = parseFloat(clean);
+            return val < 1000 ? val * 1000 : val;
+          });
+          if (numbers.length > 0) {
+            const maxParsed = Math.max(...numbers);
+            if (maxParsed < advancedFilters.minSalary) return false;
+          }
+        }
       }
 
       // 15. Skills Filter
@@ -1379,6 +1502,12 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           if (bId === 'remote_stipend') return /wfh\s*stipend|home\s*office|remote\s*stipend|equipment\s*budget/i.test(combinedJobText);
           if (bId === 'learning_budget') return /learning|education|tuition|conference|l&d/i.test(combinedJobText);
           if (bId === 'gym_wellness') return /gym|fitness|wellness|mental\s*health/i.test(combinedJobText);
+          if (bId === 'mental_health') return /mental\s*health|therapy|counseling|headspace|modern\s*health/i.test(combinedJobText);
+          if (bId === 'annual_bonus') return /bonus|incentive|commission/i.test(combinedJobText);
+          if (bId === 'four_day_week') return /4-day|four[- ]day|summer\s*hours/i.test(combinedJobText);
+          if (bId === 'hardware_choice') return /hardware|macbook|laptop|equipment\s*of\s*choice/i.test(combinedJobText);
+          if (bId === 'coworking_allowance') return /coworking|wework|desk\s*pass/i.test(combinedJobText);
+          if (bId === 'conference_stipend') return /conference|travel\s*budget|events\s*budget/i.test(combinedJobText);
           return false;
         };
         const isStrict = advancedFilters.strictness === 'all';
