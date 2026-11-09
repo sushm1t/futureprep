@@ -277,7 +277,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                     }}
                     className="px-3 py-1.5 rounded-lg bg-info hover:bg-info/90 text-primary-foreground text-xs font-semibold shrink-0 transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
                   >
-                    Upgrade to Plus ($9.99/mo)
+                    Upgrade to Plus ($4.99/mo)
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -400,7 +400,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                           }}
                           className="px-4 py-2 rounded-xl bg-info text-primary-foreground text-xs font-semibold hover:bg-info/90 transition-colors cursor-pointer"
                         >
-                          Unlock with Plus ($9.99/mo)
+                          Unlock with Plus ($4.99/mo)
                         </button>
                       </div>
                     ) : (
@@ -465,7 +465,7 @@ export const RecruiterReviewModal: React.FC<RecruiterReviewModalProps> = ({
                           }}
                           className="px-4 py-2 rounded-xl bg-info text-primary-foreground text-xs font-semibold hover:bg-info/90 transition-colors cursor-pointer"
                         >
-                          Unlock with Plus ($9.99/mo)
+                          Unlock with Plus ($4.99/mo)
                         </button>
                       </div>
                     ) : (

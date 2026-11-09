@@ -42,7 +42,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   return (
     <div className="space-y-16 animate-fade-in text-foreground pb-24 max-w-6xl mx-auto">
       {/* =========================================================================
-          EMBEDDED 3-TIER PRICING (Free $0 / Plus $9.99 / Pro $19.99)
+          EMBEDDED 3-TIER PRICING (Free $0 / Plus $4.99 / Pro $9.99)
          ========================================================================= */}
       <section id="landing-pricing" className="space-y-8 pt-8">
         <div className="text-center space-y-3 max-w-2xl mx-auto">
@@ -165,7 +165,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
             </div>
           </div>
 
-          {/* 2. PLUS PLAN ($9.99/mo) */}
+          {/* 2. PLUS PLAN ($4.99/mo) */}
           <div
             className={`bg-card rounded-3xl border-2 p-7 sm:p-8 flex flex-col justify-between transition-all relative ${
               currentPlan === 'plus'
@@ -198,12 +198,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="pt-2 border-t border-border">
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-display text-4xl sm:text-5xl font-bold text-foreground tracking-tight">
-                    ${billingCycle === 'monthly' ? '9.99' : '7.99'}
+                    ${billingCycle === 'monthly' ? '4.99' : '3.99'}
                   </span>
                   <span className="text-xs font-semibold text-subtle">/ month</span>
                 </div>
                 <p className="text-[11px] text-subtle mt-1">
-                  {billingCycle === 'monthly' ? 'Billed monthly · Cancel anytime' : 'Billed annually ($95.88/yr) · Save 20% on annual billing'}
+                  {billingCycle === 'monthly' ? 'Billed monthly · Cancel anytime' : 'Billed annually ($47.88/yr) · Save 20% on annual billing'}
                 </p>
               </div>
 
@@ -248,13 +248,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   className="w-full py-3 px-4 rounded-full font-semibold text-xs transition-all bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Zap className="w-3.5 h-3.5" />
-                  <span>Upgrade to Plus (${billingCycle === 'monthly' ? '9.99' : '7.99'}/mo)</span>
+                  <span>Upgrade to Plus (${billingCycle === 'monthly' ? '4.99' : '3.99'}/mo)</span>
                 </button>
               )}
             </div>
           </div>
 
-          {/* 3. PRO PLAN ($19.99/mo) */}
+          {/* 3. PRO PLAN ($9.99/mo) */}
           <div
             className={`bg-card rounded-3xl border-2 p-7 sm:p-8 flex flex-col justify-between transition-all relative ${
               currentPlan === 'pro'
@@ -292,12 +292,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
               <div className="pt-2 border-t border-border">
                 <div className="flex items-baseline gap-1.5">
                   <span className="font-display text-4xl sm:text-5xl font-bold text-foreground tracking-tight">
-                    ${billingCycle === 'monthly' ? '19.99' : '15.99'}
+                    ${billingCycle === 'monthly' ? '9.99' : '7.99'}
                   </span>
                   <span className="text-xs font-semibold text-subtle">/ month</span>
                 </div>
                 <p className="text-[11px] text-subtle mt-1">
-                  {billingCycle === 'monthly' ? 'Billed monthly · Cancel anytime' : 'Billed annually ($191.88/yr) · Save 20% on annual billing'}
+                  {billingCycle === 'monthly' ? 'Billed monthly · Cancel anytime' : 'Billed annually ($95.88/yr) · Save 20% on annual billing'}
                 </p>
               </div>
 
@@ -342,7 +342,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                   className="w-full py-3 px-4 rounded-full font-semibold text-xs transition-all bg-gradient-to-r from-emerald-600 to-teal-600 hover:opacity-95 text-white shadow-sm cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <Zap className="w-3.5 h-3.5" />
-                  <span>Upgrade to Pro (${billingCycle === 'monthly' ? '19.99' : '15.99'}/mo)</span>
+                  <span>Upgrade to Pro (${billingCycle === 'monthly' ? '9.99' : '7.99'}/mo)</span>
                 </button>
               )}
             </div>

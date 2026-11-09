@@ -49,13 +49,13 @@ export const PricingView: React.FC<PricingViewProps> = ({
   const [openFaq, setOpenFaq] = useState<Record<number, boolean>>({ 0: true });
 
   // Plus pricing
-  const plusMonthly = 9.99;
-  const plusAnnualMonthly = 7.99; // 20% discount
+  const plusMonthly = 4.99;
+  const plusAnnualMonthly = 3.99; // 20% discount
   const plusAnnualTotal = (plusAnnualMonthly * 12).toFixed(2);
 
   // Pro pricing
-  const proMonthly = 19.99;
-  const proAnnualMonthly = 15.99; // 20% discount
+  const proMonthly = 9.99;
+  const proAnnualMonthly = 7.99; // 20% discount
   const proAnnualTotal = (proAnnualMonthly * 12).toFixed(2);
 
   const toggleFaq = (index: number) => {
@@ -88,10 +88,10 @@ export const PricingView: React.FC<PricingViewProps> = ({
   const faqs = [
     {
       q: 'How do the resume tailoring limits work across Free, Plus, and Pro?',
-      a: 'Free users can tailor up to 2 resumes per month to test-drive the AI matching engine. Plus users receive 50 tailored resumes per month ($9.99/mo) — ideal for active candidates submitting 1–2 applications per day. Pro users ($19.99/mo) get unlimited tailored resumes with zero monthly quotas for intense or executive searches.',
+      a: 'Free users can tailor up to 2 resumes per month to test-drive the AI matching engine. Plus users receive 50 tailored resumes per month ($4.99/mo) — ideal for active candidates submitting 1–2 applications per day. Pro users ($9.99/mo) get unlimited tailored resumes with zero monthly quotas for intense or executive searches.',
     },
     {
-      q: 'What is the main difference between Plus ($9.99) and Pro ($19.99)?',
+      q: 'What is the main difference between Plus ($4.99) and Pro ($9.99)?',
       a: 'Plus includes 50 tailored resumes, 25 cover letters, full 3-persona recruiter reviews, DOCX exports, and access to all 100+ company focus packs. Pro unlocks unlimited resumes, plus advanced Stage 2 interview tools: the Behavioral STAR Mock Interview Practice Coach, Offer & Salary Negotiation Copilot (with counter-offer scripts and live phone tactics), and unlimited ATS portal questions.',
     },
     {
@@ -310,7 +310,7 @@ export const PricingView: React.FC<PricingViewProps> = ({
           </div>
         </div>
 
-        {/* 2. PLUS CARD ($9.99/mo) - MOST POPULAR */}
+        {/* 2. PLUS CARD ($4.99/mo) - MOST POPULAR */}
         <div
           className={`bg-card rounded-3xl border-2 p-7 sm:p-8 flex flex-col justify-between transition-all relative ${
             currentPlan === 'plus'
@@ -458,14 +458,14 @@ export const PricingView: React.FC<PricingViewProps> = ({
                 onClick={() => handleStartCheckout('plus')}
                 className="w-full py-3.5 px-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold transition-all cursor-pointer shadow-elevated flex items-center justify-center gap-2 group"
               >
-                <span>Upgrade to Plus (${billingCycle === 'monthly' ? '9.99' : '7.99'}/mo)</span>
+                <span>Upgrade to Plus (${billingCycle === 'monthly' ? '4.99' : '3.99'}/mo)</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
             )}
           </div>
         </div>
 
-        {/* 3. PRO CARD ($19.99/mo) - BEST VALUE · COMPLETE COPILOT */}
+        {/* 3. PRO CARD ($9.99/mo) - BEST VALUE · COMPLETE COPILOT */}
         <div
           className={`bg-card rounded-3xl border-2 p-7 sm:p-8 flex flex-col justify-between transition-all relative ${
             currentPlan === 'pro'
@@ -587,7 +587,7 @@ export const PricingView: React.FC<PricingViewProps> = ({
                 onClick={() => handleStartCheckout('pro')}
                 className="w-full py-3.5 px-4 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold transition-all cursor-pointer shadow-elevated flex items-center justify-center gap-2 group"
               >
-                <span>Upgrade to Pro (${billingCycle === 'monthly' ? '19.99' : '15.99'}/mo)</span>
+                <span>Upgrade to Pro (${billingCycle === 'monthly' ? '9.99' : '7.99'}/mo)</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
               </button>
             )}
@@ -613,10 +613,10 @@ export const PricingView: React.FC<PricingViewProps> = ({
                 <th className="py-3 pr-4 font-semibold">Capability</th>
                 <th className="py-3 px-3 font-semibold w-28 sm:w-36 text-center text-subtle">Free ($0)</th>
                 <th className="py-3 px-3 font-semibold w-28 sm:w-36 text-center text-muted-foreground">
-                  Plus ($9.99/mo)
+                  Plus ($4.99/mo)
                 </th>
                 <th className="py-3 pl-3 font-bold w-28 sm:w-36 text-center text-brand">
-                  Pro ($19.99/mo)
+                  Pro ($9.99/mo)
                 </th>
               </tr>
             </thead>

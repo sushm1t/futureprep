@@ -37,8 +37,8 @@ describe('3-Tier Pricing System (Free, Plus, Pro)', () => {
 
     // Prices
     expect(screen.getByText('$0')).toBeInTheDocument();
+    expect(screen.getByText('$4.99')).toBeInTheDocument();
     expect(screen.getByText('$9.99')).toBeInTheDocument();
-    expect(screen.getByText('$19.99')).toBeInTheDocument();
 
     // Badges & Quotas
     expect(screen.getByText(/MOST POPULAR/i)).toBeInTheDocument();
@@ -61,16 +61,16 @@ describe('3-Tier Pricing System (Free, Plus, Pro)', () => {
     );
 
     // Initial monthly prices
+    expect(screen.getByText('$4.99')).toBeInTheDocument();
     expect(screen.getByText('$9.99')).toBeInTheDocument();
-    expect(screen.getByText('$19.99')).toBeInTheDocument();
 
     // Toggle to Annual
     const annualBtn = screen.getByRole('button', { name: /Annual/i });
     fireEvent.click(annualBtn);
 
     // Discounted monthly equivalents
+    expect(screen.getByText('$3.99')).toBeInTheDocument();
     expect(screen.getByText('$7.99')).toBeInTheDocument();
-    expect(screen.getByText('$15.99')).toBeInTheDocument();
   });
 
   it('opens checkout modal for Plus and calls onUpgradeToPlan with plus', () => {
@@ -144,8 +144,8 @@ describe('3-Tier Pricing System (Free, Plus, Pro)', () => {
 
     expect(screen.getByText(/Detailed Plan Comparison/i)).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: /Free \(\$0\)/i })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: /Plus \(\$9\.99\/mo\)/i })).toBeInTheDocument();
-    expect(screen.getByRole('columnheader', { name: /Pro \(\$19\.99\/mo\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /Plus \(\$4\.99\/mo\)/i })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /Pro \(\$9\.99\/mo\)/i })).toBeInTheDocument();
   });
 
   it('shows processing spinner then celebration screen on confirming upgrade', () => {

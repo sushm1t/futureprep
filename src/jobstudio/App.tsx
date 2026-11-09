@@ -851,7 +851,7 @@ export default function App() {
       if (userPlan === 'plus') {
         if (
           confirm(
-            'You have reached your monthly limit of 50 tailored resumes on the Plus plan.\n\nUpgrade to Pro for $19.99/mo to unlock unlimited AI resume tailoring, full interview prep intelligence, and salary negotiation.\n\nWould you like to view plans?'
+            'You have reached your monthly limit of 50 tailored resumes on the Plus plan.\n\nUpgrade to Pro for $9.99/mo to unlock unlimited AI resume tailoring, full interview prep intelligence, and salary negotiation.\n\nWould you like to view plans?'
           )
         ) {
           setActiveTab('pricing');
@@ -859,7 +859,7 @@ export default function App() {
       } else {
         if (
           confirm(
-            'You have reached your monthly limit of 2 free tailored resumes.\n\nUpgrade to Plus ($9.99/mo for 50 resumes) or Pro ($19.99/mo for unlimited tailoring) to continue.\n\nWould you like to view plans?'
+            'You have reached your monthly limit of 2 free tailored resumes.\n\nUpgrade to Plus ($4.99/mo for 50 resumes) or Pro ($9.99/mo for unlimited tailoring) to continue.\n\nWould you like to view plans?'
           )
         ) {
           setActiveTab('pricing');
