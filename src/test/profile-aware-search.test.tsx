@@ -311,9 +311,16 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
     expect(screen.getByText(/\+B2B Enterprise Software Sales/i)).toBeInTheDocument();
     expect(screen.getByText(/\+Pipeline Management/i)).toBeInTheDocument();
 
-    // Clicking an individual target role pill triggers crawl for that role
+    // Clicking an individual target role pill activates that role without auto-fetching
     const aeBtn = screen.getByRole('button', { name: /Enterprise Account Executive/i });
     fireEvent.click(aeBtn);
+
+    // ATS is not crawled automatically; it waits for user to click Fetch Live Roles
+    expect(capturedCrawlBody).toBeNull();
+
+    // Now click Fetch Live Roles
+    const fetchBtn = screen.getByRole('button', { name: /Fetch Live Roles/i });
+    fireEvent.click(fetchBtn);
 
     await waitFor(() => {
       expect(capturedCrawlBody).not.toBeNull();
@@ -324,10 +331,14 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
     expect(capturedCrawlBody.profileContext.relatedRoles).toContain('Enterprise Account Executive');
     expect(capturedCrawlBody.profileContext.relatedRoles).toContain('Head of Growth');
 
-    // Clicking All Profile Roles broad match triggers crawl with broad keyword
+    // Clicking All Profile Roles broad match updates state without auto-fetching
     capturedCrawlBody = null;
     const allRolesBtn = screen.getByText(/All Profile Roles/i);
     fireEvent.click(allRolesBtn);
+    expect(capturedCrawlBody).toBeNull();
+
+    // Click Fetch Live Roles to query with broad match
+    fireEvent.click(fetchBtn);
 
     await waitFor(() => {
       expect(capturedCrawlBody).not.toBeNull();
@@ -403,17 +414,23 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
     const coordPill = screen.getByRole('button', { name: /Corporate Travel Coordinator/i });
     expect(coordPill).toHaveAttribute('aria-pressed', 'true');
 
-    // Click a second role: Travel Consultant (should multi-select both!)
+    // Click a second role: Travel Consultant (should multi-select both without auto-fetching)
     const consultantPill = screen.getByRole('button', { name: /^Travel Consultant$/i });
     fireEvent.click(consultantPill);
+
+    // Both pills should now be active immediately
+    expect(coordPill).toHaveAttribute('aria-pressed', 'true');
+    expect(consultantPill).toHaveAttribute('aria-pressed', 'true');
+    expect(capturedCrawlBody).toBeNull();
+
+    // Clicking Fetch Live Roles queries with both selected roles
+    const fetchBtn = screen.getByRole('button', { name: /Fetch Live Roles/i });
+    fireEvent.click(fetchBtn);
 
     await waitFor(() => {
       expect(capturedCrawlBody).not.toBeNull();
     });
 
-    // Both pills should now be active
-    expect(coordPill).toHaveAttribute('aria-pressed', 'true');
-    expect(consultantPill).toHaveAttribute('aria-pressed', 'true');
     expect(capturedCrawlBody.keyword).toContain('Corporate Travel Coordinator');
     expect(capturedCrawlBody.keyword).toContain('Travel Consultant');
 
@@ -421,13 +438,18 @@ describe('JobEvaluatorView - Profile-Aware Search & Healthcare Discovery', () =>
     capturedCrawlBody = null;
     fireEvent.click(coordPill);
 
+    // Only Travel Consultant remains active
+    expect(coordPill).toHaveAttribute('aria-pressed', 'false');
+    expect(consultantPill).toHaveAttribute('aria-pressed', 'true');
+    expect(capturedCrawlBody).toBeNull();
+
+    // Clicking Fetch Live Roles queries with remaining role
+    fireEvent.click(fetchBtn);
+
     await waitFor(() => {
       expect(capturedCrawlBody).not.toBeNull();
     });
 
-    // Only Travel Consultant remains active
-    expect(coordPill).toHaveAttribute('aria-pressed', 'false');
-    expect(consultantPill).toHaveAttribute('aria-pressed', 'true');
     expect(capturedCrawlBody.keyword).toBe('Travel Consultant');
   });
 });

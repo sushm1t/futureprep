@@ -444,13 +444,11 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       setIsBroadRoleMatch(true);
       setSelectedTargetRoles([]);
       setAtsKeyword('');
-      handleCrawlAts(undefined, undefined, undefined, undefined, '');
     } else {
       setIsBroadRoleMatch(false);
       setSelectedTargetRoles(nextRoles);
       const combinedKeyword = nextRoles.join(', ');
       setAtsKeyword(combinedKeyword);
-      handleCrawlAts(undefined, undefined, undefined, undefined, combinedKeyword);
     }
   };
 
@@ -602,7 +600,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         onRemove: () => {
           setSelectedAtsLocation('All');
           setAdvancedFilters((prev) => ({ ...prev, location: 'All' }));
-          handleCrawlAts(undefined, undefined, undefined, 'All', undefined, false, { location: 'All' });
         },
       });
     }
@@ -621,7 +618,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         onRemove: () => {
           setSelectedSeniority('All');
           setAdvancedFilters((prev) => ({ ...prev, seniority: 'All' }));
-          handleCrawlAts(undefined, 'All', undefined, undefined, undefined, false, { seniority: 'All' });
         },
       });
     }
@@ -639,7 +635,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         onRemove: () => {
           setSelectedWorkplace('All');
           setAdvancedFilters((prev) => ({ ...prev, workplace: 'All' }));
-          handleCrawlAts(undefined, undefined, 'All', undefined, undefined, false, { workplace: 'All' });
         },
       });
     }
@@ -658,7 +653,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         label: `🕒 ${postedLabels[advancedFilters.postedWithin] || advancedFilters.postedWithin}`,
         onRemove: () => {
           setAdvancedFilters((prev) => ({ ...prev, postedWithin: 'all' }));
-          handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { postedWithin: 'all' });
         },
       });
     }
@@ -670,7 +664,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         label: `💰 $${Math.round(advancedFilters.minSalary / 1000)}k+`,
         onRemove: () => {
           setAdvancedFilters((prev) => ({ ...prev, minSalary: undefined }));
-          handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { minSalary: undefined });
         },
       });
     }
@@ -723,7 +716,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           onRemove: () => {
             const next = advancedFilters.specializations.filter((s) => s !== spec);
             setAdvancedFilters((prev) => ({ ...prev, specializations: next }));
-            handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { specializations: next });
           },
         });
       }
@@ -738,7 +730,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           onRemove: () => {
             const next = advancedFilters.industries.filter((i) => i !== ind);
             setAdvancedFilters((prev) => ({ ...prev, industries: next }));
-            handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { industries: next });
           },
         });
       }
@@ -989,15 +980,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     if (newFilters.location) {
       setSelectedAtsLocation(newFilters.location);
     }
-    handleCrawlAts(
-      undefined,
-      newFilters.seniority as SeniorityFilter,
-      newFilters.workplace as WorkplaceFilter,
-      newFilters.location,
-      undefined,
-      false,
-      newFilters
-    );
   };
 
   const handleResetAllFilters = () => {
@@ -1031,7 +1013,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
       strictness: 'any',
     };
     setAdvancedFilters(emptyFilters);
-    handleCrawlAts(undefined, 'All', 'All', 'All', '', false, emptyFilters);
   };
 
   useEffect(() => {
@@ -2257,7 +2238,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                     onClick={() => {
                       setIsBroadRoleMatch(false);
                       setAtsKeyword(profileSearchContext.targetRole);
-                      handleCrawlAts(undefined, undefined, undefined, undefined, profileSearchContext.targetRole);
                     }}
                     className="text-[11px] text-muted-foreground hover:underline cursor-pointer"
                   >
@@ -2359,7 +2339,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                     setIsBroadRoleMatch(true);
                     setSelectedTargetRoles([]);
                     setAtsKeyword('');
-                    handleCrawlAts(undefined, undefined, undefined, undefined, '');
                   }}
                   className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 border ${
                     isBroadRoleMatch || selectedTargetRoles.length === 0 || (!atsKeyword.trim() && !atsCustomInput.trim())
@@ -2409,7 +2388,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                           ? `${atsKeyword} ${skill}`
                           : skill;
                         setAtsKeyword(newKw);
-                        handleCrawlAts(undefined, undefined, undefined, undefined, newKw);
                       }}
                       className="px-2 py-0.5 rounded-md text-[10.5px] font-medium bg-surface-2/60 text-muted-foreground hover:text-foreground hover:border-brand/40 border border-border/40 transition-all cursor-pointer flex items-center gap-1"
                       title={`Add "${skill}" to search keywords`}
@@ -2444,7 +2422,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                         type="button"
                         onClick={() => {
                           setAtsKeyword(chip);
-                          handleCrawlAts(undefined, undefined, undefined, undefined, chip);
                         }}
                         className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-surface text-subtle hover:text-foreground hover:bg-surface-2 hover:border-brand/40 border border-border/60 transition-all cursor-pointer flex items-center gap-1 shadow-2xs"
                         title={`Search live openings for "${chip}"`}
@@ -2616,7 +2593,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                         onClick={() => {
                           setSelectedAtsCompany(c.slug);
                           setAtsCustomInput(c.slug === 'all' ? '' : c.slug);
-                          handleCrawlAts(c.slug);
                         }}
                         className={`px-3 py-1.5 rounded-full font-medium transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
                           isSelected
@@ -2911,7 +2887,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                           type="button"
                           onClick={() => {
                             setSelectedAtsLocation('All');
-                            handleCrawlAts(undefined, undefined, undefined, 'All');
                           }}
                           className="px-3.5 py-1.5 text-xs font-semibold rounded-xl bg-card border border-border text-foreground hover:bg-surface transition-all cursor-pointer"
                         >
