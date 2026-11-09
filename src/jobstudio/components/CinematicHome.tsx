@@ -81,11 +81,12 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
     if (reduce) { el.classList.add('cine-static'); return; }
 
     const lenis = new Lenis({
-      duration: 1.15,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 0.9,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -8 * t)),
       smoothWheel: true,
-      wheelMultiplier: 0.95,
-      touchMultiplier: 1.5,
+      wheelMultiplier: 0.8,
+      touchMultiplier: 1.0,
+      syncTouch: false,
     });
     lenis.on('scroll', ScrollTrigger.update);
     const tick = (time) => lenis.raf(time * 1000);
@@ -157,15 +158,17 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
 
       mm.add('(prefers-reduced-motion: no-preference)', () => {
         const pinStart = (trigger) => () => trigger.getBoundingClientRect().height > window.innerHeight ? 'bottom bottom' : 'top top';
-        const scene = (sel, build, len = 1000) => {
+        const scene = (sel, build, stepCount = 4) => {
           const trigger = el.querySelector(sel);
+          // Human-readable scroll pacing: ~450px of scroll per step with reading plateaus
+          const dynamicDistance = Math.max(1800, window.innerHeight * (stepCount * 0.55));
           const tl = gsap.timeline({
             defaults: { ease: 'power2.out' },
             scrollTrigger: {
               trigger,
               start: pinStart(trigger),
-              end: () => `+=${Math.min(len, Math.max(650, window.innerHeight * 1.25))}`,
-              scrub: 0.75,
+              end: () => `+=${dynamicDistance}`,
+              scrub: 0.35,
               pin: true,
               anticipatePin: 1,
               invalidateOnRefresh: true,
@@ -175,7 +178,7 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
           build(tl, steps);
           return tl;
         };
-        const lightStep = (tl, steps, i, at) => {
+        const lightStep = (tl, steps, i, at, hold = 1.0) => {
           tl.to(
             steps[i],
             {
@@ -200,7 +203,7 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
           ).fromTo(
             steps[i].querySelector('.cine-step-fill'),
             { scaleX: 0 },
-            { scaleX: 1, duration: 1 },
+            { scaleX: 1, duration: 0.5 + hold },
             at
           );
         };
@@ -209,83 +212,96 @@ export const CinematicHome: React.FC<{ onNavigateToTab: (t: string) => void }> =
         el.querySelector('.cine-s2 .cine-count').textContent = '0';
         el.querySelector('.cine-s4 .cine-prog').textContent = '0%';
 
-        // Scene 1 — discover
+        // Scene 1 — discover (4 steps)
         scene('.cine-s1', (tl, st) => {
-          lightStep(tl, st, 0, 0);
-          tl.from('.cine-s1 .cine-chip', { y: 20, opacity: 0, stagger: 0.15, duration: 0.6 }, 0);
-          lightStep(tl, st, 1, 1);
-          tl.from('.cine-s1 .cine-job', { y: 40, opacity: 0, stagger: 0.25, duration: 0.7 }, 1);
-          lightStep(tl, st, 2, 2.4);
-          tl.to('.cine-s1 .cine-job.is-top', { borderColor: 'var(--brand)', backgroundColor: 'oklch(0.8 0.11 240 / 10%)', duration: 0.6 }, 2.4)
-            .to('.cine-s1 .cine-job:not(.is-top)', { opacity: 0.35, duration: 0.6 }, 2.4);
-          lightStep(tl, st, 3, 3.2);
-          tl.from('.cine-s1 .cine-bar-fill', { scaleX: 0, stagger: 0.1, duration: 0.8 }, 3.2)
-            .from('.cine-s1 .cine-score', { opacity: 0, x: 10, stagger: 0.1, duration: 0.5 }, 3.4);
-        });
+          lightStep(tl, st, 0, 0, 1.0);
+          tl.from('.cine-s1 .cine-chip', { y: 20, opacity: 0, stagger: 0.12, duration: 0.5 }, 0);
 
-        // Scene 2 — matching
+          lightStep(tl, st, 1, 1.6, 1.0);
+          tl.from('.cine-s1 .cine-job', { y: 35, opacity: 0, stagger: 0.18, duration: 0.6 }, 1.6);
+
+          lightStep(tl, st, 2, 3.2, 1.0);
+          tl.to('.cine-s1 .cine-job.is-top', { borderColor: 'var(--brand)', backgroundColor: 'oklch(0.8 0.11 240 / 12%)', duration: 0.5 }, 3.2)
+            .to('.cine-s1 .cine-job:not(.is-top)', { opacity: 0.35, duration: 0.5 }, 3.2);
+
+          lightStep(tl, st, 3, 4.8, 1.2);
+          tl.from('.cine-s1 .cine-bar-fill', { scaleX: 0, stagger: 0.1, duration: 0.6 }, 4.8)
+            .from('.cine-s1 .cine-score', { opacity: 0, x: 10, stagger: 0.1, duration: 0.4 }, 5.0);
+        }, 4);
+
+        // Scene 2 — matching (5 steps)
         scene('.cine-s2', (tl, st) => {
-          lightStep(tl, st, 0, 0);
-          tl.from('.cine-s2 .cine-resume-line', { opacity: 0, x: -20, stagger: 0.1, duration: 0.5 }, 0);
-          lightStep(tl, st, 1, 0.9);
-          tl.from('.cine-s2 .cine-req', { opacity: 0, x: 20, stagger: 0.1, duration: 0.5 }, 0.9);
-          lightStep(tl, st, 2, 1.8);
-          tl.to('.cine-s2 .cine-req.is-match', { backgroundColor: 'oklch(0.78 0.16 155 / 14%)', borderColor: 'var(--success)', color: 'var(--success)', stagger: 0.12, duration: 0.4 }, 1.8)
-            .from('.cine-s2 .cine-req.is-match .cine-ic', { scale: 0, stagger: 0.12, duration: 0.4 }, 1.8);
-          lightStep(tl, st, 3, 2.6);
-          tl.to('.cine-s2 .cine-req.is-miss', { backgroundColor: 'oklch(0.7 0.19 22 / 14%)', borderColor: 'var(--danger)', color: 'var(--danger)', duration: 0.4, stagger: 0.15 }, 2.6)
-            .from('.cine-s2 .cine-req.is-miss .cine-ic', { scale: 0, duration: 0.4 }, 2.6);
-          lightStep(tl, st, 4, 3.2);
+          lightStep(tl, st, 0, 0, 0.9);
+          tl.from('.cine-s2 .cine-resume-line', { opacity: 0, x: -18, stagger: 0.08, duration: 0.45 }, 0);
+
+          lightStep(tl, st, 1, 1.4, 0.9);
+          tl.from('.cine-s2 .cine-req', { opacity: 0, x: 18, stagger: 0.08, duration: 0.45 }, 1.4);
+
+          lightStep(tl, st, 2, 2.8, 0.9);
+          tl.to('.cine-s2 .cine-req.is-match', { backgroundColor: 'oklch(0.78 0.16 155 / 14%)', borderColor: 'var(--success)', color: 'var(--success)', stagger: 0.1, duration: 0.4 }, 2.8)
+            .from('.cine-s2 .cine-req.is-match .cine-ic', { scale: 0, stagger: 0.1, duration: 0.4 }, 2.8);
+
+          lightStep(tl, st, 3, 4.2, 0.9);
+          tl.to('.cine-s2 .cine-req.is-miss', { backgroundColor: 'oklch(0.7 0.19 22 / 14%)', borderColor: 'var(--danger)', color: 'var(--danger)', duration: 0.4, stagger: 0.12 }, 4.2)
+            .from('.cine-s2 .cine-req.is-miss .cine-ic', { scale: 0, duration: 0.4 }, 4.2);
+
+          lightStep(tl, st, 4, 5.6, 1.4);
           const n = el.querySelector('.cine-s2 .cine-count'); const o = { v: 0 };
-          tl.to('.cine-s2 .cine-ring', { strokeDashoffset: 100 - 82, duration: 1.2, ease: 'power3.out' }, 3.2)
-            .to(o, { v: 82, duration: 1.2, ease: 'power3.out', onUpdate: () => { if (n) n.textContent = String(Math.round(o.v)); } }, 3.2)
-            .from('.cine-s2 .cine-verdict', { opacity: 0, y: 12, duration: 0.5 }, 3.9);
-        });
+          tl.to('.cine-s2 .cine-ring', { strokeDashoffset: 100 - 82, duration: 1.0, ease: 'power3.out' }, 5.6)
+            .to(o, { v: 82, duration: 1.0, ease: 'power3.out', onUpdate: () => { if (n) n.textContent = String(Math.round(o.v)); } }, 5.6)
+            .from('.cine-s2 .cine-verdict', { opacity: 0, y: 10, duration: 0.4 }, 6.2);
+        }, 5);
 
-        // Scene 3 — resume transformation
+        // Scene 3 — resume transformation (4 steps)
         scene('.cine-s3', (tl, st) => {
-          lightStep(tl, st, 0, 0);
-          tl.from('.cine-s3 .cine-doc', { opacity: 0, y: 40, rotate: -2, duration: 0.8 }, 0);
-          lightStep(tl, st, 1, 0.9);
-          tl.to('.cine-s3 .cine-scan', { top: '100%', duration: 1.2, ease: 'none' }, 0.9)
-            .from('.cine-s3 .cine-kw', { opacity: 0, scale: 0.8, stagger: 0.1, duration: 0.4 }, 1.2);
-          lightStep(tl, st, 2, 2.1);
-          tl.from('.cine-s3 .cine-tip', { opacity: 0, x: 30, stagger: 0.15, duration: 0.5 }, 2.1);
-          lightStep(tl, st, 3, 2.9);
-          tl.to('.cine-s3 .cine-old', { opacity: 0, y: -8, stagger: 0.1, duration: 0.4 }, 2.9)
-            .fromTo('.cine-s3 .cine-new', { opacity: 0, y: 8 }, { opacity: 1, y: 0, stagger: 0.1, duration: 0.5 }, 3.0)
-            .to('.cine-s3 .cine-ats-fill', { scaleX: 0.96, duration: 1, ease: 'power3.out' }, 3.0)
-            .from('.cine-s3 .cine-ats-badge', { opacity: 0, scale: 0.8, duration: 0.4 }, 3.7);
-        });
+          lightStep(tl, st, 0, 0, 1.0);
+          tl.from('.cine-s3 .cine-doc', { opacity: 0, y: 35, rotate: -1.5, duration: 0.6 }, 0);
 
-        // Scene 4 — interview prep
+          lightStep(tl, st, 1, 1.6, 1.0);
+          tl.to('.cine-s3 .cine-scan', { top: '100%', duration: 1.0, ease: 'none' }, 1.6)
+            .from('.cine-s3 .cine-kw', { opacity: 0, scale: 0.8, stagger: 0.08, duration: 0.35 }, 1.8);
+
+          lightStep(tl, st, 2, 3.2, 1.0);
+          tl.from('.cine-s3 .cine-tip', { opacity: 0, x: 25, stagger: 0.12, duration: 0.5 }, 3.2);
+
+          lightStep(tl, st, 3, 4.8, 1.3);
+          tl.to('.cine-s3 .cine-old', { opacity: 0, y: -6, stagger: 0.08, duration: 0.35 }, 4.8)
+            .fromTo('.cine-s3 .cine-new', { opacity: 0, y: 6 }, { opacity: 1, y: 0, stagger: 0.08, duration: 0.45 }, 4.9)
+            .to('.cine-s3 .cine-ats-fill', { scaleX: 0.96, duration: 0.8, ease: 'power3.out' }, 5.0)
+            .from('.cine-s3 .cine-ats-badge', { opacity: 0, scale: 0.8, duration: 0.35 }, 5.6);
+        }, 4);
+
+        // Scene 4 — interview prep (4 steps)
         scene('.cine-s4', (tl, st) => {
-          lightStep(tl, st, 0, 0);
-          tl.from('.cine-s4 .cine-q', { opacity: 0, y: 50, rotateX: -25, stagger: 0.2, duration: 0.7, transformOrigin: 'top center' }, 0);
-          lightStep(tl, st, 1, 1.2);
-          tl.from('.cine-s4 .cine-tag', { opacity: 0, scale: 0.6, stagger: 0.1, duration: 0.4 }, 1.2);
-          lightStep(tl, st, 2, 1.9);
-          tl.from('.cine-s4 .cine-star-fill', { scaleX: 0, stagger: 0.18, duration: 0.6 }, 1.9);
-          lightStep(tl, st, 3, 2.8);
+          lightStep(tl, st, 0, 0, 1.0);
+          tl.from('.cine-s4 .cine-q', { opacity: 0, y: 35, rotateX: -20, stagger: 0.15, duration: 0.6, transformOrigin: 'top center' }, 0);
+
+          lightStep(tl, st, 1, 1.6, 1.0);
+          tl.from('.cine-s4 .cine-tag', { opacity: 0, scale: 0.7, stagger: 0.08, duration: 0.35 }, 1.6);
+
+          lightStep(tl, st, 2, 3.2, 1.0);
+          tl.from('.cine-s4 .cine-star-fill', { scaleX: 0, stagger: 0.15, duration: 0.5 }, 3.2);
+
+          lightStep(tl, st, 3, 4.8, 1.2);
           const n = el.querySelector('.cine-s4 .cine-prog'); const o = { v: 0 };
-          tl.to('.cine-s4 .cine-prog-ring', { strokeDashoffset: 100 - 75, duration: 1, ease: 'power3.out' }, 2.8)
-            .to(o, { v: 75, duration: 1, onUpdate: () => { if (n) n.textContent = `${Math.round(o.v)}%`; } }, 2.8);
-        });
+          tl.to('.cine-s4 .cine-prog-ring', { strokeDashoffset: 100 - 75, duration: 0.9, ease: 'power3.out' }, 4.8)
+            .to(o, { v: 75, duration: 0.9, onUpdate: () => { if (n) n.textContent = `${Math.round(o.v)}%`; } }, 4.8);
+        }, 4);
 
         // Tracking — kanban cards slide across with scroll
         gsap.timeline({
           scrollTrigger: {
             trigger: '.cine-track',
             start: pinStart(el.querySelector('.cine-track')),
-            end: () => `+=${Math.min(750, Math.max(500, window.innerHeight * 1.1))}`,
+            end: () => `+=${Math.max(1200, window.innerHeight * 1.4)}`,
             scrub: 0.35,
             pin: true,
             invalidateOnRefresh: true,
           },
         })
           .from('.cine-col', { opacity: 0, y: 40, stagger: 0.15, duration: 0.6 })
-          .to('.cine-move-a', { x: () => { const cols = el.querySelectorAll('.cine-col'); return cols[1].getBoundingClientRect().left - cols[0].getBoundingClientRect().left; }, duration: 1 }, '+=0.2')
-          .to('.cine-move-b', { x: () => { const cols = el.querySelectorAll('.cine-col'); return cols[2].getBoundingClientRect().left - cols[0].getBoundingClientRect().left; }, duration: 1.2 }, '<0.2')
+          .to('.cine-move-a', { x: () => { const cols = el.querySelectorAll('.cine-col'); return cols[1].getBoundingClientRect().left - cols[0].getBoundingClientRect().left; }, duration: 1 }, '+=0.4')
+          .to('.cine-move-b', { x: () => { const cols = el.querySelectorAll('.cine-col'); return cols[2].getBoundingClientRect().left - cols[0].getBoundingClientRect().left; }, duration: 1.2 }, '<0.3')
           .to('.cine-move-b', { borderColor: 'var(--success)', duration: 0.3 });
       });
 
