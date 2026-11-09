@@ -307,4 +307,31 @@ describe('AllFiltersModal trigger in JobEvaluatorView', () => {
       global.fetch = originalFetch;
     }
   });
+
+  it('renders interactive dismissible filter chips in the toolbar and removes them on click', () => {
+    render(<JobEvaluatorView {...mockProps} />);
+
+    // Open All Filters and select Location: India and Seniority: Junior
+    const allFiltersBtn = screen.getByRole('button', { name: /all filters/i });
+    fireEvent.click(allFiltersBtn);
+
+    const locTab = screen.getByRole('button', { name: /^location$/i });
+    fireEvent.click(locTab);
+    const indiaBtn = screen.getByRole('button', { name: /india/i });
+    fireEvent.click(indiaBtn);
+
+    const applyBtn = screen.getByRole('button', { name: /show filtered matching roles/i });
+    fireEvent.click(applyBtn);
+
+    // The active filter chip should be visible in the toolbar
+    const indiaChip = screen.getByText(/india/i);
+    expect(indiaChip).toBeDefined();
+
+    // Clicking the remove button on the chip removes it
+    const removeBtn = screen.getByLabelText(/remove filter/i);
+    fireEvent.click(removeBtn);
+
+    // Filter chip should now be removed from the toolbar
+    expect(screen.queryByLabelText(/remove filter/i)).toBeNull();
+  });
 });

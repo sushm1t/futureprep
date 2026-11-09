@@ -580,26 +580,264 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     strictness: 'any',
   });
 
-  const activeFiltersBadgeCount = useMemo(() => {
-    let count = 0;
-    if (advancedFilters.specializations?.length > 0) count += advancedFilters.specializations.length;
-    if (advancedFilters.minExperienceYears !== undefined && advancedFilters.minExperienceYears > 0) count += 1;
-    if (advancedFilters.peopleManagerOnly) count += 1;
-    if (advancedFilters.industries?.length > 0) count += advancedFilters.industries.length;
-    if (advancedFilters.companyTypes?.length > 0) count += advancedFilters.companyTypes.length;
-    if (advancedFilters.collections?.length > 0) count += advancedFilters.collections.length;
-    if (advancedFilters.skills?.length > 0) count += advancedFilters.skills.length;
-    if (advancedFilters.postedWithin && advancedFilters.postedWithin !== 'all') count += 1;
-    if (advancedFilters.employmentType && advancedFilters.employmentType !== 'all') count += 1;
-    if (advancedFilters.minSalary) count += 1;
-    if (advancedFilters.benefits?.length > 0) count += advancedFilters.benefits.length;
-    if (advancedFilters.languages?.length > 0) count += advancedFilters.languages.length;
-    if (advancedFilters.relocation?.length > 0) count += advancedFilters.relocation.length;
-    if (selectedSeniority !== 'All') count += 1;
-    if (selectedWorkplace !== 'All') count += 1;
-    if (selectedAtsLocation !== 'All') count += 1;
-    return count;
-  }, [advancedFilters, selectedSeniority, selectedWorkplace, selectedAtsLocation]);
+  const activeFilterChips = useMemo(() => {
+    const chips: Array<{ id: string; label: string; onRemove: () => void }> = [];
+
+    // Location
+    if (selectedAtsLocation && selectedAtsLocation !== 'All') {
+      const locLabel =
+        selectedAtsLocation === 'Remote' ? '🌍 Remote' :
+        selectedAtsLocation === 'India' ? '🇮🇳 India' :
+        selectedAtsLocation === 'United States' ? '🇺🇸 United States' :
+        selectedAtsLocation === 'UAE' ? '🇦🇪 UAE' :
+        selectedAtsLocation === 'United Kingdom' ? '🇬🇧 UK' :
+        selectedAtsLocation === 'Germany' ? '🇩🇪 Germany' :
+        selectedAtsLocation === 'Canada' ? '🇨🇦 Canada' :
+        selectedAtsLocation === 'Australia' ? '🇦🇺 Australia' :
+        selectedAtsLocation === 'Europe' ? '🇪🇺 Europe' :
+        selectedAtsLocation;
+      chips.push({
+        id: 'location',
+        label: locLabel,
+        onRemove: () => {
+          setSelectedAtsLocation('All');
+          setAdvancedFilters((prev) => ({ ...prev, location: 'All' }));
+          handleCrawlAts(undefined, undefined, undefined, 'All', undefined, false, { location: 'All' });
+        },
+      });
+    }
+
+    // Seniority
+    if (selectedSeniority && selectedSeniority !== 'All') {
+      const senLabel =
+        selectedSeniority === 'Early / Junior' ? '🌱 Junior' :
+        selectedSeniority === 'Mid-Level' ? '⚡ Mid-Level' :
+        selectedSeniority === 'Senior' ? '⭐ Senior' :
+        selectedSeniority === 'Lead / Staff / Director' ? '👑 Lead / Director' :
+        selectedSeniority;
+      chips.push({
+        id: 'seniority',
+        label: senLabel,
+        onRemove: () => {
+          setSelectedSeniority('All');
+          setAdvancedFilters((prev) => ({ ...prev, seniority: 'All' }));
+          handleCrawlAts(undefined, 'All', undefined, undefined, undefined, false, { seniority: 'All' });
+        },
+      });
+    }
+
+    // Workplace
+    if (selectedWorkplace && selectedWorkplace !== 'All') {
+      const wpLabel =
+        selectedWorkplace === 'Remote' ? '🌐 Remote' :
+        selectedWorkplace === 'Hybrid' ? '🏢 Hybrid' :
+        selectedWorkplace === 'On-site' ? '📍 On-site' :
+        selectedWorkplace;
+      chips.push({
+        id: 'workplace',
+        label: wpLabel,
+        onRemove: () => {
+          setSelectedWorkplace('All');
+          setAdvancedFilters((prev) => ({ ...prev, workplace: 'All' }));
+          handleCrawlAts(undefined, undefined, 'All', undefined, undefined, false, { workplace: 'All' });
+        },
+      });
+    }
+
+    // Posted Within
+    if (advancedFilters.postedWithin && advancedFilters.postedWithin !== 'all') {
+      const postedLabels: Record<string, string> = {
+        '24h': 'Past 24h',
+        '3d': 'Past 3d',
+        '7d': 'Past week',
+        '14d': 'Past 2 wks',
+        '30d': 'Past month',
+      };
+      chips.push({
+        id: 'postedWithin',
+        label: `🕒 ${postedLabels[advancedFilters.postedWithin] || advancedFilters.postedWithin}`,
+        onRemove: () => {
+          setAdvancedFilters((prev) => ({ ...prev, postedWithin: 'all' }));
+          handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { postedWithin: 'all' });
+        },
+      });
+    }
+
+    // Min Salary
+    if (advancedFilters.minSalary && advancedFilters.minSalary > 0) {
+      chips.push({
+        id: 'minSalary',
+        label: `💰 $${Math.round(advancedFilters.minSalary / 1000)}k+`,
+        onRemove: () => {
+          setAdvancedFilters((prev) => ({ ...prev, minSalary: undefined }));
+          handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { minSalary: undefined });
+        },
+      });
+    }
+
+    // People Manager Only
+    if (advancedFilters.peopleManagerOnly) {
+      chips.push({
+        id: 'peopleManager',
+        label: '👔 Manager',
+        onRemove: () => {
+          setAdvancedFilters((prev) => ({ ...prev, peopleManagerOnly: false }));
+        },
+      });
+    }
+
+    // Min Experience Years
+    if (advancedFilters.minExperienceYears !== undefined && advancedFilters.minExperienceYears > 0) {
+      chips.push({
+        id: 'minExp',
+        label: `⏳ ${advancedFilters.minExperienceYears}+ yrs`,
+        onRemove: () => {
+          setAdvancedFilters((prev) => ({ ...prev, minExperienceYears: 0 }));
+        },
+      });
+    }
+
+    // Employment Type
+    if (advancedFilters.employmentType && advancedFilters.employmentType !== 'all') {
+      const empLabels: Record<string, string> = {
+        full_time: 'Full-time',
+        part_time: 'Part-time',
+        contract: 'Contract',
+        internship: 'Intern',
+      };
+      chips.push({
+        id: 'empType',
+        label: empLabels[advancedFilters.employmentType] || advancedFilters.employmentType,
+        onRemove: () => {
+          setAdvancedFilters((prev) => ({ ...prev, employmentType: 'all' }));
+        },
+      });
+    }
+
+    // Specializations
+    if (advancedFilters.specializations?.length > 0) {
+      for (const spec of advancedFilters.specializations) {
+        chips.push({
+          id: `spec-${spec}`,
+          label: spec.replace(/_/g, ' '),
+          onRemove: () => {
+            const next = advancedFilters.specializations.filter((s) => s !== spec);
+            setAdvancedFilters((prev) => ({ ...prev, specializations: next }));
+            handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { specializations: next });
+          },
+        });
+      }
+    }
+
+    // Industries
+    if (advancedFilters.industries?.length > 0) {
+      for (const ind of advancedFilters.industries) {
+        chips.push({
+          id: `ind-${ind}`,
+          label: ind.replace(/_/g, ' '),
+          onRemove: () => {
+            const next = advancedFilters.industries.filter((i) => i !== ind);
+            setAdvancedFilters((prev) => ({ ...prev, industries: next }));
+            handleCrawlAts(undefined, undefined, undefined, undefined, undefined, false, { industries: next });
+          },
+        });
+      }
+    }
+
+    // Skills
+    if (advancedFilters.skills?.length > 0) {
+      for (const sk of advancedFilters.skills) {
+        chips.push({
+          id: `skill-${sk}`,
+          label: sk,
+          onRemove: () => {
+            const next = advancedFilters.skills.filter((s) => s !== sk);
+            setAdvancedFilters((prev) => ({ ...prev, skills: next }));
+          },
+        });
+      }
+    }
+
+    // Benefits
+    if (advancedFilters.benefits?.length > 0) {
+      for (const b of advancedFilters.benefits) {
+        chips.push({
+          id: `benefit-${b}`,
+          label: b.replace(/_/g, ' '),
+          onRemove: () => {
+            const next = advancedFilters.benefits.filter((x) => x !== b);
+            setAdvancedFilters((prev) => ({ ...prev, benefits: next }));
+          },
+        });
+      }
+    }
+
+    // Languages
+    if (advancedFilters.languages?.length > 0) {
+      for (const l of advancedFilters.languages) {
+        chips.push({
+          id: `lang-${l}`,
+          label: l,
+          onRemove: () => {
+            const next = advancedFilters.languages.filter((x) => x !== l);
+            setAdvancedFilters((prev) => ({ ...prev, languages: next }));
+          },
+        });
+      }
+    }
+
+    // Relocation
+    if (advancedFilters.relocation?.length > 0) {
+      for (const r of advancedFilters.relocation) {
+        const rLabels: Record<string, string> = {
+          relocation_assistance: 'Relocation Help',
+          visa_sponsorship: 'Visa Sponsor',
+          work_authorization: 'Local Auth',
+          worldwide_remote: 'Hire Anywhere',
+        };
+        chips.push({
+          id: `reloc-${r}`,
+          label: rLabels[r] || r.replace(/_/g, ' '),
+          onRemove: () => {
+            const next = advancedFilters.relocation.filter((x) => x !== r);
+            setAdvancedFilters((prev) => ({ ...prev, relocation: next }));
+          },
+        });
+      }
+    }
+
+    // Company Types
+    if ((advancedFilters.companyTypes || []).length > 0) {
+      for (const ct of advancedFilters.companyTypes) {
+        chips.push({
+          id: `ct-${ct}`,
+          label: ct,
+          onRemove: () => {
+            const next = (advancedFilters.companyTypes || []).filter((x) => x !== ct);
+            setAdvancedFilters((prev) => ({ ...prev, companyTypes: next }));
+          },
+        });
+      }
+    }
+
+    // VC Collections
+    if (advancedFilters.collections?.length > 0) {
+      for (const col of advancedFilters.collections) {
+        chips.push({
+          id: `col-${col}`,
+          label: col.replace(/_/g, ' '),
+          onRemove: () => {
+            const next = advancedFilters.collections.filter((x) => x !== col);
+            setAdvancedFilters((prev) => ({ ...prev, collections: next }));
+          },
+        });
+      }
+    }
+
+    return chips;
+  }, [selectedAtsLocation, selectedSeniority, selectedWorkplace, advancedFilters]);
+
+  const activeFiltersBadgeCount = activeFilterChips.length;
 
   const handleCrawlAts = async (
     companyInputOverride?: string,
@@ -2242,86 +2480,35 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
               )}
             </button>
 
-            {/* Seniority */}
-            <div className="relative shrink-0">
-              <select
-                value={selectedSeniority}
-                onChange={(e) => setSelectedSeniority(e.target.value as SeniorityFilter)}
-                className="appearance-none pl-3 pr-7 py-1.5 bg-surface hover:bg-surface-2 text-foreground font-medium rounded-xl text-xs outline-none cursor-pointer border border-transparent focus:border-brand transition-all"
+            {/* Active Filter Chips */}
+            {activeFilterChips.map((chip) => (
+              <span
+                key={chip.id}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface/90 hover:bg-surface border border-border/80 text-foreground text-xs font-medium transition-all shadow-2xs group"
               >
-                <option value="All">All Experience Levels</option>
-                <option value="Early / Junior">🌱 Early / Junior (0-2 yrs)</option>
-                <option value="Mid-Level">⚡ Mid-Level (2-5 yrs)</option>
-                <option value="Senior">⭐ Senior (5-8 yrs)</option>
-                <option value="Lead / Staff / Director">👑 Lead / Staff / Director (8+ yrs)</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-subtle">
-                <ChevronDown className="h-3 w-3" />
-              </div>
-            </div>
-
-            {/* Workplace Mode */}
-            <div className="relative shrink-0">
-              <select
-                value={selectedWorkplace}
-                onChange={(e) => {
-                  const newWorkplace = e.target.value as WorkplaceFilter;
-                  setSelectedWorkplace(newWorkplace);
-                }}
-                className="appearance-none pl-3 pr-7 py-1.5 bg-surface hover:bg-surface-2 text-foreground font-medium rounded-xl text-xs outline-none cursor-pointer border border-transparent focus:border-brand transition-all"
-              >
-                <option value="All">All Workplace Modes</option>
-                <option value="Remote">🌐 Remote Only</option>
-                <option value="Hybrid">🏢 Hybrid</option>
-                <option value="On-site">📍 On-site Only</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-subtle">
-                <ChevronDown className="h-3 w-3" />
-              </div>
-            </div>
-
-            {/* Location */}
-            <div className="relative shrink-0">
-              <select
-                value={selectedAtsLocation}
-                onChange={(e) => {
-                  const newLoc = e.target.value;
-                  setSelectedAtsLocation(newLoc);
-                }}
-                className="appearance-none pl-3 pr-7 py-1.5 bg-surface hover:bg-surface-2 text-foreground font-medium rounded-xl text-xs outline-none cursor-pointer border border-transparent focus:border-brand transition-all"
-              >
-                <option value="All">All Locations (Worldwide)</option>
-                <option value="Remote">🌍 Global Remote</option>
-                <option value="Australia">🇦🇺 Australia</option>
-                <option value="Canada">🇨🇦 Canada</option>
-                <option value="Germany">🇩🇪 Germany</option>
-                <option value="India">🇮🇳 India</option>
-                <option value="Ireland">🇮🇪 Ireland</option>
-                <option value="Kuwait">🇰🇼 Kuwait</option>
-                <option value="Netherlands">🇳🇱 Netherlands</option>
-                <option value="New Zealand">🇳🇿 New Zealand</option>
-                <option value="Qatar">🇶🇦 Qatar</option>
-                <option value="Saudi Arabia">🇸🇦 Saudi Arabia</option>
-                <option value="Singapore">🇸🇬 Singapore</option>
-                <option value="Switzerland">🇨🇭 Switzerland</option>
-                <option value="UAE">🇦🇪 United Arab Emirates (UAE)</option>
-                <option value="United Kingdom">🇬🇧 United Kingdom</option>
-                <option value="United States">🇺🇸 United States</option>
-                <option value="Europe">🇪🇺 Europe (All)</option>
-              </select>
-              <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-subtle">
-                <ChevronDown className="h-3 w-3" />
-              </div>
-            </div>
+                <span>{chip.label}</span>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    chip.onRemove();
+                  }}
+                  className="p-0.5 rounded-full hover:bg-surface-2 text-subtle hover:text-foreground transition-colors cursor-pointer"
+                  aria-label={`Remove filter ${chip.label}`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            ))}
 
             {/* Reset Filters Shortcut */}
-            {(activeFiltersBadgeCount > 0 || atsKeyword.trim()) && (
+            {(activeFilterChips.length > 0 || atsKeyword.trim()) && (
               <button
                 type="button"
                 onClick={handleResetAllFilters}
-                className="text-[11px] font-semibold text-brand hover:text-brand px-2.5 py-1 rounded-lg hover:bg-brand/10 transition-colors cursor-pointer"
+                className="text-[11px] font-semibold text-brand hover:text-brand px-2 py-1 rounded-lg hover:bg-brand/10 transition-colors cursor-pointer"
               >
-                Reset Filters
+                Reset all
               </button>
             )}
           </div>

@@ -86,7 +86,7 @@ describe('JobEvaluatorView Two-Stage Architecture', () => {
     expect(screen.getByText(/Searching Senior Product Designer roles/i)).toBeInTheDocument();
   });
 
-  it('does NOT auto-fetch when selecting location filter, but fetches when clicking Fetch Live Roles', async () => {
+  it('updates location filter via All Filters, and includes it when clicking Fetch Live Roles', async () => {
     const fetchMock = vi.fn(async (_url: string, _opts: { body: string }) => ({
       ok: true,
       json: async () => ({ success: true, jobs: [], totalAvailableInCatalogue: 100 }),
@@ -95,15 +95,25 @@ describe('JobEvaluatorView Two-Stage Architecture', () => {
 
     render(<JobEvaluatorView {...mockProps} />);
 
-    // Find the location select dropdown
-    const locationSelect = screen.getByDisplayValue(/All Locations/i);
-    expect(locationSelect).toBeInTheDocument();
+    // Open All Filters and select India
+    const allFiltersBtn = screen.getByRole('button', { name: /all filters/i });
+    fireEvent.click(allFiltersBtn);
 
-    // Select India
-    fireEvent.change(locationSelect, { target: { value: 'India' } });
+    const locTab = screen.getByRole('button', { name: /^location$/i });
+    fireEvent.click(locTab);
+    const indiaBtn = screen.getByRole('button', { name: /india/i });
+    fireEvent.click(indiaBtn);
 
-    // Ensure fetch was NOT automatically called just by changing location
-    expect(fetchMock).not.toHaveBeenCalled();
+    const applyBtn = screen.getByRole('button', { name: /show filtered matching roles/i });
+    fireEvent.click(applyBtn);
+
+    // Wait for the crawl triggered by applying modal filters to finish
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Fetch Live Roles/i })).toBeInTheDocument();
+    });
+
+    // Clear initial apply crawl call
+    fetchMock.mockClear();
 
     // Now explicitly click Fetch Live Roles
     const fetchBtn = screen.getByRole('button', { name: /Fetch Live Roles/i });
