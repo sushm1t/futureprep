@@ -98,7 +98,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
   filters: initialFilters,
   onApplyFilters,
   onResetFilters,
-  totalCatalogueJobs = 7135839,
+  totalCatalogueJobs,
   candidateProfileContext,
 }) => {
   const [draftFilters, setDraftFilters] = useState<FilterState>({
@@ -448,44 +448,8 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
               )}
             </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveTab('skills')}
-              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
-                activeTab === 'skills' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Wrench className="w-3.5 h-3.5" />
-                <span>Skills & Tech</span>
-              </span>
-              {draftFilters.skills.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
-                  {draftFilters.skills.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('industry')}
-              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
-                activeTab === 'industry' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Industry & Collection</span>
-              </span>
-              {(draftFilters.industries.length > 0 || (draftFilters.companyTypes || []).length > 0 || draftFilters.collections.length > 0) && (
-                <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
-                  {draftFilters.industries.length + (draftFilters.companyTypes || []).length + draftFilters.collections.length}
-                </span>
-              )}
-            </button>
-
-            {/* PAY & BENEFITS */}
-            <div className="hidden md:block px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Pay & Benefits</div>
+            {/* COMPENSATION & TECH */}
+            <div className="hidden md:block px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtle">More Filters</div>
             <button
               type="button"
               onClick={() => setActiveTab('salary')}
@@ -502,38 +466,18 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
 
             <button
               type="button"
-              onClick={() => setActiveTab('benefits')}
+              onClick={() => setActiveTab('skills')}
               className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
-                activeTab === 'benefits' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
+                activeTab === 'skills' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
               }`}
             >
               <span className="flex items-center gap-2">
-                <HeartHandshake className="w-3.5 h-3.5" />
-                <span>Benefits & Perks</span>
+                <Wrench className="w-3.5 h-3.5" />
+                <span>Skills & Tech</span>
               </span>
-              {(draftFilters.benefits || []).length > 0 && (
+              {draftFilters.skills.length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
-                  {(draftFilters.benefits || []).length}
-                </span>
-              )}
-            </button>
-
-            {/* REQUIREMENTS & ELIGIBILITY */}
-            <div className="hidden md:block px-3 pt-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-subtle">Requirements & Eligibility</div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('language')}
-              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
-                activeTab === 'language' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
-              }`}
-            >
-              <span className="flex items-center gap-2">
-                <Languages className="w-3.5 h-3.5" />
-                <span>Language</span>
-              </span>
-              {(draftFilters.languages || []).length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
-                  {(draftFilters.languages || []).length}
+                  {draftFilters.skills.length}
                 </span>
               )}
             </button>
@@ -617,11 +561,6 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
                                 >
                                   {isSelected && <Check className="w-3 h-3 text-brand" />}
                                   <span>{item.label}</span>
-                                  {item.countApprox && (
-                                    <span className="text-[10px] text-subtle/80 font-normal">
-                                      {item.countApprox}
-                                    </span>
-                                  )}
                                 </button>
                               );
                             })}
@@ -672,21 +611,10 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
                         >
                           {isSelected && <Check className="w-3 h-3 text-brand" />}
                           <span>{lvl.label.split(' (')[0]}</span>
-                          {lvl.countApprox && <span className="text-[10px] text-subtle font-normal">{lvl.countApprox}</span>}
                         </button>
                       );
                     })}
                   </div>
-
-                  <label className="flex items-center gap-2 mt-3 cursor-pointer text-xs text-subtle hover:text-foreground">
-                    <input
-                      type="checkbox"
-                      checked={draftFilters.includeNoLevelStated !== false}
-                      onChange={(e) => setDraftFilters((prev) => ({ ...prev, includeNoLevelStated: e.target.checked }))}
-                      className="rounded border-border text-brand focus:ring-brand/40"
-                    />
-                    <span>Include postings with no level stated</span>
-                  </label>
                 </div>
 
                 {/* Role Type */}
@@ -705,7 +633,6 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
                       {draftFilters.peopleManagerOnly && <Check className="w-3 h-3 text-brand" />}
                       <UserCheck className="w-3.5 h-3.5" />
                       <span>People Manager</span>
-                      <span className="text-[10px] text-subtle">44,692</span>
                     </button>
                   </div>
                 </div>
@@ -742,31 +669,6 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
                     <span>8 yrs</span>
                     <span>10 yrs</span>
                     <span>15+ yrs</span>
-                  </div>
-
-                  <div className="space-y-2 pt-2">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs text-subtle hover:text-foreground">
-                      <input
-                        type="checkbox"
-                        checked={draftFilters.includeNoExperienceStated !== false}
-                        onChange={(e) => setDraftFilters((prev) => ({ ...prev, includeNoExperienceStated: e.target.checked }))}
-                        className="rounded border-border text-brand focus:ring-brand/40"
-                      />
-                      <span>Include postings that don't state experience</span>
-                    </label>
-
-                    <label className="flex items-center gap-2 cursor-pointer text-xs text-subtle hover:text-foreground">
-                      <input
-                        type="checkbox"
-                        checked={!!draftFilters.applyLimitOnlyNoLevel}
-                        onChange={(e) => setDraftFilters((prev) => ({ ...prev, applyLimitOnlyNoLevel: e.target.checked }))}
-                        className="rounded border-border text-brand focus:ring-brand/40"
-                      />
-                      <span>Apply the limit only to postings with no level stated</span>
-                    </label>
-                    <p className="text-[11px] text-subtle italic pl-5">
-                      Most postings don't state an experience requirement. A limit hides them unless this is ticked.
-                    </p>
                   </div>
                 </div>
               </div>
@@ -1275,7 +1177,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-2 text-xs font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-xl transition-all cursor-pointer shadow-elevated"
           >
             <span>
-              Show {activeCount > 0 ? 'filtered' : totalCatalogueJobs.toLocaleString()} matching roles
+              {activeCount > 0 ? 'Show filtered matching roles' : 'Show matching roles'}
             </span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>

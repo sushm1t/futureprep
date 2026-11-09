@@ -525,7 +525,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     return 'All';
   });
   const [atsJobs, setAtsJobs] = useState<ATSJobListing[]>([]);
-  const [totalInCatalogue, setTotalInCatalogue] = useState<number>(7135839);
+  const [totalInCatalogue, setTotalInCatalogue] = useState<number>(0);
   const [atsFeedback, setAtsFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [showAllRoles, setShowAllRoles] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
