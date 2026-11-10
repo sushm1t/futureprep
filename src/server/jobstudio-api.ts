@@ -3,6 +3,7 @@ import { buildInterviewPrompt, normalizePracticeQuestion } from '../jobstudio/ut
 import { sortExperiencesReverseChronological } from '../jobstudio/utils/chronology';
 import { getRoleKeywordExpansions, normalizeRoleTitle } from '../jobstudio/utils/roleExpansion';
 import * as guard from './api-guard';
+import { GoogleGenAI } from '@google/genai';
 
 // Polyfill dummy WebSocket in Node.js environments (such as Node 20) where native WebSocket
 // is not globally defined, preventing @supabase/realtime-js from throwing on client initialization.
@@ -84,64 +85,74 @@ async function callGateway(model: string, params: { contents: any; config?: any 
   return { text };
 }
 
-// Fallback direct Gemini API caller when running with GEMINI_API_KEY / GOOGLE_API_KEY
-async function callGeminiDirect(apiKey: string, model: string, params: { contents: any; config?: any }) {
+// Google Gen AI SDK client cache configured for Vertex AI (aiplatform.googleapis.com)
+let cachedGenAIClient: GoogleGenAI | null = null;
+let cachedGenAIKey: string | null = null;
+
+function getGenAIClient(apiKey: string): GoogleGenAI {
+  const useVertexAI =
+    process.env['GOOGLE_GENAI_USE_VERTEXAI'] === 'True' ||
+    process.env['GOOGLE_GENAI_USE_VERTEXAI'] === 'true' ||
+    true; // Route through aiplatform.googleapis.com using vertexai: true
+
+  if (cachedGenAIClient && cachedGenAIKey === apiKey) {
+    return cachedGenAIClient;
+  }
+
+  cachedGenAIClient = new GoogleGenAI({
+    vertexai: useVertexAI,
+    apiKey,
+  });
+  cachedGenAIKey = apiKey;
+  return cachedGenAIClient;
+}
+
+// Gemini API caller using the official Google Gen AI SDK (@google/genai)
+// Routes through aiplatform.googleapis.com via Vertex AI using GEMINI_API_KEY
+async function callGeminiDirect(apiKey: string, model: string = 'gemini-3.8-flash', params: { contents: any; config?: any }) {
+  const ai = getGenAIClient(apiKey);
   const cfg = params.config || {};
-  let parts: any[] = [];
+
+  let contents: any;
   if (typeof params.contents === 'string') {
-    parts = [{ text: params.contents }];
+    contents = params.contents;
   } else if (Array.isArray(params.contents)) {
-    parts = params.contents.map((p) => {
+    contents = params.contents.map((p) => {
       if (typeof p === 'string') return { text: p };
       if (p?.inlineData) return { inlineData: p.inlineData };
       if (p?.text) return { text: p.text };
       return { text: JSON.stringify(p) };
     });
   } else if (params.contents?.inlineData) {
-    parts = [{ inlineData: params.contents.inlineData }];
+    contents = [{ inlineData: params.contents.inlineData }];
+  } else if (params.contents?.text) {
+    contents = params.contents.text;
   } else {
-    parts = [{ text: JSON.stringify(params.contents) }];
+    contents = JSON.stringify(params.contents);
   }
 
-  const payload: any = {
-    contents: [{ parts }],
-  };
+  const cleanModel = (model && model.includes('gemini') ? model : 'gemini-3.8-flash').replace(/^models\//, '');
 
-  if (cfg.tools) {
-    payload.tools = cfg.tools;
+  const genConfig: any = {};
+  if (cfg.responseMimeType) genConfig.responseMimeType = cfg.responseMimeType;
+  if (cfg.responseSchema) genConfig.responseSchema = cfg.responseSchema;
+  if (cfg.tools) genConfig.tools = cfg.tools;
+
+  try {
+    const response = await ai.models.generateContent({
+      model: cleanModel,
+      contents,
+      ...(Object.keys(genConfig).length > 0 ? { config: genConfig } : {}),
+    });
+
+    const text = response.text || '';
+    const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
+    return { text, groundingMetadata };
+  } catch (err: any) {
+    const status = err?.status || err?.statusCode || 500;
+    const msg = err?.message || `Gemini Vertex AI API error (${status})`;
+    throw new GatewayError(msg, status);
   }
-
-  const generationConfig: any = {};
-  if (cfg.responseMimeType) generationConfig.responseMimeType = cfg.responseMimeType;
-  if (cfg.responseSchema) generationConfig.responseSchema = cfg.responseSchema;
-  if (Object.keys(generationConfig).length > 0) {
-    payload.generationConfig = generationConfig;
-  }
-
-  const cleanModel = (model.includes('gemini') ? model : 'gemini-3.8-flash').replace(/^models\//, '');
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModel}:generateContent?key=${apiKey}`;
-
-  const timeoutMs = typeof cfg.timeoutMs === 'number' ? cfg.timeoutMs : 60000;
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-
-  if (!res.ok) {
-    let errMsg = `Gemini API error (${res.status})`;
-    try {
-      const errJson = await res.json();
-      errMsg = errJson?.error?.message || errMsg;
-    } catch {}
-    throw new GatewayError(errMsg, res.status);
-  }
-
-  const resData = await res.json();
-  const text = resData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-  const groundingMetadata = resData?.candidates?.[0]?.groundingMetadata;
-  return { text, groundingMetadata };
 }
 
 // Model fallback chain: uses Lovable AI Gateway if LOVABLE_API_KEY is present,
@@ -189,8 +200,8 @@ async function generateWithFallback(params: { contents: any; config?: any }) {
     throw lastError;
   }
 
-  // Direct Gemini fallback
-  const directModels = ['gemini-3.8-flash', 'gemini-flash-latest', 'gemini-2.5-pro'];
+  // Direct Gemini API via Google Gen AI SDK on Vertex AI
+  const directModels = ['gemini-3.8-flash', 'gemini-flash-latest'];
   let lastError: any = null;
   for (const model of directModels) {
     try {
