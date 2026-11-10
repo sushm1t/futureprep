@@ -49,6 +49,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { AllFiltersModal, FilterState } from './AllFiltersModal';
+import { ALL_INDUSTRIES } from '../data/jobFiltersData';
 import { evaluateHardConstraints, HardConstraintReport } from '../utils/hardConstraints';
 import { detectGhostJobSignal, GhostSignal } from '../utils/ghostJobDetector';
 import { generateAtsApplicationDossier, getSavedScreeningAnswers, copyTextToClipboard } from '../utils/screeningAnswerBank';
@@ -547,6 +548,22 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   // Freehire 55+ ATS & Multi-Filter States
   const [isAllFiltersOpen, setIsAllFiltersOpen] = useState<boolean>(false);
+  const [isIndustryDropdownOpen, setIsIndustryDropdownOpen] = useState<boolean>(false);
+  const [modalInitialTab, setModalInitialTab] = useState<'specialization' | 'industry' | 'experience' | 'location' | 'workplace' | 'salary' | 'skills' | 'relocation' | 'company' | 'benefits' | 'languages'>('specialization');
+  const industryDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close industry dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (industryDropdownRef.current && !industryDropdownRef.current.contains(event.target as Node)) {
+        setIsIndustryDropdownOpen(false);
+      }
+    }
+    if (isIndustryDropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [isIndustryDropdownOpen]);
 
   // Freehire ATS Auto-Resolver
   const detectedAts = useMemo(() => {
@@ -723,9 +740,10 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
     // Industries
     if (advancedFilters.industries?.length > 0) {
       for (const ind of advancedFilters.industries) {
+        const indItem = ALL_INDUSTRIES.find((item) => item.id === ind);
         chips.push({
           id: `ind-${ind}`,
-          label: ind.replace(/_/g, ' '),
+          label: indItem ? indItem.label : ind.replace(/_/g, ' '),
           onRemove: () => {
             const next = advancedFilters.industries.filter((i) => i !== ind);
             setAdvancedFilters((prev) => ({ ...prev, industries: next }));
@@ -1622,8 +1640,9 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           if (indClean === 'cybersecurity' && /security|cyber|soc|threat/i.test(combinedJobText)) return true;
           if (indClean === 'ai' && /ai|machine\s*learning|llm|deep\s*learning/i.test(combinedJobText)) return true;
           if (indClean === 'travel' && /travel|hospitality|hotel|tourism|flight|airline|booking/i.test(combinedJobText)) return true;
-          if (indClean === 'crypto' && /crypto|blockchain|web3|defi|bitcoin|ethereum|token/i.test(combinedJobText)) return true;
-          if (indClean === 'gamedev' && /game|gaming|unity|unreal|gameplay/i.test(combinedJobText)) return true;
+          if (indClean === 'crypto' && /crypto|blockchain|web3|defi|bitcoin|ethereum|token|coinbase|binance|kraken|wallet/i.test(combinedJobText)) return true;
+          if ((indClean === 'gamedev' || indClean === 'gaming') && /game|gaming|game\s*dev|gameplay|unity|unreal|graphics|shader/i.test(combinedJobText)) return true;
+          if (indClean === 'gambling' && /gambling|igaming|casino|betting|sportsbook/i.test(combinedJobText)) return true;
           if (indClean === 'media' && /media|streaming|content|entertainment|publishing|broadcasting/i.test(combinedJobText)) return true;
           if (indClean === 'edtech' && /edtech|education|learning|school|university|academic|tutor/i.test(combinedJobText)) return true;
           if (indClean === 'govtech' && /govtech|government|public\s*sector|defense|defense\s*tech|aerospace/i.test(combinedJobText)) return true;
@@ -2384,7 +2403,10 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             {/* All Filters Deep Modal Trigger */}
             <button
               type="button"
-              onClick={() => setIsAllFiltersOpen(true)}
+              onClick={() => {
+                setModalInitialTab('specialization');
+                setIsAllFiltersOpen(true);
+              }}
               className="inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-brand border border-primary/30 font-medium rounded-xl text-xs transition-all cursor-pointer shadow-xs"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-brand" />
@@ -2395,6 +2417,84 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 </span>
               )}
             </button>
+
+            {/* Quick Industry Filter Dropdown */}
+            <div className="relative" ref={industryDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsIndustryDropdownOpen((prev) => !prev)}
+                className={`inline-flex items-center gap-1.5 pl-2.5 pr-2.5 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer shadow-xs ${
+                  advancedFilters.industries.length > 0
+                    ? 'bg-brand/10 text-brand border-brand/30 font-semibold'
+                    : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border-border/80'
+                }`}
+                title="Filter by Industry (Fintech, Crypto, Gaming, AI, etc.)"
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Industry</span>
+                {advancedFilters.industries.length > 0 && (
+                  <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
+                    {advancedFilters.industries.length}
+                  </span>
+                )}
+                <ChevronDown className={`w-3 h-3 transition-transform ${isIndustryDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {isIndustryDropdownOpen && (
+                <div className="absolute left-0 top-full mt-1.5 w-64 p-2 bg-card border border-border rounded-xl shadow-xl z-50 space-y-1">
+                  <div className="flex items-center justify-between px-2 py-1 text-[11px] font-semibold text-subtle border-b border-border/60">
+                    <span>Target Industries</span>
+                    {advancedFilters.industries.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setAdvancedFilters((prev) => ({ ...prev, industries: [] }))}
+                        className="text-brand hover:underline cursor-pointer"
+                      >
+                        Clear
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-52 overflow-y-auto space-y-0.5 py-1">
+                    {ALL_INDUSTRIES.map((ind) => {
+                      const isSelected = advancedFilters.industries.includes(ind.id);
+                      return (
+                        <button
+                          key={ind.id}
+                          type="button"
+                          onClick={() => {
+                            const next = isSelected
+                              ? advancedFilters.industries.filter((i) => i !== ind.id)
+                              : [...advancedFilters.industries, ind.id];
+                            setAdvancedFilters((prev) => ({ ...prev, industries: next }));
+                          }}
+                          className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-left ${
+                            isSelected
+                              ? 'bg-brand/15 text-brand font-semibold'
+                              : 'text-foreground hover:bg-surface'
+                          }`}
+                        >
+                          <span className="truncate">{ind.label}</span>
+                          {isSelected && <Check className="w-3.5 h-3.5 text-brand shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="pt-1 border-t border-border/60">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsIndustryDropdownOpen(false);
+                        setModalInitialTab('industry');
+                        setIsAllFiltersOpen(true);
+                      }}
+                      className="w-full text-center py-1 text-[11px] font-semibold text-brand hover:underline cursor-pointer"
+                    >
+                      Search all industries in All Filters &rarr;
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Active Filter Chips */}
             {activeFilterChips.map((chip) => (
@@ -4470,6 +4570,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           onResetFilters={handleResetAllFilters}
           totalCatalogueJobs={totalInCatalogue}
           candidateProfileContext={profileSearchContext}
+          initialTab={modalInitialTab}
         />
       )}
 

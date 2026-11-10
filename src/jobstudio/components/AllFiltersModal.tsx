@@ -71,6 +71,7 @@ interface AllFiltersModalProps {
   onApplyFilters: (newFilters: FilterState) => void;
   onResetFilters: () => void;
   totalCatalogueJobs?: number;
+  initialTab?: TabKey;
   candidateProfileContext?: {
     targetRole?: string;
     domain?: string;
@@ -99,10 +100,12 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
   onApplyFilters,
   onResetFilters,
   totalCatalogueJobs,
+  initialTab,
   candidateProfileContext,
 }) => {
   const [draftFilters, setDraftFilters] = useState<FilterState>({
     ...initialFilters,
+    industries: initialFilters.industries || [],
     companyTypes: initialFilters.companyTypes || [],
     benefits: initialFilters.benefits || [],
     languages: initialFilters.languages || [],
@@ -111,9 +114,10 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
     includeNoLevelStated: initialFilters.includeNoLevelStated !== false,
     includeNoExperienceStated: initialFilters.includeNoExperienceStated !== false,
   });
-  const [activeTab, setActiveTab] = useState<TabKey>('specialization');
+  const [activeTab, setActiveTab] = useState<TabKey>(initialTab || 'specialization');
   const [filterSearch, setFilterSearch] = useState<string>('');
   const [specSearch, setSpecSearch] = useState<string>('');
+  const [industrySearch, setIndustrySearch] = useState<string>('');
   const [benefitSearch, setBenefitSearch] = useState<string>('');
   const [customSkillInput, setCustomSkillInput] = useState<string>('');
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
@@ -123,11 +127,23 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
     product_management: true,
   });
 
+  const filteredIndustries = useMemo(() => {
+    if (!industrySearch.trim()) return ALL_INDUSTRIES;
+    const q = industrySearch.toLowerCase().trim();
+    return ALL_INDUSTRIES.filter(
+      (ind) => ind.label.toLowerCase().includes(q) || ind.id.toLowerCase().includes(q)
+    );
+  }, [industrySearch]);
+
   // Keep draftFilters synchronized whenever modal opens
   useEffect(() => {
     if (isOpen) {
+      if (initialTab) {
+        setActiveTab(initialTab);
+      }
       setDraftFilters({
         ...initialFilters,
+        industries: initialFilters.industries || [],
         companyTypes: initialFilters.companyTypes || [],
         benefits: initialFilters.benefits || [],
         languages: initialFilters.languages || [],
@@ -137,7 +153,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
         includeNoExperienceStated: initialFilters.includeNoExperienceStated !== false,
       });
     }
-  }, [isOpen, initialFilters]);
+  }, [isOpen, initialFilters, initialTab]);
 
   // Toggle helpers
   const toggleSpecialization = (specId: string) => {
@@ -377,6 +393,24 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
               {draftFilters.specializations.length > 0 && (
                 <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
                   {draftFilters.specializations.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('industry')}
+              className={`shrink-0 md:shrink w-auto md:w-full flex items-center justify-between gap-2 px-3 py-2 rounded-lg text-left font-medium transition-colors cursor-pointer ${
+                activeTab === 'industry' ? 'bg-primary/15 text-brand font-semibold' : 'text-subtle hover:text-foreground hover:bg-surface'
+              }`}
+            >
+              <span className="flex items-center gap-2">
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Industry</span>
+              </span>
+              {draftFilters.industries.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
+                  {draftFilters.industries.length}
                 </span>
               )}
             </button>
@@ -863,13 +897,47 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             {/* TAB: INDUSTRY & VC COLLECTIONS */}
             {activeTab === 'industry' && (
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-semibold mb-1">Industry Domains</h3>
-                  <p className="text-xs text-subtle">Filter by market discipline, software domain, or vertical.</p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1">Industry Verticals</h3>
+                    <p className="text-xs text-subtle">
+                      Filter roles by market vertical or sector (e.g. FinTech, Crypto, Gaming, AI, Healthcare).
+                    </p>
+                  </div>
+                  {draftFilters.industries.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setDraftFilters((prev) => ({ ...prev, industries: [] }))}
+                      className="text-xs text-brand hover:underline cursor-pointer self-start sm:self-auto font-medium"
+                    >
+                      Clear industries ({draftFilters.industries.length})
+                    </button>
+                  )}
+                </div>
+
+                {/* Search input for industries */}
+                <div className="relative">
+                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-subtle" />
+                  <input
+                    type="text"
+                    value={industrySearch}
+                    onChange={(e) => setIndustrySearch(e.target.value)}
+                    placeholder="Search industries (e.g. FinTech, Crypto, Gaming, AI, Healthcare)..."
+                    className="w-full pl-9 pr-8 py-2 bg-surface border border-border rounded-xl text-xs text-foreground placeholder:text-subtle focus:outline-none focus:border-primary/50"
+                  />
+                  {industrySearch && (
+                    <button
+                      type="button"
+                      onClick={() => setIndustrySearch('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-subtle hover:text-foreground cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  {ALL_INDUSTRIES.map((ind) => {
+                  {filteredIndustries.map((ind) => {
                     const isSelected = draftFilters.industries.includes(ind.id);
                     return (
                       <button
@@ -884,10 +952,14 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
                       >
                         {isSelected && <Check className="w-3 h-3 text-brand" />}
                         <span>{ind.label}</span>
-                        {ind.countApprox && <span className="text-[10px] text-subtle/80">{ind.countApprox}</span>}
                       </button>
                     );
                   })}
+                  {filteredIndustries.length === 0 && (
+                    <div className="py-4 text-xs text-subtle">
+                      No industries match "{industrySearch}".
+                    </div>
+                  )}
                 </div>
 
                 {/* Company Type */}
