@@ -2055,12 +2055,36 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   return (
     <div className="workspace-evaluator space-y-6 max-w-7xl mx-auto">
-      {/* Modern 2-Pane Master-Detail Cockpit */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Pane (lg:col-span-5): The Discovery Feed */}
-        <div id="discovery-feed-pane" className="lg:col-span-5 space-y-4">
-          {/* Stage 2B: Collapsed Discovery Summary Bar when a role is active */}
-          {isRoleActive && !searchExpanded ? (
+      {/* 1. Main Workspace Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
+        <div>
+          <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground tracking-tight">
+            Job Evaluator
+          </h1>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1">
+            Find opportunities that match your skills, experience and career goals.
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium font-mono bg-surface border border-border text-foreground shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
+            <span>
+              {userPlan === 'pro' || isProUser
+                ? 'Pro plan · Unlimited tailoring'
+                : userPlan === 'plus'
+                ? `Plus plan · ${50 - Math.min(tailoredCount, 50)} of 50 tailored resumes available`
+                : `${2 - Math.min(tailoredCount, 2)} of 2 free tailored resumes available`}
+            </span>
+          </span>
+          <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            Live feed connected
+          </span>
+        </div>
+      </div>
+
+      {/* 2. Full-Width Job Discovery Toolbar */}
+      {isRoleActive && !searchExpanded ? (
             <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 flex flex-col gap-3 shadow-xs">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -2154,20 +2178,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   </button>
                 </>
               )}
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium font-mono bg-surface/90 border border-border/80 text-foreground shadow-2xs">
-                <span className="w-2 h-2 rounded-full bg-brand animate-pulse" />
-                <span>
-                  {userPlan === 'pro' || isProUser
-                    ? 'Pro plan · Unlimited tailoring'
-                    : userPlan === 'plus'
-                    ? `Plus plan · ${50 - Math.min(tailoredCount, 50)} of 50 tailored resumes available`
-                    : `${2 - Math.min(tailoredCount, 2)} of 2 free tailored resumes available`}
-                </span>
-              </span>
-              <span className="text-[11px] font-semibold text-success bg-success/10 px-2.5 py-1 rounded-full flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-                Live feed connected
-              </span>
             </div>
           </div>
 
@@ -2593,6 +2603,27 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
               </button>
             </div>
           )}
+        </div>
+      )}
+
+      {/* 3. Modern 2-Pane Master-Detail Cockpit */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Pane (lg:col-span-5): The Discovery Feed */}
+        <div id="discovery-feed-pane" className="lg:col-span-5 space-y-4">
+          {/* Empty feed state if no roles loaded */}
+          {atsJobs.length === 0 && filteredOpportunities.length === 0 && (
+            <div className="p-8 rounded-xl bg-card border border-border text-center space-y-3">
+              <div className="w-10 h-10 rounded-lg bg-surface flex items-center justify-center mx-auto text-muted-foreground">
+                <Search className="w-5 h-5 text-subtle" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-foreground">No roles loaded yet</h4>
+                <p className="text-xs text-muted-foreground leading-relaxed max-w-xs mx-auto">
+                  Click <strong>Fetch Live Roles</strong> above or search by company/URL to explore open requisitions.
+                </p>
+              </div>
+            </div>
+          )}
 
           {/* Saved Opportunities in Search Mode */}
           {filteredOpportunities.length > 0 && (
@@ -2639,11 +2670,9 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                           <Building2 className="w-3.5 h-3.5 text-subtle" />
                           {job.company}
                         </span>
-                        {job.matchScore !== undefined && (
-                          <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full bg-brand/10 text-brand">
-                            {job.matchScore}%
-                          </span>
-                        )}
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {isSelected && isEvaluationComplete ? 'Assessed' : 'Assessment pending'}
+                        </span>
                       </div>
                       <p className="text-xs font-medium text-foreground">{job.title}</p>
                     </div>
@@ -3101,258 +3130,9 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             </div>
           )}
         </div>
-      )}
 
-      {/* Segmented Feed Tabs (Change 5): Live Roles vs Saved Dossiers */}
-      {isRoleActive && !searchExpanded && (filteredAtsJobs.length > 0 || filteredOpportunities.length > 0) && (
-        <div className="space-y-3">
-          <div className="flex items-center gap-1.5 p-1 bg-surface border border-border rounded-xl">
-            <button
-              type="button"
-              onClick={() => setFeedTab('live')}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                effectiveFeedTab === 'live'
-                  ? 'bg-card text-foreground shadow-xs border border-border/80'
-                  : 'text-subtle hover:text-foreground'
-              }`}
-            >
-              <span>Live Roles</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-surface-2 text-subtle font-mono">
-                {filteredAtsJobs.length}
-              </span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setFeedTab('saved')}
-              className={`flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                effectiveFeedTab === 'saved'
-                  ? 'bg-card text-foreground shadow-xs border border-border/80'
-                  : 'text-subtle hover:text-foreground'
-              }`}
-            >
-              <span>Saved Dossiers</span>
-              <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-surface-2 text-subtle font-mono">
-                {filteredOpportunities.length}
-              </span>
-            </button>
-          </div>
-
-          {/* Tab 1: Live Crawled Positions */}
-          <div className={effectiveFeedTab === 'live' ? 'block' : 'hidden'}>
-            <div className="p-4 bg-card border border-border rounded-2xl shadow-xs space-y-3">
-              <div className="flex items-center justify-between text-xs pb-1 border-b border-border">
-                <span className="font-semibold text-foreground">Live Crawled Positions ({filteredAtsJobs.length})</span>
-                <span className="text-subtle text-[11px]">Click to inspect</span>
-              </div>
-              <div className="space-y-2 max-h-[580px] overflow-y-auto pr-1">
-                {filteredAtsJobs.map((job) => {
-                  const importedId = importedAtsIds.get(job.id);
-                  const isImported = !!importedId && opportunities.some((o) => o.id === importedId);
-                  const isCurrentActive = isImported && (selectedJobId === importedId || (evaluation.job_title === job.title && evaluation.company_name === job.company));
-                  const fitInfo = quickFitTier(job.matchScore || 0);
-                  const displayScore = isCurrentActive && isEvaluationComplete ? evaluation.match_score : job.matchScore;
-                  return (
-                    <div
-                      key={job.id}
-                      onClick={() => {
-                        handleImportAtsJob(job, false);
-                        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                          const el = document.getElementById('role-action-dossier');
-                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                      }}
-                      className={`p-3 rounded-xl border text-left cursor-pointer transition-all flex flex-col gap-1.5 ${
-                        isCurrentActive
-                          ? 'bg-card border-brand ring-2 ring-brand/30 shadow-xs'
-                          : isImported
-                            ? 'bg-card border-border shadow-2xs'
-                            : 'bg-surface/50 border-border hover:bg-surface hover:border-brand/20'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-1">
-                        <span className="text-[11px] font-semibold text-foreground truncate">{job.company}</span>
-                        {displayScore !== undefined && (
-                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                            isCurrentActive && isEvaluationComplete
-                              ? evaluation.match_score >= 80 ? 'bg-success text-white' : evaluation.match_score >= 60 ? 'bg-warning text-white' : 'bg-danger/20 text-danger border border-danger/30'
-                              : fitInfo.tone === 'strong' ? 'bg-success text-white' : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {displayScore > 0 ? `${displayScore}%` : fitInfo.label}
-                          </span>
-                        )}
-                      </div>
-                      <p className="font-semibold text-xs text-foreground line-clamp-1">{job.title}</p>
-                      <div className="flex items-center justify-between text-[10px] text-subtle pt-1 border-t border-border/50">
-                        <span className="truncate">{job.location}</span>
-                        {isCurrentActive ? (
-                          <span className="text-brand font-semibold flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
-                            Viewing Dossier
-                          </span>
-                        ) : isImported ? (
-                          <span className="text-subtle font-medium">Saved · Inspect →</span>
-                        ) : (
-                          <span className="text-brand font-medium">Select →</span>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-
-          {/* Tab 2: Saved & Evaluated Roles */}
-          <div className={effectiveFeedTab === 'saved' ? 'block' : 'hidden'}>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between border-b border-border pb-2">
-                <div className="flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-success" />
-                  <h3 className="font-display font-semibold text-sm text-foreground">
-                    Saved & Evaluated Roles ({filteredOpportunities.length})
-                  </h3>
-                </div>
-                {onClearOpportunities && (
-                  <button
-                    type="button"
-                    onClick={onClearOpportunities}
-                    className="px-2.5 py-1 text-xs text-danger hover:bg-danger/10 rounded-full transition-colors font-medium cursor-pointer"
-                    title="Clear evaluated opportunities from workspace"
-                  >
-                    Clear Evaluated ({filteredOpportunities.length})
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-3 max-h-[580px] overflow-y-auto pr-1">
-                {filteredOpportunities.map((job) => {
-                  const isSelected = selectedJobId === job.id;
-                  return (
-                    <div
-                      key={job.id}
-                      data-saved-job-id={job.id}
-                      style={{ scrollMarginTop: 96 }}
-                      onClick={() => {
-                        onSelectPreset(job.id);
-                        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
-                          const el = document.getElementById('role-action-dossier');
-                          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        }
-                      }}
-                      className={`p-4 rounded-2xl border text-left cursor-pointer transition-all flex flex-col justify-between gap-3 ${
-                        isSelected
-                          ? 'bg-card border-brand ring-2 ring-brand/20 shadow-elevated'
-                          : 'bg-card border-border hover:border-border hover:shadow-elevated'
-                      }`}
-                    >
-                      <div className="space-y-2.5">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-display text-[13px] font-semibold text-foreground flex items-center gap-1.5">
-                              <Building2 className="w-3.5 h-3.5 text-subtle" />
-                              <span>{job.company}</span>
-                            </span>
-                            <span className="text-[11px] px-2 py-0.5 rounded-md font-medium bg-[rgba(120,120,128,0.12)] text-muted-foreground">
-                              {job.platform}
-                            </span>
-                            {(() => {
-                              const gs: GhostSignal = (job as any).ghostSignal || detectGhostJobSignal({
-                                title: job.title,
-                                company: job.company,
-                                platform: job.platform,
-                                verifiedLive: (job as any).verifiedLive,
-                                applyUrl: job.applyUrl,
-                                rawDescription: (job as any).rawDescription || job.description,
-                              });
-                              if (gs.level === 'likely') {
-                                return (
-                                  <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-rose-500/15 text-rose-400 border border-rose-500/30 flex items-center gap-1 font-mono" title={gs.evidenceSummary}>
-                                    <AlertOctagon className="w-2.5 h-2.5" />
-                                    <span>Ghost Risk</span>
-                                  </span>
-                                );
-                              }
-                              return (
-                                <span className="text-[10px] px-2 py-0.5 rounded-full font-medium bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1 font-mono" title="Verified ATS requisition">
-                                  <ShieldCheck className="w-2.5 h-2.5" />
-                                  <span>Verified Direct</span>
-                                </span>
-                              );
-                            })()}
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-medium text-muted-foreground">
-                              {isSelected && isEvaluationComplete ? 'Assessed' : 'Assessment pending'}
-                            </span>
-                            {onRemoveOpportunity && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onRemoveOpportunity(job.id);
-                                }}
-                                className="p-1 rounded-md text-subtle hover:text-danger hover:bg-danger/10 transition-colors"
-                                title="Remove listing"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                          </div>
-                        </div>
-
-                        <h3 className="font-display text-base font-semibold text-foreground line-clamp-1">
-                          {job.title}
-                        </h3>
-
-                        <div className="text-[13px] text-subtle flex items-center gap-1">
-                          <MapPin className="w-3 h-3 shrink-0" />
-                          <span className="truncate">{job.location}</span>
-                        </div>
-
-                        <div className={`p-3 rounded-xl text-[12px] leading-snug ${
-                          (job.matchScore || 0) < 60
-                            ? 'bg-warning/10 text-warning border border-warning/25/60'
-                            : 'bg-surface text-muted-foreground'
-                        }`}>
-                          <span className="font-semibold text-foreground">
-                            {isSelected && isEvaluationComplete ? 'Assessment: ' : 'Role overview: '}
-                          </span>
-                          <span>{job.matchHighlight}</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-3 border-t border-border text-[13px]">
-                        <span className={`font-medium ${isSelected ? 'text-brand font-semibold' : 'text-subtle'}`}>
-                          {isSelected ? '✓ Selected' : 'Click to select & focus'}
-                        </span>
-
-                        {job.applyUrl && (
-                          <a
-                            href={job.applyUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={(e) => e.stopPropagation()}
-                            className="inline-flex items-center gap-1 text-[12px] text-brand font-medium transition-colors hover:underline"
-                            title="Open verified live posting in new tab"
-                          >
-                            <span>Open on {job.platform}</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-
-    {/* Right Pane (lg:col-span-7): The Action Dossier & Analysis */}
-    <div id="role-action-dossier" className="lg:col-span-7 space-y-5 lg:sticky lg:top-6">
+        {/* Right Pane (lg:col-span-7): The Action Dossier & Analysis */}
+        <div id="role-action-dossier" className="lg:col-span-7 space-y-5 lg:sticky lg:top-6">
       {/* Stage 2B: Dedicated Active Role Workspace */}
       {isRoleActive ? (
         <>
@@ -4477,40 +4257,50 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
         </>
       ) : (
-        <div className="workspace-evaluation-empty relative overflow-hidden p-6 sm:p-10 text-center space-y-6 bg-gradient-to-b from-card via-card/95 to-surface/90 border border-border/80 rounded-3xl shadow-elevated">
-          <div className="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
-          <div className="relative z-10 space-y-2 max-w-md mx-auto">
-            <div className="workspace-empty-symbol mx-auto w-14 h-14 rounded-2xl bg-brand/15 border border-brand/30 text-brand flex items-center justify-center shadow-[0_0_20px_rgba(59,130,246,0.25)]">
-              <Compass className="w-7 h-7 text-brand" />
-            </div>
-            <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+        <div className="workspace-evaluation-empty p-8 sm:p-10 rounded-2xl bg-[#11151B] border border-[#1F2733] text-center space-y-6">
+          <div className="mx-auto w-12 h-12 rounded-xl bg-brand/10 border border-brand/20 text-brand flex items-center justify-center">
+            <Compass className="w-6 h-6 text-brand" />
+          </div>
+          <div className="space-y-2 max-w-lg mx-auto">
+            <span className="text-xs font-mono font-medium text-brand uppercase tracking-wider block">
               Your match analysis starts here
+            </span>
+            <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+              Find Your Next Opportunity
             </h3>
             <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-              Select a position from the live feed or import your custom job description to inspect your match.
+              Select a position from the live feed or import your custom job description to discover how well a role matches your experience.
             </p>
           </div>
 
-          {/* What You'll Unlock Preview Card (Calm, non-interactive visual explanation) */}
-          <div className="relative z-10 max-w-sm mx-auto p-4 rounded-2xl bg-surface/30 border border-border/60 text-left space-y-2.5">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-subtle flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-brand" />
-              <span>What you'll see upon selecting a role</span>
+          {/* 3 Visual Steps */}
+          <div className="space-y-3 max-w-2xl mx-auto pt-2 text-left">
+            <div className="text-[11px] font-semibold text-subtle uppercase tracking-wider px-1">
+              What you'll see upon selecting a role
             </div>
-            <ul className="text-xs text-muted-foreground space-y-2">
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                <span><strong className="text-foreground">100-point fit score</strong> with ATS keyword match</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                <span><strong className="text-foreground">Missing competencies</strong> & critical requirements</span>
-              </li>
-              <li className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-brand shrink-0" />
-                <span><strong className="text-foreground">1-click tailored resume</strong> & behavioral STAR questions</span>
-              </li>
-            </ul>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="p-4 rounded-xl bg-[#141820] border border-[#1F2733] space-y-2">
+                <span className="text-[11px] font-mono font-bold text-brand">01</span>
+                <h4 className="text-xs font-semibold text-foreground">Discover opportunities</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Search 80+ top tech and company boards or paste any direct job URL.
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-[#141820] border border-[#1F2733] space-y-2">
+                <span className="text-[11px] font-mono font-bold text-brand">02</span>
+                <h4 className="text-xs font-semibold text-foreground">Select a position</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  Choose any role from the live results list to inspect requirements and fit.
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-[#141820] border border-[#1F2733] space-y-2">
+                <span className="text-[11px] font-mono font-bold text-brand">03</span>
+                <h4 className="text-xs font-semibold text-foreground">Review your compatibility</h4>
+                <p className="text-[11px] text-muted-foreground leading-relaxed">
+                  100-point fit score, ATS keyword match, missing competencies, and tailored resume.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
