@@ -76,7 +76,7 @@ import { detectMissingHaveSkills, injectMissingHaveSkill } from '../utils/missin
 import { calculateOptimalDeliveryWindow } from '../utils/deliveryWindow';
 import { analyzeTrueRequisitionAge } from '../utils/freshnessSentinel';
 
-export const ALL_DISCIPLINE_DEFINITIONS = [
+const ALL_DISCIPLINE_DEFINITIONS = [
   { id: 'Engineering', label: '💻 Engineering' },
   { id: 'Product & Design', label: '🎨 Product & Design' },
   { id: 'Data & AI', label: '🤖 Data & AI' },
@@ -88,7 +88,7 @@ export const ALL_DISCIPLINE_DEFINITIONS = [
   { id: 'Hospitality', label: '🛎️ Hospitality & Services' },
 ];
 
-export function matchesDiscipline(
+function matchesDiscipline(
   job: { title?: string; department?: string; rawDescription?: string },
   deptId: string
 ): boolean {
@@ -2128,58 +2128,36 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
               </div>
             </div>
           ) : (
-            /* Stage 2A: Role Discovery Card (Search Mode) */
-            <div className="workspace-discovery relative overflow-hidden p-6 sm:p-7 space-y-5 bg-gradient-to-b from-card via-card/95 to-surface/90 border border-border/80 rounded-3xl shadow-elevated">
-              <div className="absolute -top-16 -right-16 w-60 h-60 rounded-full bg-brand/10 blur-3xl pointer-events-none" />
-          {/* Header */}
-          <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-border/80">
-            <div>
-              <div className="flex items-center gap-2.5">
-                <h2 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-tight">
-                  Role Discovery
-                </h2>
-                {userPlan === 'pro' || isProUser ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-success/15 text-success font-mono tracking-wider border border-success/30">
-                    ★ PRO
-                  </span>
-                ) : userPlan === 'plus' ? (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-primary/15 text-brand font-mono tracking-wider border border-primary/30">
-                    ★ PLUS
-                  </span>
-                ) : (
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-surface text-subtle font-mono border border-border/70">
-                    FREE PLAN
-                  </span>
-                )}
-              </div>
-              <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                Search live positions across official company boards or import any job listing URL.
-              </p>
-            </div>
-
-            <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+            /* Stage 2A: Sleek Unified Discovery Toolbar */
+            <div className="workspace-discovery bg-card border border-border rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs">
               {isRoleActive && (
-                <>
-                  <button
-                    type="button"
-                    onClick={handleStartFresh}
-                    className="px-3 py-1.5 rounded-xl text-xs font-medium text-subtle hover:text-danger border border-border hover:bg-danger/10 transition-colors cursor-pointer inline-flex items-center gap-1"
-                    title="Reset current tailored application draft back to Master Profile"
-                  >
-                    <RotateCcw className="w-3 h-3" />
-                    <span>Start Fresh</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSearchExpanded(false)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-medium text-subtle hover:text-foreground border border-border hover:bg-surface transition-colors cursor-pointer"
-                  >
-                    ✕ Back to active role
-                  </button>
-                </>
+                <div className="flex items-center justify-between pb-3 border-b border-border/70 text-xs">
+                  <div className="flex items-center gap-2">
+                    <span className="text-subtle font-mono">
+                      Currently inspecting: <strong className="text-foreground">{evaluation.job_title}</strong> at{' '}
+                      <strong className="text-brand">{evaluation.company_name}</strong>
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={handleStartFresh}
+                      className="px-3 py-1.5 rounded-xl text-xs font-medium text-subtle hover:text-danger border border-border hover:bg-danger/10 transition-colors cursor-pointer inline-flex items-center gap-1"
+                      title="Reset current tailored application draft back to Master Profile"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>Start Fresh</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSearchExpanded(false)}
+                      className="px-3 py-1.5 rounded-xl text-xs font-medium text-subtle hover:text-foreground border border-border hover:bg-surface transition-colors cursor-pointer"
+                    >
+                      ✕ Back to active role
+                    </button>
+                  </div>
+                </div>
               )}
-            </div>
-          </div>
 
           {/* Profile Focus Active Indicator */}
           {profileSearchContext.targetRole && (
