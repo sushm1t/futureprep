@@ -1,5 +1,6 @@
 {
-  "name": "tanstack_start_ts",
+  "name": "jobstudio",
+  "description": "Job Studio — AI-powered job opportunity evaluator and ATS-tailored resume generator",
   "private": true,
   "sideEffects": false,
   "type": "module",

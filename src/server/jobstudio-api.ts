@@ -50,7 +50,7 @@ if (typeof globalThis.WebSocket === 'undefined') {
 
 // Ported from the original Express server.ts. Handlers are kept verbatim and
 // run through a tiny Express-compatible shim so they work on the edge runtime.
-// AI runs through the Lovable AI Gateway (or direct Gemini API if GEMINI_API_KEY is configured).
+// AI runs through Google Gemini API on Vertex AI (or fallback gateway if configured).
 // `Type` mirrors @google/genai's schema enum so ported schemas stay unchanged.
 const Type = { OBJECT: 'object', STRING: 'string', INTEGER: 'integer', NUMBER: 'number', BOOLEAN: 'boolean', ARRAY: 'array' } as const;
 
@@ -192,7 +192,7 @@ async function callGeminiDirect(apiKey: string, model: string = 'gemini-3.8-flas
   }
 }
 
-// Model fallback chain: uses Lovable AI Gateway if LOVABLE_API_KEY is present,
+// Model fallback chain: uses AI Gateway if LOVABLE_API_KEY is present,
 // or direct Gemini API if GEMINI_API_KEY / GOOGLE_API_KEY is provided.
 async function generateWithFallback(params: { contents: any; config?: any }) {
   const rawLovable = getLiveEnv('LOVABLE_API_KEY') || process.env['LOVABLE_API_KEY'];
@@ -208,7 +208,7 @@ async function generateWithFallback(params: { contents: any; config?: any }) {
 
   if (!lovableKey && !geminiKey) {
     throw new GatewayError(
-      'AI is not configured. Please add LOVABLE_API_KEY or GEMINI_API_KEY in your .env file.',
+      'AI is not configured. Please add GEMINI_API_KEY in your .env file.',
       401
     );
   }
@@ -234,7 +234,7 @@ async function generateWithFallback(params: { contents: any; config?: any }) {
         console.warn(`Model ${model} unavailable, trying fallback:`, err?.message || err);
       }
     }
-    // If Lovable gateway failed and Gemini direct key is available, attempt fallback
+    // If gateway failed and Gemini direct key is available, attempt fallback
     if (geminiKey) {
       try {
         return await callGeminiDirect(geminiKey, 'gemini-3.8-flash', params);

@@ -1,4 +1,4 @@
-// Static names and durations must satisfy the collector's lovable.webmcp_tool_invoked bounds.
+// Static names and durations must satisfy the collector bounds.
 const MAX_DURATION_MS = 86_400_000;
 
 function track(toolName: string, outcome: "ok" | "error", durationMs: number) {
