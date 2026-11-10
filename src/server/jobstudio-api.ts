@@ -4,6 +4,42 @@ import { sortExperiencesReverseChronological } from '../jobstudio/utils/chronolo
 import { getRoleKeywordExpansions, normalizeRoleTitle } from '../jobstudio/utils/roleExpansion';
 import * as guard from './api-guard';
 import { GoogleGenAI } from '@google/genai';
+import fs from 'fs';
+import path from 'path';
+
+// Dynamically read environment variables from .env on disk (if present) so that edits to
+// GEMINI_API_KEY take immediate effect in dev without requiring a server process restart.
+function getLiveEnv(key: string): string | undefined {
+  try {
+    const envPath = path.resolve(process.cwd(), '.env');
+    if (fs.existsSync(envPath)) {
+      const content = fs.readFileSync(envPath, 'utf8');
+      const lines = content.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) continue;
+        const eqIdx = trimmed.indexOf('=');
+        if (eqIdx !== -1) {
+          const k = trimmed.slice(0, eqIdx).trim();
+          if (k === key) {
+            let val = trimmed.slice(eqIdx + 1).trim();
+            if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+              val = val.slice(1, -1);
+            }
+            if (val && val !== '...' && !val.startsWith('...')) {
+              return val;
+            }
+          }
+        }
+      }
+    }
+  } catch {}
+  const envVal = process.env[key];
+  if (envVal && envVal !== '...' && !envVal.startsWith('...')) {
+    return envVal.trim();
+  }
+  return undefined;
+}
 
 // Polyfill dummy WebSocket in Node.js environments (such as Node 20) where native WebSocket
 // is not globally defined, preventing @supabase/realtime-js from throwing on client initialization.
@@ -90,9 +126,10 @@ let cachedGenAIClient: GoogleGenAI | null = null;
 let cachedGenAIKey: string | null = null;
 
 function getGenAIClient(apiKey: string): GoogleGenAI {
+  const vertexEnv = getLiveEnv('GOOGLE_GENAI_USE_VERTEXAI') || process.env['GOOGLE_GENAI_USE_VERTEXAI'];
   const useVertexAI =
-    process.env['GOOGLE_GENAI_USE_VERTEXAI'] === 'True' ||
-    process.env['GOOGLE_GENAI_USE_VERTEXAI'] === 'true' ||
+    vertexEnv === 'True' ||
+    vertexEnv === 'true' ||
     true; // Route through aiplatform.googleapis.com using vertexai: true
 
   if (cachedGenAIClient && cachedGenAIKey === apiKey) {
@@ -158,9 +195,15 @@ async function callGeminiDirect(apiKey: string, model: string = 'gemini-3.8-flas
 // Model fallback chain: uses Lovable AI Gateway if LOVABLE_API_KEY is present,
 // or direct Gemini API if GEMINI_API_KEY / GOOGLE_API_KEY is provided.
 async function generateWithFallback(params: { contents: any; config?: any }) {
-  const rawLovable = process.env['LOVABLE_API_KEY'];
+  const rawLovable = getLiveEnv('LOVABLE_API_KEY') || process.env['LOVABLE_API_KEY'];
   const lovableKey = (rawLovable && rawLovable !== '...' && !rawLovable.startsWith('...')) ? rawLovable.trim() : undefined;
-  const rawGemini = process.env['GEMINI_API_KEY'] || process.env['GOOGLE_API_KEY'] || process.env['VITE_GEMINI_API_KEY'];
+  const rawGemini =
+    getLiveEnv('GEMINI_API_KEY') ||
+    getLiveEnv('GOOGLE_API_KEY') ||
+    getLiveEnv('VITE_GEMINI_API_KEY') ||
+    process.env['GEMINI_API_KEY'] ||
+    process.env['GOOGLE_API_KEY'] ||
+    process.env['VITE_GEMINI_API_KEY'];
   const geminiKey = (rawGemini && rawGemini !== '...' && !rawGemini.startsWith('...')) ? rawGemini.trim() : undefined;
 
   if (!lovableKey && !geminiKey) {
@@ -220,6 +263,10 @@ app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
     hasApiKey: Boolean(
+      getLiveEnv('LOVABLE_API_KEY') ||
+      getLiveEnv('GEMINI_API_KEY') ||
+      getLiveEnv('GOOGLE_API_KEY') ||
+      getLiveEnv('VITE_GEMINI_API_KEY') ||
       process.env['LOVABLE_API_KEY'] ||
       process.env['GEMINI_API_KEY'] ||
       process.env['GOOGLE_API_KEY'] ||
