@@ -2075,7 +2075,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
   return (
     <div className="workspace-evaluator space-y-6 max-w-7xl mx-auto">
       {/* 1. Main Workspace Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-border/60">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1 pb-1">
         <div>
           <h1 className="text-2xl sm:text-3xl font-display font-bold text-foreground tracking-tight">
             Job Evaluator
@@ -2085,8 +2085,8 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           </p>
         </div>
         <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium font-mono bg-surface border border-border text-foreground shadow-2xs">
-            <span className="w-1.5 h-1.5 rounded-full bg-brand animate-pulse" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium font-mono bg-[#0D1117] border border-[#232B3B] text-foreground shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-brand" />
             <span>
               {userPlan === 'pro' || isProUser
                 ? 'Pro plan · Unlimited tailoring'
@@ -2095,7 +2095,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 : `${2 - Math.min(tailoredCount, 2)} of 2 free tailored resumes available`}
             </span>
           </span>
-          <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-1 rounded-lg flex items-center gap-1.5">
+          <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/25 px-3 py-1.5 rounded-full flex items-center gap-1.5 font-mono">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
             Live feed connected
           </span>
@@ -2148,7 +2148,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             </div>
           ) : (
             /* Stage 2A: Sleek Unified Discovery Toolbar */
-            <div className="workspace-discovery bg-card border border-border rounded-2xl p-4 sm:p-5 space-y-3.5 shadow-xs">
+            <div className="bg-[#0A0D12] border border-[#1F2733] rounded-2xl p-5 sm:p-6 space-y-4 shadow-sm">
               {isRoleActive && (
                 <div className="flex items-center justify-between pb-3 border-b border-border/70 text-xs">
                   <div className="flex items-center gap-2">
@@ -2180,20 +2180,20 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
           {/* Profile Focus Active Indicator */}
           {profileSearchContext.targetRole && (
-            <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 bg-brand/5 border border-brand/20 rounded-xl text-xs">
-              <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 px-3.5 py-2.5 bg-[#0F141E] border border-brand/20 rounded-xl text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Sparkles className="w-3.5 h-3.5 text-brand shrink-0" />
                 <span className="text-foreground">
                   Profile Focus: <strong className="text-brand font-semibold">{profileSearchContext.targetRole}</strong>
                 </span>
                 {profileSearchContext.domain && (
-                  <span className="text-subtle font-normal">· {profileSearchContext.domain}</span>
+                  <span className="text-muted-foreground font-normal">· {profileSearchContext.domain}</span>
                 )}
                 {profileSearchContext.location && (
-                  <span className="text-subtle font-normal">· {profileSearchContext.location}</span>
+                  <span className="text-muted-foreground font-normal">· {profileSearchContext.location}</span>
                 )}
                 {profileSearchContext.relatedRoles && profileSearchContext.relatedRoles.length > 1 && (
-                  <span className="text-brand font-medium bg-brand/10 border border-brand/20 px-2 py-0.5 rounded-full text-[10.5px]">
+                  <span className="text-brand font-medium bg-brand/10 border border-brand/25 px-2.5 py-0.5 rounded-full text-[11px] ml-1">
                     {profileSearchContext.relatedRoles.length} target role tracks
                   </span>
                 )}
@@ -2203,7 +2203,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   type="button"
                   onClick={handleDiscoverLiveWebJobs}
                   disabled={isDiscoveringWeb}
-                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-brand/10 hover:bg-brand/20 text-brand text-[11px] font-semibold transition-all cursor-pointer disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-brand text-xs font-semibold hover:bg-brand/10 transition-colors cursor-pointer disabled:opacity-50"
                 >
                   {isDiscoveringWeb ? (
                     <>
@@ -2234,9 +2234,9 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           )}
 
           {/* Default Search Form: Company or URL & Title or Keyword */}
-          <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 text-xs">
             <div className="sm:col-span-5 relative">
-              <Building2 className="w-4 h-4 text-subtle absolute left-3 top-1/2 -translate-y-1/2" />
+              <Building2 className="w-4 h-4 text-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={atsCustomInput}
@@ -2248,7 +2248,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   }
                 }}
                 placeholder="Company or URL (e.g. Figma, Stripe, Ashby link)"
-                className="w-full pl-9 pr-3 py-2.5 bg-surface border border-transparent focus:border-brand focus:bg-card rounded-xl text-xs text-foreground outline-none transition-all"
+                className="w-full pl-10 pr-3 py-2.5 bg-[#121620] border border-[#232B3B] focus:border-brand rounded-xl text-xs text-foreground outline-none transition-all placeholder:text-subtle"
               />
               {detectedAts && detectedAts.ats !== 'custom' && (
                 <div className="flex items-center gap-1.5 mt-1 px-2.5 py-1 bg-brand/10 border border-brand/20 rounded-lg text-[11px] text-brand">
@@ -2260,7 +2260,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             </div>
 
             <div className="sm:col-span-4 relative">
-              <Search className="w-4 h-4 text-subtle absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-subtle absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={atsKeyword}
@@ -2282,7 +2282,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   }
                 }}
                 placeholder={profileSearchContext.targetRole ? `Search ${profileSearchContext.targetRole} roles...` : "Title or keyword, e.g. Product Designer"}
-                className="w-full pl-9 pr-3 py-2.5 bg-surface border border-transparent focus:border-brand focus:bg-card rounded-xl text-xs text-foreground outline-none transition-all"
+                className="w-full pl-10 pr-3 py-2.5 bg-[#121620] border border-[#232B3B] focus:border-brand rounded-xl text-xs text-foreground outline-none transition-all placeholder:text-subtle"
               />
             </div>
 
@@ -2292,7 +2292,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 data-tour="evaluator-search"
                 onClick={() => handleCrawlAts()}
                 disabled={isCrawlingAts}
-                className="w-full inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-primary-foreground bg-primary hover:bg-primary/90 rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-elevated"
+                className="w-full inline-flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-bold text-black bg-white hover:bg-white/90 rounded-xl transition-all cursor-pointer disabled:opacity-50 shadow-md"
               >
                 {isCrawlingAts ? (
                   <>
@@ -2301,7 +2301,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                   </>
                 ) : (
                   <>
-                    <Zap className="w-3.5 h-3.5" />
+                    <Zap className="w-3.5 h-3.5 fill-black text-black" />
                     <span>Fetch Live Roles</span>
                   </>
                 )}
@@ -2313,8 +2313,8 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           {hasProfile && profileSearchContext.relatedRoles && profileSearchContext.relatedRoles.length > 0 ? (
             <div className="pt-2 border-t border-border/60 space-y-2">
               {/* 1. Target Roles derived from Master Profile */}
-              <div className="flex flex-wrap items-center gap-1.5 text-xs">
-                <span className="text-[11px] text-subtle font-semibold flex items-center gap-1 shrink-0">
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="text-xs text-subtle font-semibold flex items-center gap-1.5 shrink-0 mr-1">
                   <Sparkles className="w-3.5 h-3.5 text-brand" />
                   <span>Target Roles:</span>
                 </span>
@@ -2325,26 +2325,29 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                     setSelectedTargetRoles([]);
                     setAtsKeyword('');
                   }}
-                  className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition-all cursor-pointer flex items-center gap-1 border ${
-                    isBroadRoleMatch || selectedTargetRoles.length === 0 || (!atsKeyword.trim() && !atsCustomInput.trim())
-                      ? 'bg-brand text-white border-brand shadow-xs'
-                      : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border-border/60'
+                  className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 border ${
+                    isBroadRoleMatch || (selectedTargetRoles.length === 0 && !atsKeyword.trim() && !atsCustomInput.trim())
+                      ? 'bg-brand text-white border-brand font-semibold shadow-xs'
+                      : 'bg-[#121620] text-subtle hover:text-foreground hover:bg-[#181E2C] border-[#232B3B]'
                   }`}
                   title="Search across all matching roles and titles identified in your profile"
                 >
                   <span>🎯 All Profile Roles ({profileSearchContext.relatedRoles.length})</span>
                 </button>
                 {profileSearchContext.relatedRoles.map((role) => {
-                  const isActive = !isBroadRoleMatch && selectedTargetRoles.some((r) => r.toLowerCase().trim() === role.toLowerCase().trim());
+                  const isActive = !isBroadRoleMatch && (
+                    selectedTargetRoles.some((r) => r.toLowerCase().trim() === role.toLowerCase().trim()) ||
+                    (selectedTargetRoles.length === 0 && atsKeyword.toLowerCase().trim() === role.toLowerCase().trim())
+                  );
                   return (
                     <button
                       key={role}
                       type="button"
                       onClick={() => handleToggleTargetRole(role)}
-                      className={`px-2.5 py-1 rounded-lg text-[11px] font-medium transition-all cursor-pointer flex items-center gap-1 border ${
+                      className={`px-3 py-1 rounded-full text-xs font-medium transition-all cursor-pointer flex items-center gap-1.5 border ${
                         isActive
                           ? 'bg-brand text-white border-brand font-semibold shadow-xs'
-                          : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border-border/60'
+                          : 'bg-[#121620] text-subtle hover:text-foreground hover:bg-[#181E2C] border-[#232B3B]'
                       }`}
                       title={isActive ? `Click to remove "${role}" from active role search` : `Click to add "${role}" to active role search`}
                       aria-pressed={isActive}
@@ -2538,7 +2541,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
               onToggle={(e) => setIsCustomJdOpen(e.currentTarget.open)}
               className="workspace-accordion-toggle"
             >
-              <summary className="cursor-pointer font-medium text-xs text-subtle hover:text-foreground flex items-center justify-between py-2 px-3.5 rounded-xl bg-surface/70 hover:bg-surface border border-border transition-colors">
+              <summary className="cursor-pointer font-medium text-xs text-subtle hover:text-foreground flex items-center justify-between py-2.5 px-3.5 rounded-xl bg-[#0E131C] hover:bg-[#121724] border border-[#1F2733] transition-colors">
                 <span className="flex items-center gap-2">
                   <FileText className="w-3.5 h-3.5 text-brand" />
                   <span>Or paste a custom job description</span>
@@ -2614,7 +2617,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
             {/* Accordion 2: Full Curated Company Boards Picker */}
             <details className="workspace-accordion-toggle">
-              <summary className="cursor-pointer font-medium text-xs text-subtle hover:text-foreground flex items-center justify-between py-2 px-3.5 rounded-xl bg-surface/70 hover:bg-surface border border-border transition-colors">
+              <summary className="cursor-pointer font-medium text-xs text-subtle hover:text-foreground flex items-center justify-between py-2.5 px-3.5 rounded-xl bg-[#0E131C] hover:bg-[#121724] border border-[#1F2733] transition-colors">
                 <span className="flex items-center gap-2">
                   <Building2 className="w-3.5 h-3.5 text-brand" />
                   <span>Browse curated company boards ({atsCompanies.length} companies)</span>
@@ -2690,9 +2693,9 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
         <div id="discovery-feed-pane" className="lg:col-span-5 space-y-4">
           {/* Empty feed state if no roles loaded */}
           {atsJobs.length === 0 && filteredOpportunities.length === 0 && (
-            <div className="p-8 rounded-xl bg-card border border-border text-center space-y-3">
-              <div className="w-10 h-10 rounded-lg bg-surface flex items-center justify-center mx-auto text-muted-foreground">
-                <Search className="w-5 h-5 text-subtle" />
+            <div className="p-8 sm:p-10 rounded-2xl bg-[#0A0D12] border border-[#1F2733] text-center space-y-3 flex flex-col items-center justify-center min-h-[220px]">
+              <div className="w-10 h-10 rounded-full bg-[#121620] border border-[#232B3B] flex items-center justify-center text-subtle mb-1">
+                <Search className="w-4 h-4 text-subtle" />
               </div>
               <div className="space-y-1">
                 <h4 className="text-sm font-semibold text-foreground">No roles loaded yet</h4>
@@ -4335,50 +4338,21 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
         </>
       ) : (
-        <div className="workspace-evaluation-empty p-8 sm:p-10 rounded-2xl bg-[#11151B] border border-[#1F2733] text-center space-y-6">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-brand/10 border border-brand/20 text-brand flex items-center justify-center">
-            <Compass className="w-6 h-6 text-brand" />
+        <div className="workspace-evaluation-empty p-8 sm:p-10 rounded-2xl bg-[#0A0D12] border border-[#1F2733] text-center space-y-3 flex flex-col items-center justify-center min-h-[220px]">
+          <div className="w-10 h-10 rounded-full bg-brand/10 border border-brand/30 text-brand flex items-center justify-center mb-1">
+            <Compass className="w-5 h-5 text-brand" />
           </div>
-          <div className="space-y-2 max-w-lg mx-auto">
-            <span className="text-xs font-mono font-medium text-brand uppercase tracking-wider block">
-              Your match analysis starts here
+          <div className="space-y-1.5 max-w-md mx-auto">
+            <span className="text-[11px] font-mono font-semibold text-brand uppercase tracking-wider block">
+              YOUR MATCH ANALYSIS STARTS HERE
             </span>
-            <h3 className="font-display text-xl sm:text-2xl font-bold text-foreground tracking-tight">
+            <h3 className="font-display text-lg font-bold text-foreground tracking-tight">
               Find Your Next Opportunity
             </h3>
-            <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed">
               Select a position from the live feed or import your custom job description to discover how well a role matches your experience.
             </p>
-          </div>
-
-          {/* 3 Visual Steps */}
-          <div className="space-y-3 max-w-2xl mx-auto pt-2 text-left">
-            <div className="text-[11px] font-semibold text-subtle uppercase tracking-wider px-1">
-              What you'll see upon selecting a role
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div className="p-4 rounded-xl bg-[#141820] border border-[#1F2733] space-y-2">
-                <span className="text-[11px] font-mono font-bold text-brand">01</span>
-                <h4 className="text-xs font-semibold text-foreground">Discover opportunities</h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Search 80+ top tech and company boards or paste any direct job URL.
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-[#141820] border border-[#1F2733] space-y-2">
-                <span className="text-[11px] font-mono font-bold text-brand">02</span>
-                <h4 className="text-xs font-semibold text-foreground">Select a position</h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  Choose any role from the live results list to inspect requirements and fit.
-                </p>
-              </div>
-              <div className="p-4 rounded-xl bg-[#141820] border border-[#1F2733] space-y-2">
-                <span className="text-[11px] font-mono font-bold text-brand">03</span>
-                <h4 className="text-xs font-semibold text-foreground">Review your compatibility</h4>
-                <p className="text-[11px] text-muted-foreground leading-relaxed">
-                  100-point fit score, ATS keyword match, missing competencies, and tailored resume.
-                </p>
-              </div>
-            </div>
+            <span className="sr-only">What you'll see upon selecting a role</span>
           </div>
         </div>
       )}

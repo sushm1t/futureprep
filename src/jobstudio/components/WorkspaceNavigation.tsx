@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlayCircle, ArrowLeft, Briefcase, Bug, ChevronRight, Compass, FileText, HelpCircle, Layers, LogOut, Menu, Milestone, Sparkles, User, X } from 'lucide-react';
+import { PlayCircle, ArrowLeft, Briefcase, Bug, ChevronRight, Compass, FileText, HelpCircle, Home, Layers, LogOut, Menu, Milestone, Sparkles, User, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export const sections = [
@@ -66,9 +66,12 @@ export function WorkspaceNavigation(props: Props) {
       >
         <span className="workspace-logo"><Layers /></span><span>Job Studio</span>
       </Button>
-      <div className="workspace-account">
-        <span className="workspace-avatar">{props.userName.split(' ').map(part => part[0]).slice(0, 2).join('')}</span>
-        <div><strong>{props.userName.split(' ')[0]}'s workspace</strong><span>Personal workspace</span></div>
+      <div className="workspace-welcome-user">
+        <p className="text-xs text-muted-foreground/80 font-normal">Welcome back,</p>
+        <h2 className="text-xl font-display font-bold text-foreground tracking-tight leading-snug">
+          {props.userName ? props.userName.split(' ')[0] : 'Candidate'}
+        </h2>
+        <p className="text-[11px] text-muted-foreground/70">Personal workspace</p>
       </div>
       {props.activeRole && props.activeTab !== 'evaluator' && (
         <div className="px-3 pb-3">
@@ -96,6 +99,7 @@ export function WorkspaceNavigation(props: Props) {
                 <item.icon />
                 <span>{item.label}</span>
                 {item.id === 'applied' && props.appliedCount > 0 && <span className="workspace-count">{props.appliedCount}</span>}
+                {isActive && <span className="workspace-active-pill" aria-hidden="true" />}
               </Button>
             );
           })}
@@ -199,14 +203,15 @@ export function WorkspaceNavigation(props: Props) {
 
     {/* Topbar */}
     <header className="workspace-topbar no-print">
-      <div className="flex items-center gap-3 min-w-0">
+      <div className="flex items-center gap-2.5 min-w-0">
+        <Home className="w-3.5 h-3.5 text-muted-foreground/80 shrink-0" />
         <div className="workspace-breadcrumb flex items-center gap-1.5 text-xs text-subtle truncate">
           <span>Workspace</span>
-          <span className="text-subtle">/</span>
+          <span className="text-subtle/60">/</span>
           <span className={props.activeRole ? 'text-subtle' : 'font-semibold text-foreground'}>{currentLabel}</span>
           {props.activeRole && (
             <>
-              <span className="text-subtle">/</span>
+              <span className="text-subtle/60">/</span>
               <strong className="text-foreground font-semibold truncate max-w-[220px]" title={props.activeRole}>
                 {props.activeRole.includes('@')
                   ? props.activeRole.split('@')[1]?.trim()
@@ -217,7 +222,14 @@ export function WorkspaceNavigation(props: Props) {
         </div>
       </div>
       <div className="flex items-center gap-3">
-        <span className="workspace-plan-label">{plan === 'pro' ? 'Pro workspace' : plan === 'plus' ? 'Plus workspace' : 'Free workspace'}</span>
+        <button
+          type="button"
+          onClick={() => props.setActiveTab('pricing')}
+          className="workspace-plan-label"
+          title="Manage subscription"
+        >
+          {plan === 'pro' ? 'Pro workspace' : plan === 'plus' ? 'Plus workspace' : 'Free workspace'}
+        </button>
         <Button variant="outline" size="sm" className="workspace-mobile-signout" aria-label="Sign out" title="Sign out" onClick={props.onLogout}><LogOut /><span>Sign out</span></Button>
       </div>
     </header>
