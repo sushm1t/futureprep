@@ -761,10 +761,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
                             : 'bg-surface hover:bg-surface-2 border-transparent text-subtle hover:text-foreground'
                         }`}
                       >
-                        <div>
-                          <div className="font-medium text-foreground">{loc.label}</div>
-                          {loc.countApprox && <div className="text-[11px] text-subtle mt-0.5">{loc.countApprox} live positions</div>}
-                        </div>
+                        <div className="font-medium text-foreground">{loc.label}</div>
                         {isSelected && <Check className="w-4 h-4 text-brand shrink-0" />}
                       </button>
                     );
@@ -983,7 +980,6 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
                         >
                           {isSelected && <Check className="w-3 h-3 text-brand" />}
                           <span>{ct.label}</span>
-                          {ct.countApprox && <span className="text-[10px] text-subtle/80">{ct.countApprox}</span>}
                         </button>
                       );
                     })}
@@ -1017,10 +1013,7 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
                             )}
                             <span className="font-medium text-foreground">{col.label}</span>
                           </div>
-                          <div className="flex items-center gap-2">
-                            {col.countApprox && <span className="text-[11px] text-subtle">{col.countApprox}</span>}
-                            {isSelected && <Check className="w-4 h-4 text-brand" />}
-                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-brand shrink-0" />}
                         </button>
                       );
                     })}
