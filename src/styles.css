@@ -555,8 +555,8 @@ html.lenis, html.lenis body { height: auto; }
 .job-workspace button { box-shadow: none; }
 .workspace-sidebar { position: fixed; inset: 12px auto 12px 12px; width: var(--workspace-sidebar-width); background: #0A0D12; border: 1px solid #1F2733; border-radius: 20px; z-index: 45; display: flex; flex-direction: column; padding: 18px 12px 14px; overflow-y: auto; box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4); }
 .workspace-brand { justify-content: flex-start; width: 100%; font-size: 15px; padding: 0 8px; gap: 10px; font-family: var(--font-display); font-weight: 700; letter-spacing: -0.02em; }
-.workspace-logo { background: #38bdf8; color: #090B0E; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 7px; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.15); }
-.workspace-logo svg { width: 15px; height: 15px; }
+.workspace-logo { background: #38bdf8; color: #090B0E; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 9px; box-shadow: none; border: 1px solid rgba(255, 255, 255, 0.15); }
+.workspace-logo svg { width: 18px; height: 18px; }
 .workspace-welcome-user { padding: 10px 8px 14px; }
 .workspace-welcome-user p { margin: 0; font-size: 12px; color: #94a3b8; }
 .workspace-welcome-user h2 { margin: 2px 0 1px; font-size: 20px; font-weight: 700; color: #f8fafc; font-family: var(--font-display); letter-spacing: -0.02em; }
@@ -609,8 +609,7 @@ html.lenis, html.lenis body { height: auto; }
 .job-workspace .workspace-mobile-signout { display: none; }
 .job-workspace .workspace-main { margin: 14px 16px 40px calc(var(--workspace-sidebar-width) + 24px); width: calc(100% - var(--workspace-sidebar-width) - 40px); max-width: none; padding: 0; }
 .job-workspace .workspace-main > div { max-width: none; width: 100%; margin-inline: 0; }
-.job-workspace footer { margin-left: calc(var(--workspace-sidebar-width) + 24px); background: var(--background) !important; backdrop-filter: none; padding: 16px 20px; }
-.job-workspace footer .pill-pixel { display: none; }
+.job-workspace footer { display: none !important; }
 .workspace-page-header { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 8px; }
 .workspace-page-header p { font-size: 13px; color: var(--muted-foreground); line-height: 1.7; margin-top: 8px; }
 .workspace-header-status { display: flex; align-items: center; gap: 7px; color: var(--muted-foreground); font-size: 11px; white-space: nowrap; }
@@ -632,8 +631,8 @@ html.lenis, html.lenis body { height: auto; }
 .workspace-job-row { border-bottom: 1px solid var(--border); padding: 20px 4px; background: none; }
 .workspace-job-row:hover { background: var(--card); }
 .workspace-job-row h5 { font-size: 15px; }
-.workspace-evaluation-empty { display: flex; gap: 16px; align-items: flex-start; padding: 28px 0; border-top: 1px solid var(--border); }
-.workspace-evaluation-empty h3 { font-size: 16px; margin-bottom: 8px; }
+.workspace-evaluation-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.workspace-evaluation-empty h3 { }
 .workspace-empty-symbol { display: grid; place-items: center; width: 36px; height: 36px; background: var(--surface); border-radius: 6px; flex-shrink: 0; }
 .job-workspace .workspace-main :is(.apple-card, .bg-card):not(#printable-resume-container):not(#printable-resume-container *) {
   border-radius: 16px;
@@ -702,7 +701,7 @@ html.lenis, html.lenis body { height: auto; }
 .job-workspace .workspace-main .workspace-company-grid button > span:last-child { font-size: 9px; opacity: 0.65; }
 .job-workspace .workspace-main .workspace-job-row { border-radius: 0; padding: 16px 8px; }
 .job-workspace .workspace-main :is(.workspace-evaluator, .workspace-screening, .workspace-profile, .workspace-roadmaps) span[class*="rounded-full"][class*="uppercase"] { background: transparent; border: 0; padding: 0; border-radius: 0; font-size: 10px; font-weight: 400; color: var(--subtle); }
-.job-workspace .workspace-main .workspace-evaluation-empty { padding: 24px 0; }
+.job-workspace .workspace-main .workspace-evaluation-empty { }
 .job-workspace .workspace-main .workspace-empty-symbol { background: transparent; border: 1px solid var(--border); width: 32px; height: 32px; }
 .job-workspace .workspace-main .workspace-empty-symbol svg { width: 18px; height: 18px; }
 .job-workspace .workspace-main .workspace-screening > .space-y-6 > .bg-card { background: transparent !important; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; padding: 20px 0; }

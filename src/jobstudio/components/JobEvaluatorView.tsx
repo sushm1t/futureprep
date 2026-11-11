@@ -2395,7 +2395,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 setModalInitialTab('specialization');
                 setIsAllFiltersOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 pl-2.5 pr-3 py-1.5 bg-primary/10 hover:bg-primary/20 text-brand border border-primary/30 font-medium rounded-xl text-xs transition-all cursor-pointer shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#121620] hover:bg-[#161B26] text-foreground border border-[#232B3B] font-medium rounded-xl text-xs transition-all cursor-pointer shadow-xs"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 text-brand" />
               <span className="font-semibold">All Filters</span>
@@ -2410,7 +2410,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
             {activeFilterChips.map((chip) => (
               <span
                 key={chip.id}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-surface/90 hover:bg-surface border border-border/80 text-foreground text-xs font-medium transition-all shadow-2xs group"
+                className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#121620] border border-[#232B3B] text-foreground text-xs font-medium transition-all shadow-2xs group"
               >
                 <span>{chip.label}</span>
                 <button
