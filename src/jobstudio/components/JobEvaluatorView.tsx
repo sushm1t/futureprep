@@ -49,7 +49,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { AllFiltersModal, FilterState } from './AllFiltersModal';
-import { ALL_INDUSTRIES } from '../data/jobFiltersData';
+import { ALL_INDUSTRIES, getLocationDisplayLabel } from '../data/jobFiltersData';
 import { evaluateHardConstraints, HardConstraintReport } from '../utils/hardConstraints';
 import { detectGhostJobSignal, GhostSignal } from '../utils/ghostJobDetector';
 import { generateAtsApplicationDossier, getSavedScreeningAnswers, copyTextToClipboard } from '../utils/screeningAnswerBank';
@@ -584,17 +584,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
     // Location
     if (selectedAtsLocation && selectedAtsLocation !== 'All') {
-      const locLabel =
-        selectedAtsLocation === 'Remote' ? '🌍 Remote' :
-        selectedAtsLocation === 'India' ? '🇮🇳 India' :
-        selectedAtsLocation === 'United States' ? '🇺🇸 United States' :
-        selectedAtsLocation === 'UAE' ? '🇦🇪 UAE' :
-        selectedAtsLocation === 'United Kingdom' ? '🇬🇧 UK' :
-        selectedAtsLocation === 'Germany' ? '🇩🇪 Germany' :
-        selectedAtsLocation === 'Canada' ? '🇨🇦 Canada' :
-        selectedAtsLocation === 'Australia' ? '🇦🇺 Australia' :
-        selectedAtsLocation === 'Europe' ? '🇪🇺 Europe' :
-        selectedAtsLocation;
+      const locLabel = getLocationDisplayLabel(selectedAtsLocation);
       chips.push({
         id: 'location',
         label: locLabel,
@@ -1295,6 +1285,62 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
           if (!job.isRemote && job.workplaceType !== 'Remote' && !combined.includes('remote') && !combined.includes('anywhere')) {
             return false;
           }
+        } else if (lq === 'bengaluru' || lq.includes('bangalore')) {
+          const isBangalore =
+            combined.includes('bengaluru') ||
+            combined.includes('bangalore') ||
+            /\bblr\b/i.test(combined);
+          if (!isBangalore) return false;
+        } else if (lq === 'hyderabad') {
+          const isHyd =
+            combined.includes('hyderabad') ||
+            combined.includes('secunderabad') ||
+            combined.includes('hitec city') ||
+            combined.includes('telangana');
+          if (!isHyd) return false;
+        } else if (lq === 'mumbai') {
+          const isMumbai =
+            combined.includes('mumbai') ||
+            combined.includes('bombay') ||
+            combined.includes('navi mumbai') ||
+            combined.includes('thane') ||
+            combined.includes('mmr');
+          if (!isMumbai) return false;
+        } else if (lq.includes('delhi') || lq.includes('ncr') || lq.includes('gurgaon') || lq.includes('noida')) {
+          const isDelhiNcr =
+            combined.includes('delhi') ||
+            combined.includes('new delhi') ||
+            combined.includes('noida') ||
+            combined.includes('gurgaon') ||
+            combined.includes('gurugram') ||
+            combined.includes('faridabad') ||
+            combined.includes('ghaziabad') ||
+            combined.includes('ncr');
+          if (!isDelhiNcr) return false;
+        } else if (lq === 'chennai') {
+          const isChennai =
+            combined.includes('chennai') ||
+            combined.includes('madras') ||
+            combined.includes('tamil nadu');
+          if (!isChennai) return false;
+        } else if (lq === 'pune') {
+          const isPune =
+            combined.includes('pune') ||
+            combined.includes('hinjewadi') ||
+            combined.includes('pcmc');
+          if (!isPune) return false;
+        } else if (lq === 'kolkata') {
+          const isKolkata =
+            combined.includes('kolkata') ||
+            combined.includes('calcutta') ||
+            combined.includes('west bengal');
+          if (!isKolkata) return false;
+        } else if (lq === 'ahmedabad') {
+          const isAhmedabad =
+            combined.includes('ahmedabad') ||
+            combined.includes('gandhinagar') ||
+            combined.includes('gujarat');
+          if (!isAhmedabad) return false;
         } else if (lq.includes('india')) {
           const isIndia =
             combined.includes('india') ||

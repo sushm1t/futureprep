@@ -1462,7 +1462,23 @@ function mapLocationToFreehireParams(loc?: string): string {
   if (l === 'all' || l === 'worldwide') return '';
   if (l === 'remote') return '&work_mode=remote';
   if (l.includes('uae') || l.includes('emirates') || l.includes('dubai') || l.includes('abu dhabi')) return '&countries=ae';
-  if (l.includes('india')) return '&countries=in';
+  if (
+    l.includes('india') ||
+    l.includes('bengaluru') ||
+    l.includes('bangalore') ||
+    l.includes('hyderabad') ||
+    l.includes('mumbai') ||
+    l.includes('delhi') ||
+    l.includes('gurgaon') ||
+    l.includes('gurugram') ||
+    l.includes('noida') ||
+    l.includes('chennai') ||
+    l.includes('pune') ||
+    l.includes('kolkata') ||
+    l.includes('ahmedabad')
+  ) {
+    return '&countries=in';
+  }
   if (l.includes('united states') || l.includes('usa') || l === 'us') return '&countries=us';
   if (l.includes('canada')) return '&countries=ca';
   if (l.includes('united kingdom') || l.includes('uk') || l.includes('britain') || l === 'gb') return '&countries=gb';
@@ -2749,6 +2765,55 @@ app.post('/api/ats/crawl', async (req, res) => {
             j.workplaceType === 'Remote' ||
             (j.location && (j.location.toLowerCase().includes('remote') || j.location.toLowerCase().includes('anywhere')))
         );
+      } else if (lq === 'bengaluru' || lq.includes('bangalore')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''} ${j.descriptionSnippet || ''}`.toLowerCase();
+          return loc.includes('bengaluru') || loc.includes('bangalore') || /\bblr\b/i.test(loc);
+        });
+      } else if (lq === 'hyderabad') {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''} ${j.descriptionSnippet || ''}`.toLowerCase();
+          return loc.includes('hyderabad') || loc.includes('secunderabad') || loc.includes('hitec city') || loc.includes('telangana');
+        });
+      } else if (lq === 'mumbai') {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''} ${j.descriptionSnippet || ''}`.toLowerCase();
+          return loc.includes('mumbai') || loc.includes('bombay') || loc.includes('navi mumbai') || loc.includes('thane');
+        });
+      } else if (lq.includes('delhi') || lq.includes('ncr') || lq.includes('gurgaon') || lq.includes('noida')) {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''} ${j.descriptionSnippet || ''}`.toLowerCase();
+          return (
+            loc.includes('delhi') ||
+            loc.includes('new delhi') ||
+            loc.includes('noida') ||
+            loc.includes('gurgaon') ||
+            loc.includes('gurugram') ||
+            loc.includes('faridabad') ||
+            loc.includes('ghaziabad') ||
+            loc.includes('ncr')
+          );
+        });
+      } else if (lq === 'chennai') {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''} ${j.descriptionSnippet || ''}`.toLowerCase();
+          return loc.includes('chennai') || loc.includes('madras') || loc.includes('tamil nadu');
+        });
+      } else if (lq === 'pune') {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''} ${j.descriptionSnippet || ''}`.toLowerCase();
+          return loc.includes('pune') || loc.includes('hinjewadi') || loc.includes('pcmc');
+        });
+      } else if (lq === 'kolkata') {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''} ${j.descriptionSnippet || ''}`.toLowerCase();
+          return loc.includes('kolkata') || loc.includes('calcutta') || loc.includes('west bengal');
+        });
+      } else if (lq === 'ahmedabad') {
+        filtered = filtered.filter((j) => {
+          const loc = `${j.location || ''} ${j.title || ''} ${j.descriptionSnippet || ''}`.toLowerCase();
+          return loc.includes('ahmedabad') || loc.includes('gandhinagar') || loc.includes('gujarat');
+        });
       } else if (lq.includes('india')) {
         filtered = filtered.filter((j) => {
           const loc = `${j.location || ''} ${j.title || ''} ${j.descriptionSnippet || ''}`.toLowerCase();

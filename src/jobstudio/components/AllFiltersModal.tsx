@@ -33,6 +33,9 @@ import {
   WORKPLACE_MODES,
   EMPLOYMENT_TYPES,
   POPULAR_LOCATIONS,
+  POPULAR_CITIES_BY_COUNTRY,
+  getCountryForLocation,
+  getLocationDisplayLabel,
   POPULAR_SKILLS,
   ALL_BENEFITS_PERKS,
   ALL_LANGUAGES,
@@ -740,35 +743,114 @@ export const AllFiltersModal: React.FC<AllFiltersModalProps> = ({
             )}
 
             {/* TAB: LOCATION */}
-            {activeTab === 'location' && (
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-semibold mb-1">Target Geographic Location</h3>
-                  <p className="text-xs text-subtle">Verified openings mapped across global tech hubs and regional talent markets.</p>
-                </div>
+            {activeTab === 'location' && (() => {
+              const selectedCountry = getCountryForLocation(draftFilters.location);
+              const availableCities = selectedCountry ? POPULAR_CITIES_BY_COUNTRY[selectedCountry] : null;
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {POPULAR_LOCATIONS.map((loc) => {
-                    const isSelected = (draftFilters.location || 'All') === loc.id;
-                    return (
-                      <button
-                        key={loc.id}
-                        type="button"
-                        onClick={() => setDraftFilters((prev) => ({ ...prev, location: loc.id }))}
-                        className={`flex items-center justify-between p-3 rounded-xl border text-left text-xs transition-all cursor-pointer ${
-                          isSelected
-                            ? 'bg-primary/15 border-primary/40 text-brand font-semibold'
-                            : 'bg-surface hover:bg-surface-2 border-transparent text-subtle hover:text-foreground'
-                        }`}
-                      >
-                        <div className="font-medium text-foreground">{loc.label}</div>
-                        {isSelected && <Check className="w-4 h-4 text-brand shrink-0" />}
-                      </button>
-                    );
-                  })}
+              return (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-sm font-semibold mb-1">Target Geographic Location</h3>
+                    <p className="text-xs text-subtle">Verified openings mapped across global tech hubs and regional talent markets.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {POPULAR_LOCATIONS.map((loc) => {
+                      const isCountryActive =
+                        (draftFilters.location || 'All') === loc.id ||
+                        selectedCountry === loc.id;
+
+                      // Check if a specific city under this country is active
+                      const activeCity =
+                        selectedCountry === loc.id && draftFilters.location !== loc.id
+                          ? POPULAR_CITIES_BY_COUNTRY[loc.id]?.find((c) => c.id === draftFilters.location)
+                          : null;
+
+                      return (
+                        <button
+                          key={loc.id}
+                          type="button"
+                          onClick={() => {
+                            if (loc.id === 'all' || loc.id === 'remote') {
+                              setDraftFilters((prev) => ({ ...prev, location: loc.id }));
+                            } else {
+                              // If already in this country with a city, or clicking new country, select the country
+                              setDraftFilters((prev) => ({ ...prev, location: loc.id }));
+                            }
+                          }}
+                          className={`flex items-center justify-between p-3 rounded-xl border text-left text-xs transition-all cursor-pointer ${
+                            isCountryActive
+                              ? 'bg-primary/15 border-primary/40 text-brand font-semibold shadow-xs'
+                              : 'bg-surface hover:bg-surface-2 border-transparent text-subtle hover:text-foreground'
+                          }`}
+                        >
+                          <div className="font-medium text-foreground flex items-center gap-1.5 flex-wrap">
+                            <span>{loc.label}</span>
+                            {activeCity && (
+                              <span className="text-[11px] font-normal text-brand bg-primary/20 px-2 py-0.5 rounded-md">
+                                {activeCity.shortLabel || activeCity.label}
+                              </span>
+                            )}
+                          </div>
+                          {isCountryActive && <Check className="w-4 h-4 text-brand shrink-0" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {/* Sub-City Selector when a country with cities (like India) is chosen */}
+                  {selectedCountry && availableCities && availableCities.length > 0 && (
+                    <div className="mt-5 p-4 rounded-2xl bg-surface/90 border border-primary/30 space-y-3.5 animate-in fade-in duration-200">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div>
+                          <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                            <span>{selectedCountry === 'India' ? '🇮🇳' : selectedCountry === 'United States' ? '🇺🇸' : selectedCountry === 'UAE' ? '🇦🇪' : '🇬🇧'}</span>
+                            <span>Cities in {selectedCountry}</span>
+                          </h4>
+                          <p className="text-[11px] text-subtle mt-0.5">
+                            Select a specific metropolitan tech hub or search across entire {selectedCountry}.
+                          </p>
+                        </div>
+                        {draftFilters.location !== selectedCountry && (
+                          <button
+                            type="button"
+                            onClick={() => setDraftFilters((prev) => ({ ...prev, location: selectedCountry }))}
+                            className="text-[11px] text-brand hover:underline font-medium cursor-pointer"
+                          >
+                            Reset to Entire {selectedCountry}
+                          </button>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-1">
+                        {availableCities.map((city) => {
+                          const isCityActive =
+                            city.id === selectedCountry
+                              ? draftFilters.location === selectedCountry
+                              : draftFilters.location === city.id;
+
+                          return (
+                            <button
+                              key={city.id}
+                              type="button"
+                              onClick={() => setDraftFilters((prev) => ({ ...prev, location: city.id }))}
+                              className={`flex items-center justify-between p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
+                                isCityActive
+                                  ? 'bg-primary/20 border-primary text-brand font-semibold shadow-xs'
+                                  : 'bg-surface-2 hover:bg-surface border-border/40 text-foreground hover:border-border'
+                              }`}
+                            >
+                              <span className="truncate">{city.label}</span>
+                              {isCityActive && <Check className="w-3.5 h-3.5 text-brand shrink-0 ml-1.5" />}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* TAB: WORKPLACE & EMPLOYMENT */}
             {activeTab === 'workplace' && (

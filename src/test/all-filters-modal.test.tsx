@@ -364,4 +364,38 @@ describe('AllFiltersModal trigger in JobEvaluatorView', () => {
     expect(screen.getByText('FinTech & Payments')).toBeDefined();
     expect(screen.getByText('GameDev & Gaming')).toBeDefined();
   });
+
+  it('allows selecting entire India or specific cities in India like Bengaluru or Hyderabad', () => {
+    render(<JobEvaluatorView {...mockProps} />);
+
+    // 1. Open All Filters modal from the toolbar
+    const allFiltersBtn = screen.getByRole('button', { name: /all filters/i });
+    fireEvent.click(allFiltersBtn);
+
+    // 2. Click the Location tab
+    const locTab = screen.getByRole('button', { name: /^location$/i });
+    fireEvent.click(locTab);
+
+    // 3. Click India in the country grid
+    const indiaCountryBtn = screen.getByRole('button', { name: /🇮🇳 India/i });
+    fireEvent.click(indiaCountryBtn);
+
+    // 4. Verify Cities in India sub-panel appears with Entire India and cities
+    expect(screen.getByText(/cities in india/i)).toBeDefined();
+    expect(screen.getByRole('button', { name: /entire india \(all cities\)/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /bengaluru \/ bangalore/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /hyderabad/i })).toBeDefined();
+    expect(screen.getByRole('button', { name: /mumbai \/ mmr/i })).toBeDefined();
+
+    // 5. Select Bengaluru / Bangalore
+    const bangaloreBtn = screen.getByRole('button', { name: /bengaluru \/ bangalore/i });
+    fireEvent.click(bangaloreBtn);
+
+    // 6. Apply filters
+    const applyBtn = screen.getByRole('button', { name: /show filtered matching roles/i });
+    fireEvent.click(applyBtn);
+
+    // 7. Verify the toolbar chip displays Bengaluru, India
+    expect(screen.getByText(/bengaluru, india/i)).toBeDefined();
+  });
 });

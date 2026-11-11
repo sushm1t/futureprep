@@ -326,6 +326,73 @@ export const POPULAR_LOCATIONS = [
   { id: 'Europe', label: '🇪🇺 Europe (All)', countApprox: '1.8M+' },
 ];
 
+export interface CityOption {
+  id: string;
+  label: string;
+  shortLabel?: string;
+}
+
+export const POPULAR_CITIES_BY_COUNTRY: Record<string, CityOption[]> = {
+  India: [
+    { id: 'India', label: 'Entire India (All Cities)', shortLabel: 'All India' },
+    { id: 'Bengaluru', label: 'Bengaluru / Bangalore', shortLabel: 'Bengaluru' },
+    { id: 'Hyderabad', label: 'Hyderabad', shortLabel: 'Hyderabad' },
+    { id: 'Mumbai', label: 'Mumbai / MMR', shortLabel: 'Mumbai' },
+    { id: 'Delhi NCR', label: 'Delhi NCR (Gurgaon / Noida / Delhi)', shortLabel: 'Delhi NCR' },
+    { id: 'Chennai', label: 'Chennai', shortLabel: 'Chennai' },
+    { id: 'Pune', label: 'Pune', shortLabel: 'Pune' },
+    { id: 'Kolkata', label: 'Kolkata', shortLabel: 'Kolkata' },
+    { id: 'Ahmedabad', label: 'Ahmedabad', shortLabel: 'Ahmedabad' },
+  ],
+  'United States': [
+    { id: 'United States', label: 'Entire United States', shortLabel: 'All US' },
+    { id: 'San Francisco Bay Area', label: 'SF Bay Area / Silicon Valley', shortLabel: 'SF Bay Area' },
+    { id: 'New York', label: 'New York City Metro', shortLabel: 'NYC' },
+    { id: 'Seattle', label: 'Seattle Metro', shortLabel: 'Seattle' },
+    { id: 'Austin', label: 'Austin', shortLabel: 'Austin' },
+    { id: 'Boston', label: 'Boston', shortLabel: 'Boston' },
+  ],
+  UAE: [
+    { id: 'UAE', label: 'Entire UAE', shortLabel: 'All UAE' },
+    { id: 'Dubai', label: 'Dubai', shortLabel: 'Dubai' },
+    { id: 'Abu Dhabi', label: 'Abu Dhabi', shortLabel: 'Abu Dhabi' },
+  ],
+  'United Kingdom': [
+    { id: 'United Kingdom', label: 'Entire United Kingdom', shortLabel: 'All UK' },
+    { id: 'London', label: 'London Metro', shortLabel: 'London' },
+    { id: 'Manchester', label: 'Manchester', shortLabel: 'Manchester' },
+  ],
+};
+
+export const INDIA_CITIES = POPULAR_CITIES_BY_COUNTRY['India'];
+
+export function getCountryForLocation(locId?: string): string | null {
+  if (!locId || locId === 'All' || locId === 'all' || locId === 'remote') return null;
+  for (const [country, cities] of Object.entries(POPULAR_CITIES_BY_COUNTRY)) {
+    if (locId === country) return country;
+    if (cities.some((c) => c.id === locId)) return country;
+  }
+  return null;
+}
+
+export function getLocationDisplayLabel(locId?: string): string {
+  if (!locId || locId === 'All' || locId === 'all') return 'All Locations';
+  if (locId === 'remote') return '🌍 Global Remote';
+  for (const [country, cities] of Object.entries(POPULAR_CITIES_BY_COUNTRY)) {
+    const city = cities.find((c) => c.id === locId);
+    if (city) {
+      const flag =
+        country === 'India' ? '🇮🇳' :
+        country === 'United States' ? '🇺🇸' :
+        country === 'UAE' ? '🇦🇪' :
+        country === 'United Kingdom' ? '🇬🇧' : '';
+      if (city.id === country) return `${flag ? flag + ' ' : ''}${country}`;
+      return `${flag ? flag + ' ' : ''}${city.shortLabel || city.label}, ${country}`;
+    }
+  }
+  return locId;
+}
+
 export const POPULAR_SKILLS = [
   'Python', 'React', 'TypeScript', 'SQL', 'AWS', 'Docker', 'Kubernetes',
   'Node.js', 'Go', 'Java', 'Next.js', 'PyTorch', 'C++', 'Rust', 'GraphQL',
