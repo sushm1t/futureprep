@@ -100,20 +100,9 @@ export const ResumeDocument: React.FC<ResumeDocumentProps> = ({
   const [newSkill, setNewSkill] = useState('');
   const [newCert, setNewCert] = useState('');
 
-  // Page layout & density controls
+  // Page layout & density controls - default to Full Page (Executive)
   const [fitSinglePage, setFitSinglePage] = useState(true);
-
-  // Auto-detect optimal density based on content volume (1-2 roles default to comfortable full-page)
-  const defaultDensity = React.useMemo(() => {
-    const totalExp = (resume.experiences || []).length;
-    const totalBullets = (resume.experiences || []).reduce((acc, e) => acc + (e.bullets?.length || 0), 0) +
-                         (resume.projects || []).reduce((acc, p) => acc + (p.bullets?.length || 0), 0);
-    if (totalExp <= 2 && totalBullets <= 12) return 'comfortable';
-    if (totalExp >= 4 || totalBullets >= 18) return 'compact';
-    return 'balanced';
-  }, [resume.experiences, resume.projects]);
-
-  const [density, setDensity] = useState<'comfortable' | 'balanced' | 'compact'>(defaultDensity);
+  const [density, setDensity] = useState<'comfortable' | 'balanced' | 'compact'>('comfortable');
 
   // Freehire Superpowers: Recruiter Tracer Links & Experience Bank
   const [enableTracerLinks, setEnableTracerLinks] = useState(false);
