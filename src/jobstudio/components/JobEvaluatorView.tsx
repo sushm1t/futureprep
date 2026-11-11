@@ -548,22 +548,7 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
 
   // Freehire 55+ ATS & Multi-Filter States
   const [isAllFiltersOpen, setIsAllFiltersOpen] = useState<boolean>(false);
-  const [isIndustryDropdownOpen, setIsIndustryDropdownOpen] = useState<boolean>(false);
   const [modalInitialTab, setModalInitialTab] = useState<'specialization' | 'industry' | 'experience' | 'location' | 'workplace' | 'salary' | 'skills' | 'relocation' | 'company' | 'benefits' | 'languages'>('specialization');
-  const industryDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Close industry dropdown on outside click
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (industryDropdownRef.current && !industryDropdownRef.current.contains(event.target as Node)) {
-        setIsIndustryDropdownOpen(false);
-      }
-    }
-    if (isIndustryDropdownOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [isIndustryDropdownOpen]);
 
   // Freehire ATS Auto-Resolver
   const detectedAts = useMemo(() => {
@@ -2420,84 +2405,6 @@ export const JobEvaluatorView: React.FC<JobEvaluatorViewProps> = ({
                 </span>
               )}
             </button>
-
-            {/* Quick Industry Filter Dropdown */}
-            <div className="relative" ref={industryDropdownRef}>
-              <button
-                type="button"
-                onClick={() => setIsIndustryDropdownOpen((prev) => !prev)}
-                className={`inline-flex items-center gap-1.5 pl-2.5 pr-2.5 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer shadow-xs ${
-                  advancedFilters.industries.length > 0
-                    ? 'bg-brand/10 text-brand border-brand/30 font-semibold'
-                    : 'bg-surface text-subtle hover:text-foreground hover:bg-surface-2 border-border/80'
-                }`}
-                title="Filter by Industry (Fintech, Crypto, Gaming, AI, etc.)"
-              >
-                <Building2 className="w-3.5 h-3.5" />
-                <span>Industry</span>
-                {advancedFilters.industries.length > 0 && (
-                  <span className="w-4 h-4 rounded-full bg-brand text-[10px] font-bold text-white flex items-center justify-center">
-                    {advancedFilters.industries.length}
-                  </span>
-                )}
-                <ChevronDown className={`w-3 h-3 transition-transform ${isIndustryDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isIndustryDropdownOpen && (
-                <div className="absolute left-0 top-full mt-1.5 w-64 p-2 bg-card border border-border rounded-xl shadow-xl z-50 space-y-1">
-                  <div className="flex items-center justify-between px-2 py-1 text-[11px] font-semibold text-subtle border-b border-border/60">
-                    <span>Target Industries</span>
-                    {advancedFilters.industries.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setAdvancedFilters((prev) => ({ ...prev, industries: [] }))}
-                        className="text-brand hover:underline cursor-pointer"
-                      >
-                        Clear
-                      </button>
-                    )}
-                  </div>
-                  <div className="max-h-52 overflow-y-auto space-y-0.5 py-1">
-                    {ALL_INDUSTRIES.map((ind) => {
-                      const isSelected = advancedFilters.industries.includes(ind.id);
-                      return (
-                        <button
-                          key={ind.id}
-                          type="button"
-                          onClick={() => {
-                            const next = isSelected
-                              ? advancedFilters.industries.filter((i) => i !== ind.id)
-                              : [...advancedFilters.industries, ind.id];
-                            setAdvancedFilters((prev) => ({ ...prev, industries: next }));
-                          }}
-                          className={`w-full flex items-center justify-between px-2 py-1.5 rounded-lg text-xs transition-colors cursor-pointer text-left ${
-                            isSelected
-                              ? 'bg-brand/15 text-brand font-semibold'
-                              : 'text-foreground hover:bg-surface'
-                          }`}
-                        >
-                          <span className="truncate">{ind.label}</span>
-                          {isSelected && <Check className="w-3.5 h-3.5 text-brand shrink-0" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  <div className="pt-1 border-t border-border/60">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setIsIndustryDropdownOpen(false);
-                        setModalInitialTab('industry');
-                        setIsAllFiltersOpen(true);
-                      }}
-                      className="w-full text-center py-1 text-[11px] font-semibold text-brand hover:underline cursor-pointer"
-                    >
-                      Search all industries in All Filters &rarr;
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
 
             {/* Active Filter Chips */}
             {activeFilterChips.map((chip) => (

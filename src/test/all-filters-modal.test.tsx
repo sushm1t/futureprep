@@ -335,32 +335,25 @@ describe('AllFiltersModal trigger in JobEvaluatorView', () => {
     expect(screen.queryByLabelText(/remove filter/i)).toBeNull();
   });
 
-  it('allows filtering by Industry both via toolbar quick-select and AllFiltersModal Industry tab', () => {
+  it('allows filtering by Industry inside AllFiltersModal Industry tab', () => {
     render(<JobEvaluatorView {...mockProps} />);
 
-    // 1. Check quick industry dropdown in toolbar
-    const industryDropdownBtn = screen.getByRole('button', { name: /^industry$/i });
-    expect(industryDropdownBtn).toBeDefined();
+    // 1. Open All Filters modal from the toolbar
+    const allFiltersBtn = screen.getByRole('button', { name: /all filters/i });
+    fireEvent.click(allFiltersBtn);
 
-    fireEvent.click(industryDropdownBtn);
-    expect(screen.getByText('Target Industries')).toBeDefined();
-
-    // Select FinTech & Payments from dropdown
-    const fintechBtn = screen.getByRole('button', { name: /fintech & payments/i });
-    fireEvent.click(fintechBtn);
-
-    // Active chip for FinTech appears in toolbar
-    expect(screen.getAllByText(/fintech & payments/i).length).toBeGreaterThanOrEqual(1);
-
-    // 2. Open All Filters via modal button inside dropdown
-    const openModalBtn = screen.getByRole('button', { name: /search all industries in all filters/i });
-    fireEvent.click(openModalBtn);
+    // 2. Click the Industry tab inside the modal
+    const industryTabBtn = screen.getByRole('button', { name: /^industry/i });
+    fireEvent.click(industryTabBtn);
 
     // The modal opens with the Industry tab active
     expect(screen.getByRole('heading', { name: /industry verticals/i })).toBeDefined();
     expect(screen.getByPlaceholderText(/search industries/i)).toBeDefined();
 
-    // Select GameDev & Gaming
+    // Select FinTech & Payments and GameDev & Gaming
+    const fintechBtn = screen.getByRole('button', { name: /fintech & payments/i });
+    fireEvent.click(fintechBtn);
+
     const gamingBtn = screen.getByRole('button', { name: /gamedev & gaming/i });
     fireEvent.click(gamingBtn);
 
