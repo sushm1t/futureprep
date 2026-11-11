@@ -882,7 +882,8 @@ export default function App() {
       });
 
       if (!evalRes.ok) {
-        throw new Error('Evaluation request failed');
+        const errData = await evalRes.json().catch(() => null);
+        throw new Error(errData?.error || 'Evaluation request failed');
       }
 
       const evalData: JobEvaluationData = await evalRes.json();
@@ -920,7 +921,8 @@ export default function App() {
       });
 
       if (!tailorRes.ok) {
-        throw new Error('Tailoring request failed');
+        const errData = await tailorRes.json().catch(() => null);
+        throw new Error(errData?.error || 'Tailoring request failed');
       }
 
       const tailorData = await tailorRes.json();
@@ -973,7 +975,7 @@ export default function App() {
       // themselves via "View Resume".
     } catch (err: any) {
       console.error('Error running evaluation:', err);
-      alert('Failed to evaluate with Gemini API. Please check server logs or API key.');
+      alert(err?.message || 'Failed to evaluate with Gemini API. Please check server logs or API key.');
     } finally {
       setIsEvaluating(false);
     }

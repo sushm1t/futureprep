@@ -244,18 +244,8 @@ async function generateWithFallback(params: { contents: any; config?: any }) {
   }
 
   // Direct Gemini API via Google Gen AI SDK on Vertex AI
-  const directModels = ['gemini-3.8-flash', 'gemini-flash-latest'];
-  let lastError: any = null;
-  for (const model of directModels) {
-    try {
-      return await callGeminiDirect(geminiKey, model, params);
-    } catch (err: any) {
-      lastError = err;
-      if (!(err?.status === 404 || err?.status === 429 || err?.status >= 500)) throw err;
-      console.warn(`Direct model ${model} unavailable (${err?.status}), trying fallback:`, err?.message || err);
-    }
-  }
-  throw lastError;
+  // gemini-3.8-flash is the primary model configured on Vertex AI in this environment
+  return await callGeminiDirect(geminiKey, 'gemini-3.8-flash', params);
 }
 
 // Health check endpoint
